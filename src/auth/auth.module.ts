@@ -4,10 +4,11 @@ import { AuthService } from './auth.service';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { eaConstant } from './constant';
+import { JwtStrategy } from 'src/providers/jwt.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   imports: [UserModule,
     JwtModule.register({
       global: true,

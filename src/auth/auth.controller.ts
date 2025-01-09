@@ -6,6 +6,7 @@ import {
     HttpStatus,
     Post,
     Request,
+    UnauthorizedException,
     UseGuards
   } from '@nestjs/common';
   import { AuthGuard } from './auth.guard';
@@ -17,8 +18,13 @@ import {
   
     @HttpCode(HttpStatus.OK)
     @Post('login')
-    signIn(@Body() signInDto: Record<string, any>) {
-      return this.authService.signIn(signInDto.username, signInDto.password);
+    async login(@Body() loginDto: Record<string, any>) {
+      const { username, password } = loginDto;
+      const user = await this.authService.checkCredentials(username, password)
+      if (!user){
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      return this.authService.generateToken(user.id);
     }
   
     @UseGuards(AuthGuard)

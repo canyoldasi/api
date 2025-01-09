@@ -1,6 +1,6 @@
 export class UserCreateDto {
     username: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     password: string;
+    isActive: boolean;
 }
