@@ -1,14 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserCreateDto } from './user-create.dto';
 import { UserService } from './user.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('users')
 export class UserController {
     constructor (
         private userService: UserService
     ) {
     }
-
 
     @Post()
     async add(@Body() dto: UserCreateDto){
