@@ -23,7 +23,8 @@ export class UserService {
     const userToSave = this.entityManager.create(User, {
       username: user.username,
       fullName: user.fullName,
-      password: await bcrypt.hash(user.password, 1)
+      password: await bcrypt.hash(user.password, 1),
+      roles: user.roles
     });
     await this.entityManager.save(userToSave);
     return new User()

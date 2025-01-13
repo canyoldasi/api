@@ -1,32 +1,29 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CatModule } from 'src/cat/cat.module';
-import { CustomLoggerMiddleware } from 'src/providers/custom.logger.middleware';
+import { LoggerMiddleware } from 'src/providers/logger.middleware';
 import { AuthModule } from 'src/auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/user/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from 'src/providers/jwt.strategy';
 
 @Module({
   imports: [
-    CatModule, 
     AuthModule,
     PassportModule,
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'root',
-      database: 'canyoldasi',
-      synchronize: true,
+      type: 'mysql',
+      host: process.env.DATABASE_HOST,
+      port: Number(process.env.DATABASE_PORT),
+      username: process.env.DATABASE_USERNAME,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+      synchronize: Boolean(process.env.DATABASE_SYNC),
       autoLoadEntities: true
     }),
     JwtModule.register({
-      secret: '1',
+      secret: process.env.JWT_SECRET,
       signOptions: {
         expiresIn: '9999h'
       }
@@ -38,7 +35,7 @@ import { JwtStrategy } from 'src/providers/jwt.strategy';
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
     consumer
-    .apply(CustomLoggerMiddleware)
+    .apply(LoggerMiddleware)
     .forRoutes('cats')
   }
 }

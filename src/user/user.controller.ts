@@ -1,7 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserCreateDto } from './user-create.dto';
 import { UserService } from './user.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/providers/auth.guard';
+import { Roles } from 'src/providers/roles.decorator';
+import { Role } from 'src/providers/role.enum';
 
 @UseGuards(AuthGuard)
 @Controller('users')
@@ -27,6 +29,7 @@ export class UserController {
     }
 
     @Get()
+    @Roles(Role.Admin)
     getAll(){
         return this.userService.getAll()
     }

@@ -9,7 +9,7 @@ import {
     UnauthorizedException,
     UseGuards
   } from '@nestjs/common';
-  import { AuthGuard } from './auth.guard';
+  import { AuthGuard } from '../providers/auth.guard';
   import { AuthService } from './auth.service';
   
   @Controller('auth')
@@ -24,7 +24,7 @@ import {
       if (!user){
         throw new UnauthorizedException('Invalid credentials');
       }
-      return this.authService.generateToken(user.id);
+      return this.authService.generateToken(user.id, user.roles);
     }
   
     @UseGuards(AuthGuard)

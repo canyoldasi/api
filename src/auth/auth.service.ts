@@ -10,7 +10,7 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async checkCredentials(username: string, pass: string): Promise<{id: number}> {
+  async checkCredentials(username: string, pass: string): Promise<{id: number, roles: string}> {
     const user = await this.usersService.getOneByUsername(username);
     if (!user || !await bcrypt.compare(pass, user.password) || !user.isActive) {
       return null;
@@ -20,9 +20,13 @@ export class AuthService {
   }
 
   async generateToken(
-    userId: number
+    userId: number,
+    roles: string
   ): Promise<{ accessToken: string }> {
-    const payload = { sub: userId};
+    const payload = { 
+      sub: userId,
+      roles: roles
+    };
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };

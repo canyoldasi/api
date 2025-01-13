@@ -5,10 +5,9 @@ Injectable,
 UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { eaConstant } from './constant';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
-import { EARole } from 'src/providers/ea-role.enum';
+import { Role } from 'src/providers/role.enum';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -25,23 +24,23 @@ export class AuthGuard implements CanActivate {
             const payload = await this.jwtService.verifyAsync(
                 token,
                 {
-                secret: eaConstant.secret
+                secret: process.env.JWT_SECRET
                 }
             );
             // We're assigning the payload to the request object here
             // so that we can access it in our route handlers
             request['user'] = payload;
 
-            const requiredRoles = this.reflector.getAllAndOverride<EARole[]>(eaConstant.roleMetaData, [
+            const requiredRoles = this.reflector.getAllAndOverride<Role[]>(process.env.METADATA_ROLES, [
                 context.getHandler(),
                 context.getClass(),
             ]);
             if (!requiredRoles) {
                 return true;
             }
-            const { user } = context.switchToHttp().getRequest();
-            return requiredRoles.some((role) => user.roles?.includes(role));
-        } catch {
+            
+            return requiredRoles.some((role) => request['user'].roles?.includes(role));
+        } catch (e) {
             throw new UnauthorizedException();
         }
         return true;

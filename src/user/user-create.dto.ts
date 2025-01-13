@@ -3,4 +3,5 @@ export class UserCreateDto {
     fullName: string;
     password: string;
     isActive: boolean;
+    roles: string;
 }
