@@ -13,7 +13,7 @@
           //"--inspect-brk"
         ],
         "autoAttachChildProcesses": true,
-        "restart": true,
+        "restart": false,
         "sourceMaps": true,
         "stopOnEntry": false,
         "console": "integratedTerminal",
