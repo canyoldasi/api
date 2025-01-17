@@ -1,9 +1,8 @@
-import { User } from "src/models/user.model";
 import { Resolver, ResolveField, Args, Query, Int, Parent} from '@nestjs/graphql'
 import { UserService } from "./user.service";
 import { RoleService } from "src/role/role.service";
-import { Role } from "src/models/role.model";
-import { UserRole } from "src/entities/user-role.entity";
+import { User } from 'src/entities/user.entity';
+import { Role } from 'src/entities/role.entity';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -17,8 +16,8 @@ export class UserResolver {
         return this.userService.getOneById(id)
     }
 
-    @ResolveField('roles', () => [Role])
-    async getUserRoles(@Parent() user: User): Promise<UserRole[]> {
-        return this.roleService.findAll(user)
+    @ResolveField('roles', () => [Role], {nullable: true})
+    async getUserRoles(@Parent() user: User): Promise<Role[]> {
+        return this.roleService.findRolesOfUser(user)
     }
 }
