@@ -18,12 +18,6 @@ export class UserController {
         return await this.userService.add(dto);
     }
 
-    @Get(":id")
-    getById(@Param() params: any){
-        
-        return this.userService.getOneById(params.id)
-    }
-
     @Delete(":id")
     removeById(@Param() params: any){
         return this.userService.removeOneById(params.id)

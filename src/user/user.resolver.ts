@@ -12,7 +12,7 @@ export class UserResolver {
     ) {}
 
     @Query(() => User, {nullable: true})
-    async getUser(@Args('id', {type: () => Int}) id: number) {
+    async user(@Args('id', {type: () => Int}) id: number) {
         return this.userService.getOneById(id)
     }
 
