@@ -7,6 +7,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from 'src/providers/jwt.strategy';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -22,12 +25,11 @@ import { JwtStrategy } from 'src/providers/jwt.strategy';
       synchronize: Boolean(process.env.DATABASE_SYNC),
       autoLoadEntities: true
     }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: '9999h'
-      }
-    })
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+    }),
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],

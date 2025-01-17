@@ -30,7 +30,8 @@ export class AuthGuard implements CanActivate {
             // We're assigning the payload to the request object here
             // so that we can access it in our route handlers
             request['user'] = payload;
-
+            /*
+            TODO: Rol kontrolünü tekrar devreye al
             const requiredRoles = this.reflector.getAllAndOverride<Role[]>(process.env.METADATA_ROLES, [
                 context.getHandler(),
                 context.getClass(),
@@ -40,6 +41,7 @@ export class AuthGuard implements CanActivate {
             }
             
             return requiredRoles.some((role) => request['user'].roles?.includes(role));
+            */
         } catch (e) {
             throw new UnauthorizedException();
         }

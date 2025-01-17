@@ -20,6 +20,7 @@ export class UserController {
 
     @Get(":id")
     getById(@Param() params: any){
+        
         return this.userService.getOneById(params.id)
     }
 

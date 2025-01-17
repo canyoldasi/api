@@ -10,7 +10,7 @@
           "run",
           "start:debug",
           "--",
-          "--inspect-brk"
+          //"--inspect-brk"
         ],
         "autoAttachChildProcesses": true,
         "restart": true,
