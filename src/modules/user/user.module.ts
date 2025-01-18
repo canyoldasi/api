@@ -11,7 +11,7 @@ import { RoleService } from 'src/modules/role/role.service';
 @Module({
   controllers: [UserController],
   providers: [UserService, UserResolver, RoleService],
-  exports: [UserService, TypeOrmModule],
+  exports: [UserService, TypeOrmModule, RoleService],
   imports: [
     TypeOrmModule.forFeature([
       User,

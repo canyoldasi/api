@@ -17,10 +17,4 @@ export class UserController {
     removeById(@Param() params: any){
         return this.userService.removeOneById(params.id)
     }
-
-    @Get()
-    @Roles(RoleEnum.Admin)
-    getAll(){
-        return this.userService.getAll()
-    }
 }

@@ -11,11 +11,11 @@ export class RoleService {
         @InjectEntityManager()
         private entityManager: EntityManager
     ) {}
-    async findRolesOfUser(user: User): Promise<Role[]> {
+    async findUserRoles(userId: number): Promise<Role[]> {
         const userRoles = await this.entityManager.find(UserRole, {
             where: {
                 user: {
-                    id: user.id
+                    id: userId
                 }
             },
             relations: {
