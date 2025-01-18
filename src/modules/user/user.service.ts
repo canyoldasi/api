@@ -3,7 +3,8 @@ import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserCreateDto } from './user-create.dto';
+import { AddUserDto as dto } from './add-user.dto';
+import { UserRole } from 'src/entities/user-role.entity';
 
 @Injectable()
 export class UserService {
@@ -16,14 +17,27 @@ export class UserService {
 
   }
 
-  async add(user: UserCreateDto): Promise<User> {
-    const userToSave = this.entityManager.create(User, {
-      username: user.username,
-      fullName: user.fullName,
-      password: await bcrypt.hash(user.password, 1)
+  async add(user: dto): Promise<User> {
+    let ret: User;
+    await this.entityManager.transaction(async (manager) => {
+      ret = await manager.save(User, {
+        username: user.username,
+        fullName: user.fullName,
+        password: await bcrypt.hash(user.password, 1)
+      });
+      for (const x of user.roles) {
+        await manager.save(UserRole, {
+          role: {
+            id: x
+          },
+          user: {
+            id: ret.id
+          }
+        })          
+      }
+      console.log("kaydetti")
     });
-    await this.entityManager.save(userToSave);
-    return new User()
+    return ret;
   }
 
   async getOneById(id: number): Promise<User> {

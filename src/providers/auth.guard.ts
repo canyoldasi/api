@@ -7,7 +7,7 @@ UnauthorizedException,
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
-import { Role } from 'src/providers/role.enum';
+import { RoleEnum } from 'src/providers/role.enum';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

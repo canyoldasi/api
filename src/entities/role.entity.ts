@@ -13,10 +13,6 @@ export class Role {
     @Field()
     name: string;
 
-    @Column()
-    @Field()
-    code: string;
-
     @OneToMany(() => User, (x) => x.roles)
     users?: User[]
 }
