@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app/app.module';
+import { AppModule } from './modules/app/app.module';
 import { CustomExceptionFilter } from './providers/custom.exception-filter';
 import { ExecutionTimeInterceptor } from './providers/execution-time.intercepter';
 

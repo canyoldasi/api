@@ -1,6 +1,6 @@
 import { Resolver, ResolveField, Args, Query, Int, Parent} from '@nestjs/graphql'
 import { UserService } from "./user.service";
-import { RoleService } from "src/role/role.service";
+import { RoleService } from "src/modules/role/role.service";
 import { User } from 'src/entities/user.entity';
 import { Role } from 'src/entities/role.entity';
 

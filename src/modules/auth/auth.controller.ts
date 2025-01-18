@@ -9,7 +9,7 @@ import {
     UnauthorizedException,
     UseGuards
 } from '@nestjs/common';
-import { AuthGuard } from '../providers/auth.guard';
+import { AuthGuard } from '../../providers/auth.guard';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
