@@ -48,9 +48,9 @@ export class AuthGuard implements CanActivate {
             const userRoles = await this.roleService.findUserRoles(payload.sub);
             
             return userRoles.some((x) => {
-                return requiredRoles.find(y => y == x.id)
+                return requiredRoles.find(y => String(y) === String(x.id));
             })
-        } catch (e) {
+        } catch (e) {   
             throw new UnauthorizedException();
         }
         return true;

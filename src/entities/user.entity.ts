@@ -1,14 +1,11 @@
 import { UserRole } from 'src/entities/user-role.entity';
 import {Entity, Column, PrimaryGeneratedColumn, OneToMany} from 'typeorm'
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { BaseEntity } from './base.entity';
 
 @Entity()
 @ObjectType()
-export class User {
-    @PrimaryGeneratedColumn()
-    @Field(type => Int, {nullable: false})
-    id: number;
-
+export class User extends BaseEntity{
     @Column()
     @Field({nullable: false})
     username: string;

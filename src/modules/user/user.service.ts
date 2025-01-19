@@ -25,6 +25,7 @@ export class UserService {
         fullName: user.fullName,
         password: await bcrypt.hash(user.password, 1)
       });
+      console.log("User saved:", ret);
       for (const x of user.roles) {
         await manager.save(UserRole, {
           role: {
@@ -34,13 +35,19 @@ export class UserService {
             id: ret.id
           }
         });
+        console.log(`Role ${x} assigned to user.`);
       }
-      console.log("kaydetti")
     });
     return ret;
   }
 
-  async getOneById(id: number): Promise<User> {
+  async removeOneById(id: string): Promise<void> {
+    await this.entityManager.delete(User, {
+      id: id
+    })
+  }
+
+  async getOneById(id: string): Promise<User> {
     return await this.userRepository.findOne({
       where: {
         id: id
@@ -48,23 +55,19 @@ export class UserService {
     })
   }
 
-  async getOneByUsername(username: string): Promise<User[] | undefined> {
-    return await this.entityManager.find(User, {
+  async getOneByUsername(username: string): Promise<User | undefined> {
+    return await this.entityManager.findOne(User, {
       where: {
         username: username
       }
     })
   }
 
-  async removeOneById(id: number): Promise<boolean> {
-    await this.entityManager.delete(User, {
-      id: id
-    });
-    return true;
-  }
-
   async getAll(): Promise<User[] | undefined> {
     return this.entityManager.find(User, {
+      where: {
+        isActive: true
+      },
       relations: {
         roles: true
       }

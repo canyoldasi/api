@@ -18,8 +18,9 @@ export class UserResolver {
     ) {}
 
     @Query(() => User, {nullable: true})
-    async getUser(@Args('id', {type: () => Int}) id: number) {
-        return this.userService.getOneById(id)
+    async getUser(@Args('id', {type: () => String}) id: string): Promise<User | null> {
+        console.log("Çekme başlanıyor...")
+        return this.userService.getOneById(id);
     }
 
     @ResolveField('roles', () => [Role], {nullable: true})
@@ -27,10 +28,18 @@ export class UserResolver {
         return this.roleService.findUserRoles(user.id)
     }
 
-    @Mutation(() => User)
-    @Roles(RoleEnum.Admin)
-    async addUser(@Args('dto') dto: AddUserDto): Promise<User | null> {
+    @Mutation(() => String)
+    //@Roles(RoleEnum.Admin)
+    async addUser(@Args('dto') dto: AddUserDto): Promise<string> {
+        console.log(`user eklme başlıyor.`);
         const r = await this.userService.add(dto);
-        return r;
+        return r?.id;
+    }
+
+    @Mutation(() => Boolean)
+    @Roles(RoleEnum.Admin)
+    async removeUser(@Args('id', {type: () => String}) id: string) {
+        this.userService.removeOneById(id);
+        return true
     }
 }

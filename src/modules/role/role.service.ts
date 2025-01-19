@@ -11,7 +11,8 @@ export class RoleService {
         @InjectEntityManager()
         private entityManager: EntityManager
     ) {}
-    async findUserRoles(userId: number): Promise<Role[]> {
+
+    async findUserRoles(userId: string): Promise<Role[]> {
         const userRoles = await this.entityManager.find(UserRole, {
             where: {
                 user: {
@@ -23,5 +24,13 @@ export class RoleService {
             }
         });
         return userRoles.map(x => x.role)
+    }
+
+    async removeByUserId(id: string) {
+        await this.entityManager.delete(UserRole, {
+            user: {
+                id: id
+            }
+        })
     }
 }

@@ -14,14 +14,14 @@ export class AuthService {
 
   async checkCredentials(username: string, pass: string): Promise<User> {
     const user = await this.usersService.getOneByUsername(username);
-    if (!user || user.length == 0 || !await bcrypt.compare(pass, user[0].password) || !user[0].isActive) {
+    if (!user || !await bcrypt.compare(pass, user.password) || !user.isActive) {
       return null;
     }
-    return user[0];
+    return user;
   }
 
   async generateToken(
-    userId: number,
+    userId: string,
     roles: UserRole[]
   ): Promise<{ accessToken: string }> {
     const payload = { 
