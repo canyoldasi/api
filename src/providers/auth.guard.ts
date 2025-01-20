@@ -22,8 +22,9 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
         const request = ctx.getContext().req;
-        const token = this.extractTokenFromHeader(request);
-        if (!token) {
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+
+        if (type !== 'Bearer' || !token) {
             throw new UnauthorizedException();
         }
 
@@ -47,17 +48,18 @@ export class AuthGuard implements CanActivate {
 
             const userRoles = await this.roleService.findUserRoles(payload.sub);
             
-            return userRoles.some((x) => {
+            const hasRole = userRoles.some((x) => {
                 return requiredRoles.find(y => String(y) === String(x.id));
             })
+
+            if (!hasRole) {
+                throw new UnauthorizedException('Yetkiniz yok. Rolünüz yeterli değil.');
+            }
+
+            return true;
         } catch (e) {   
             throw new UnauthorizedException();
         }
-        return true;
-    }
-
-    private extractTokenFromHeader(request: Request): string | undefined {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        return type === 'Bearer' ? token : undefined;
+        return false;
     }
 }
