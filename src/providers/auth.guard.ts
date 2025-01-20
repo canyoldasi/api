@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { RoleEnum } from '../providers/role.enum';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { RoleService } from '../modules/role/role.service';
+import { RoleService } from '../modules/user/role.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

@@ -1,6 +1,6 @@
 import { Resolver, ResolveField, Args, Query, Int, Parent, Mutation} from '@nestjs/graphql'
 import { UserService } from "./user.service";
-import { RoleService } from "../../modules/role/role.service";
+import { RoleService } from "./role.service";
 import { User } from '../../entities/user.entity';
 import { Role } from '../../entities/role.entity';
 import { AddUpdateUserDto } from './add-update-user.dto';
@@ -32,6 +32,13 @@ export class UserResolver {
     @Roles(RoleEnum.Admin)
     async addUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
         const r = await this.userService.add(dto);
+        return r?.id;
+    }
+
+    @Mutation(() => String)
+    @Roles(RoleEnum.Admin)
+    async updateUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
+        const r = await this.userService.update(dto);
         return r?.id;
     }
 
