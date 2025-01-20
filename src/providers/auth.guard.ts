@@ -5,7 +5,6 @@ Injectable,
 UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { RoleEnum } from 'src/providers/role.enum';
 import { GqlExecutionContext } from '@nestjs/graphql';

@@ -20,7 +20,6 @@ export class UserResolver {
     @Query(() => User, {nullable: true})
     @Roles(RoleEnum.User)
     async getUser(@Args('id', {type: () => String}) id: string): Promise<User | null> {
-        console.log("Çekme başlanıyor...")
         return this.userService.getOneById(id);
     }
 
@@ -30,9 +29,8 @@ export class UserResolver {
     }
 
     @Mutation(() => String)
-    //@Roles(RoleEnum.Admin)
+    @Roles(RoleEnum.Admin)
     async addUser(@Args('dto') dto: AddUserDto): Promise<string> {
-        console.log(`user ekleme başlıyor.`);
         const r = await this.userService.add(dto);
         return r?.id;
     }
