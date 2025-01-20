@@ -3,30 +3,52 @@ import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AddUserDto as dto } from './add-user.dto';
-import { UserRole } from 'src/entities/user-role.entity';
+import { AddUpdateUserDto } from './add-update-user.dto';
+import { UserRole } from '../../entities/user-role.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectEntityManager()
     private entityManager: EntityManager,
-    @InjectRepository(User)
-    private userRepository: Repository<User>
   ){
 
   }
 
-  async add(user: dto): Promise<User> {
+  async add(dto: AddUpdateUserDto): Promise<User> {
     let ret: User;
     await this.entityManager.transaction(async (manager) => {
       ret = await manager.save(User, {
-        username: user.username,
-        fullName: user.fullName,
-        password: await bcrypt.hash(user.password, 1)
+        username: dto.username,
+        fullName: dto.fullName,
+        password: await bcrypt.hash(dto.password, 1)
       });
-      console.log("User saved:", ret);
-      for (const x of user.roles) {
+      console.log("User added:", ret);
+      for (const x of dto.roles) {
+        await manager.save(UserRole, {
+          role: {
+            id: x
+          },
+          user: {
+            id: ret.id
+          }
+        });
+        console.log(`Role ${x} assigned to user.`);
+      }
+    });
+    return ret;
+  }
+
+  async update(dto: AddUpdateUserDto): Promise<User> {
+    let ret: User;
+    await this.entityManager.transaction(async (manager) => {
+      ret = await manager.save(User, {
+        username: dto.username,
+        fullName: dto.fullName,
+        password: await bcrypt.hash(dto.password, 1)
+      });
+      console.log("User updated:", ret);
+      for (const x of dto.roles) {
         await manager.save(UserRole, {
           role: {
             id: x
@@ -48,10 +70,8 @@ export class UserService {
   }
 
   async getOneById(id: string): Promise<User> {
-    return await this.userRepository.findOne({
-      where: {
-        id: id
-      }
+    return await this.entityManager.findOneBy(User, {
+      id: id
     })
   }
 

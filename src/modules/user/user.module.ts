@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
-import { Role } from 'src/entities/role.entity';
-import { UserRole } from 'src/entities/user-role.entity';
+import { Role } from '../../entities/role.entity';
+import { UserRole } from '../../entities/user-role.entity';
 import { UserResolver } from './user.resolver';
-import { RoleService } from 'src/modules/role/role.service';
+import { RoleService } from '../../modules/role/role.service';
 
 @Module({
   controllers: [],

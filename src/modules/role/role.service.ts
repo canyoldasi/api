@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
-import { Role } from "src/entities/role.entity";
-import { UserRole } from "src/entities/user-role.entity";
+import { Role } from "../../entities/role.entity";
+import { UserRole } from "../../entities/user-role.entity";
 import { EntityManager } from "typeorm";
 
 @Injectable()
