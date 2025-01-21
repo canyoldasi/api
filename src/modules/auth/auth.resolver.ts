@@ -19,7 +19,7 @@ export class AuthResolver {
         if (!user){
         throw new UnauthorizedException('Invalid credentials');
         }
-        return this.authService.generateToken(user.id, user.roles);
+        return this.authService.generateToken(user.id);
     }
-    
+
 }
