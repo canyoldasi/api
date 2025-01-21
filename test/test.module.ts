@@ -1,4 +1,4 @@
-import { Module, Global, OnModuleInit } from '@nestjs/common';
+import { Module, Global, OnModuleInit, Injectable } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../src/entities/user.entity';
 import { UserRole } from '../src/entities/user-role.entity';
@@ -7,6 +7,14 @@ import { EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { RoleEnum } from '../src/providers/role.enum';
 import { Role } from '../src/entities/role.entity';
+import { AuthService } from '../src/modules/auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
+
+@Injectable()
+export class TestService {
+  public username = Math.random().toString();
+  public password = Math.random().toString();
+}
 
 @Global()
 @Module({
@@ -19,13 +27,15 @@ import { Role } from '../src/entities/role.entity';
     }),
     TypeOrmModule.forFeature([User, UserRole, Role]),
   ],
-  providers: [UserService],
-  exports: [TypeOrmModule],
+  providers: [UserService, TestService, AuthService, JwtService],
+  exports: [TypeOrmModule, TestService],
 })
 export class TestModule implements OnModuleInit {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(private readonly entityManager: EntityManager, private testService: TestService) {}
 
   async onModuleInit() {
+    //const testService = new TestService();
+
     const adminRole = await this.entityManager.save(this.entityManager.create(Role, {
         id: RoleEnum.Admin,
         name: 'Admin'
@@ -37,9 +47,9 @@ export class TestModule implements OnModuleInit {
     }));
 
     const savedUser = await this.entityManager.save(this.entityManager.create(User, {
-        username: 'admin',
+        username: this.testService.username,
         fullName: 'Admin User',
-        password: await bcrypt.hash('123456', parseInt(process.env.PASSWORD_SALT)),
+        password: await bcrypt.hash(this.testService.password, parseInt(process.env.PASSWORD_SALT)),
     }));
 
     const assignedAdminRole = await this.entityManager.save(this.entityManager.create(UserRole, {

@@ -12,21 +12,20 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async checkCredentials(username: string, pass: string): Promise<User> {
+  async checkCredentials(username: string, password: string): Promise<User> {
+    console.log(`username: ${username} password: ${password}`)
     const user = await this.usersService.getOneByUsername(username);
-    if (!user || !await bcrypt.compare(pass, user.password) || !user.isActive) {
+    if (!user || !await bcrypt.compare(password, user.password) || !user.isActive) {
       return null;
     }
     return user;
   }
 
   async generateToken(
-    userId: string,
-    roles: UserRole[]
+    userId: string
   ): Promise<string> {
     const payload = { 
-      sub: userId,
-      roles: roles
+      sub: userId
     };
     return await this.jwtService.signAsync(payload);
   }

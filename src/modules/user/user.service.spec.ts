@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
-import { TestModule } from '../../../test/test.module';
+import { TestModule, TestService } from '../../../test/test.module';
 import { AddUpdateUserDto } from './add-update-user.dto';
 import { RoleEnum } from '../../providers/role.enum';
 
 describe('UserService (Integration)', () => {
   let service: UserService;
+  let testService: TestService;
   let mockDto: AddUpdateUserDto;
   let resp: any;
   let fetched: any;
@@ -18,13 +19,14 @@ describe('UserService (Integration)', () => {
     await module.init();
 
     service = module.get<UserService>(UserService);
+    testService = module.get<TestService>(TestService);
   });
 
   it('add, getOneById', async () => {
     mockDto = {
-      username: Math.random().toString(),
+      username: testService.username,
       fullName: Math.random().toString(),
-      password: Math.random().toString(),
+      password: testService.password,
       isActive: true,
       roles: [RoleEnum.Admin]
     }
