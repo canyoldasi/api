@@ -17,6 +17,10 @@
         "sourceMaps": true,
         "stopOnEntry": false,
         "console": "integratedTerminal",
+        "outFiles": [
+          "${workspaceFolder}/**/*.(m|c|)js",
+          "!**/node_modules/**"
+        ]
       }
     ]
 }

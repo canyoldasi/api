@@ -1,6 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { LoggerMiddleware } from '../../providers/logger.middleware';
 import { AuthModule } from '../auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,7 +11,6 @@ import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
-    AuthModule,
     PassportModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -28,10 +26,11 @@ import { UserModule } from '../user/user.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
     }),
-    UserModule
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtStrategy],
+  providers: [JwtStrategy],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {

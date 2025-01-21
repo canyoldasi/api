@@ -23,13 +23,11 @@ export class AuthService {
   async generateToken(
     userId: string,
     roles: UserRole[]
-  ): Promise<{ accessToken: string }> {
+  ): Promise<string> {
     const payload = { 
       sub: userId,
       roles: roles
     };
-    return {
-      accessToken: await this.jwtService.signAsync(payload),
-    };
+    return await this.jwtService.signAsync(payload);
   }
 }

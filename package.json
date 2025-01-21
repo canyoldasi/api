@@ -86,6 +86,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "preset": "ts-jest",
-    "silent": true
+    "silent": true,
+    "verbose": true
   }
 }

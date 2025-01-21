@@ -7,7 +7,8 @@ import { RoleEnum } from '../../providers/role.enum';
 describe('UserService (Integration)', () => {
   let service: UserService;
   let mockDto: AddUpdateUserDto;
-  let addResp: any;
+  let resp: any;
+  let fetched: any;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,7 +20,7 @@ describe('UserService (Integration)', () => {
     service = module.get<UserService>(UserService);
   });
 
-  it('should add user', async () => {
+  it('add, getOneById', async () => {
     mockDto = {
       username: Math.random().toString(),
       fullName: Math.random().toString(),
@@ -27,16 +28,14 @@ describe('UserService (Integration)', () => {
       isActive: true,
       roles: [RoleEnum.Admin]
     }
-    addResp = await service.add(mockDto);
-    expect(addResp).toBeDefined();
-    expect(addResp).toMatchObject({
+    resp = await service.add(mockDto);
+    expect(resp).toBeDefined();
+    expect(resp).toMatchObject({
       id: expect.any(String),
       username: expect.any(String)
     });
-  });
 
-  it('should fetch user', async () => {
-    const fetched = await service.getOneById(addResp.id);
+    fetched = await service.getOneById(resp.id);
 
     expect(fetched).toMatchObject({
       id: expect.any(String),
@@ -45,4 +44,32 @@ describe('UserService (Integration)', () => {
 
     expect(fetched.username).toBe(mockDto.username);
   });
+
+  it('update', async () => {
+    mockDto = {
+      id: resp.id,
+      username: Math.random().toString(),
+      fullName: Math.random().toString(),
+      password: Math.random().toString(),
+      isActive: true,
+      roles: [RoleEnum.Admin]
+    }
+    resp = await service.update(mockDto);
+
+    fetched = await service.getOneById(resp.id);
+
+    expect(fetched).toMatchObject({
+      id: expect.any(String),
+      username: expect.any(String)
+    })
+
+    expect(fetched.username).toBe(mockDto.username);
+  })
+
+  it('removeOneById', async () =>{
+    await service.removeOneById(resp.id);
+
+    fetched = await service.getOneById(resp.id);
+    expect(fetched).toBeNull();
+  })
 });
