@@ -21,8 +21,7 @@ export class UserService {
       ret = await manager.save(User, {
         username: dto.username,
         fullName: dto.fullName,
-        password: await bcrypt.hash(dto.password, 1),
-        
+        password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
       });
       console.log("User added:", ret);
       for (const x of dto.roles) {
@@ -51,7 +50,7 @@ export class UserService {
         id: dto.id,  // Update user by id
         username: dto.username,
         fullName: dto.fullName,
-        password: dto.password ? await bcrypt.hash(dto.password, 1) : existingUser.password,
+        password: dto.password ? await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)) : existingUser.password,
       });
       console.log("User updated:", ret);
 

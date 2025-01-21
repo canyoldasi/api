@@ -1,11 +1,13 @@
 import { Field, InputType } from "@nestjs/graphql";
+import { MinLength } from "class-validator";
 
 @InputType()
 export class AddUpdateUserDto {
     @Field({nullable: true})
-    id: string;
+    id?: string;
 
     @Field()
+    @MinLength(3)
     username: string;
     
     @Field()
@@ -15,7 +17,7 @@ export class AddUpdateUserDto {
     password: string;
 
     @Field()
-    isActive: boolean;
+    isActive?: boolean = true;
 
     @Field(() => [String])
     roles: string[];
