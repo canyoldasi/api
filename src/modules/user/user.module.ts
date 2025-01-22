@@ -16,7 +16,7 @@ import { RoleService } from './role.service';
       User,
       Role,
       UserRole
-    ])
+    ]),
   ]
 })
 export class UserModule {}

@@ -1,16 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AddUpdateUserDto } from './add-update-user.dto';
 import { UserRole } from '../../entities/user-role.entity';
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectEntityManager()
-    private entityManager: EntityManager,
+    @Inject(EntityManager) private entityManager: EntityManager,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: WinstonLogger
   ){
 
   }
@@ -23,6 +23,7 @@ export class UserService {
         fullName: dto.fullName,
         password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
       });
+      this.logger.error("hataaaa")
       console.log("User added:", ret);
       for (const x of dto.roles) {
         await manager.save(UserRole, {
