@@ -1,10 +1,11 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AddUpdateUserDto } from './add-update-user.dto';
 import { UserRole } from '../../entities/user-role.entity';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
+import { ManagedException } from '../../providers/managed.exception';
 
 @Injectable()
 export class UserService {
@@ -24,7 +25,9 @@ export class UserService {
         password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
       });
       this.logger.error("hataaaa")
-      console.log("User added:", ret);
+
+      throw new ManagedException("Kullanıcı eklenemedi", true)
+      this.logger.log(`User added: ${ret}`);
       for (const x of dto.roles) {
         await manager.save(UserRole, {
           role: {
@@ -34,7 +37,7 @@ export class UserService {
             id: ret.id
           }
         });
-        console.log(`Role ${x} assigned to user.`);
+        this.logger.log(`Role ${x} assigned to user.`);
       }
     });
     return ret;
@@ -53,7 +56,7 @@ export class UserService {
         fullName: dto.fullName,
         password: dto.password ? await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)) : existingUser.password,
       });
-      console.log("User updated:", ret);
+      this.logger.log(`User updated: ${ret}`);
 
       // Remove existing roles
       await manager.delete(UserRole, { user: { id: dto.id } });
@@ -64,7 +67,7 @@ export class UserService {
           role: { id: x },
           user: { id: ret.id },
         });
-        console.log(`Role ${x} assigned to user.`);
+        this.logger.log(`Role ${x} assigned to user.`);
       }
     });
 

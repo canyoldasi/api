@@ -1,19 +1,21 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../../entities/user.entity';
 import { UserRole } from '../../entities/user-role.entity';
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UserService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: WinstonLogger
   ) {}
 
   async checkCredentials(username: string, password: string): Promise<User> {
-    console.log(`username: ${username} password: ${password}`)
+    this.logger.log(`username: ${username} password: ${password}`)
     const user = await this.usersService.getOneByUsername(username);
     if (!user || !await bcrypt.compare(password, user.password) || !user.isActive) {
       return null;

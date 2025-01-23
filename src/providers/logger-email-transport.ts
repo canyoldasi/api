@@ -8,7 +8,7 @@ export class EmailTransport extends TransportStream {
     super(opts);
   }
 
-  private async sendEmail(message: string) {
+  public async sendEmail(message: string) {
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: Number(process.env.EMAIL_PORT),

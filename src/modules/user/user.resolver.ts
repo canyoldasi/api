@@ -8,6 +8,7 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { RoleEnum } from '../../providers/role.enum';
 import { Roles } from '../../providers/roles.decorator';
+import { ManagedException } from 'src/providers/managed.exception';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard)
@@ -31,6 +32,7 @@ export class UserResolver {
     @Mutation(() => String)
     @Roles(RoleEnum.Admin)
     async addUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
+        //throw new ManagedException("Başlamadım bile!")
         const r = await this.userService.add(dto);
         return r?.id;
     }
