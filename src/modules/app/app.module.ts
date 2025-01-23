@@ -9,8 +9,9 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UserModule } from '../user/user.module';
 import { WinstonModule } from 'nest-winston';
 import { loggerConfig } from 'src/providers/logger.config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
+import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercepter';
 
 @Module({
   imports: [
@@ -29,8 +30,8 @@ import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      sortSchema: true, // GraphQL şeması sıralı olacak
-      playground: true, // Geliştirme için GraphQL Playground aktif
+      sortSchema: true,
+      playground: false,
       introspection: true,
     }),
     UserModule,
@@ -42,7 +43,11 @@ import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
-    }
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ExecutionTimeInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
