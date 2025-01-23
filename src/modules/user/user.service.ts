@@ -25,8 +25,8 @@ export class UserService {
         password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
       });
 
-      throw new ManagedException("Kullanıcı eklenemedi", false)
-      this.logger.log(`User added: ${ret}`);
+      //throw new ManagedException("Kullanıcı eklenemedi", false)
+      //this.logger.log(`User added: ${ret}`);
       for (const x of dto.roles) {
         await manager.save(UserRole, {
           role: {
