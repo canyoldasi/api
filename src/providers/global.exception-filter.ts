@@ -27,15 +27,16 @@ export class GlobalExceptionFilter implements GqlExceptionFilter, ExceptionFilte
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     const message = exception.message || 'Internal server error';
     
+    this.logger.error(`Status: ${status} Message: ${message} Stack: ${exception.stack}`)
+
     if (exception.notify) {
       const emailTransport = new EmailTransport();
       emailTransport.sendEmail(`
         Status: ${status}
         Message: ${message}
-        Stack: ${exception.stack}`)
-      this.logger.error(`Status: ${status} Message: ${message} Stack: ${exception.stack}`)
+        Stack: ${exception.stack}`
+      )
     }    
-
     return new ApolloError(message, status.toString(), { message, stack: exception.stack });
   }
 
