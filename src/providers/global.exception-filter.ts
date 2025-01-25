@@ -2,7 +2,7 @@ import { Catch, ArgumentsHost, HttpException, ExceptionFilter, Inject } from '@n
 import { GqlContextType, GqlExceptionFilter } from '@nestjs/graphql';
 import { ApolloError } from 'apollo-server-express';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
-import { EmailTransport } from './logger-email-transport';
+import { AdminNotificationHelper } from './admin-notification.helper';
 
 @Catch()
 export class GlobalExceptionFilter implements GqlExceptionFilter, ExceptionFilter {
@@ -15,55 +15,65 @@ export class GlobalExceptionFilter implements GqlExceptionFilter, ExceptionFilte
 
   catch(exception: any, host: ArgumentsHost) {
     const isGraphQL = host.getType<GqlContextType>() === 'graphql';
+    const context = isGraphQL ? host.getArgs()[2] : host.switchToHttp().getRequest();
+    const requestId = context?.requestId || 'unknown'; // requestId'yi al
 
     if (isGraphQL) {
-      return this.handleGraphQLException(exception);
+      return this.handleGraphQLException(exception, requestId);
     } else {
-      return this.handleHTTPException(exception, host);
+      return this.handleHTTPException(exception, host, requestId);
     }
   }
 
-  private handleGraphQLException(exception: any) {
+  private handleGraphQLException(exception: any, requestId: string) {
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     const message = exception.message || 'Internal server error';
     
-    this.logger.error(`Status: ${status} Message: ${message} Stack: ${exception.stack}`)
+    this.logger.error(`Status: ${status} Message: ${message}`, exception.stack, requestId);
 
     if (exception.notify) {
-      const emailTransport = new EmailTransport();
-      emailTransport.sendEmail(`
-        Status: ${status}
-        Message: ${message}
-        Stack: ${exception.stack}`
-      )
-    }    
-    return new ApolloError(message, status.toString(), { message, stack: exception.stack });
+      if (process.env.NODE_ENV == 'production') {
+        const emailHelper = new AdminNotificationHelper();
+        emailHelper.sendEmail(`
+          Status: ${status}
+          Message: ${message}
+          Request ID: ${requestId}
+          Stack: ${exception.stack}`
+        )
+      }
+    }
+    return new ApolloError(`${exception.name}: ${message}`, status.toString(), { message, stack: process.env.NODE_ENV == 'development' ? exception.stack : null });
   }
 
-  private handleHTTPException(exception: any, host: ArgumentsHost) {
+  private handleHTTPException(exception: any, host: ArgumentsHost, requestId: string) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
 
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     const message = exception?.message || 'Internal server error';
-    const isBusinessLogicError = exception?.isBusinessLogicError || false;
+
+    this.logger.error(`Status: ${status} Message: ${message}`, exception.stack, requestId);
 
     if (exception.notify) {
-      const emailTransport = new EmailTransport();
-      emailTransport.sendEmail(`
-        Status: ${status}
-        Message: ${message}
-        Stack: ${exception.stack}`)
-      this.logger.error(`Status: ${status} Message: ${message} Stack: ${exception.stack}`)
-    } 
+      if (process.env.NODE_ENV == 'production') {
+        const emailHelper = new AdminNotificationHelper();
+        emailHelper.sendEmail(`
+          Status: ${status}
+          Message: ${message}
+          Request ID: ${requestId}
+          Stack: ${exception.stack}`
+        );
+      }
+    }
 
     response.status(status).json({
+      requestId: requestId,
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       message,
-      stack: exception.stack || 'No stack trace available',
+      stack: process.env.NODE_ENV == 'development' ? exception.stack : null,
     });
   }
 }

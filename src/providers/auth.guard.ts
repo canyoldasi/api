@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
 
         if (type !== 'Bearer' || !token) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Token türü Bearer olmalıdır');
         }
 
         try {
@@ -41,23 +41,29 @@ export class AuthGuard implements CanActivate {
                 context.getHandler(),
                 context.getClass(),
             ]);
+
+            //Eğer resolver için bir rol kısıtlaması belirtilmemişse istemci erişebilsin
             if (!requiredRoles) {
                 return true;
             }
 
+            //kullanıcının rollerini veritabanından çek
             const userRoles = await this.roleService.findUserRoles(payload.sub);
             
+            //kullanıcı acaba belirtilen rollerden herhangi birine sahip mi
             const hasRole = userRoles.some((x) => {
                 return requiredRoles.find(y => String(y) === String(x.id));
             })
 
+            //sahip değilse izin verme
             if (!hasRole) {
-                throw new UnauthorizedException('Yetkiniz yok. Rolünüz yeterli değil.');
+                throw new UnauthorizedException('Rolünüz yeterli değil.');
             }
 
+            //tüm kontrollerden geçtiyse izin ver erişsin
             return true;
         } catch (e) {   
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Token geçersiz veya güvenlik kontrolü esnasında hata oluştu');
         }
         return false;
     }

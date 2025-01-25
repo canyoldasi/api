@@ -17,7 +17,7 @@ export class AuthResolver {
     ): Promise<string> {
         const user = await this.authService.checkCredentials(username, password)
         if (!user){
-        throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Geçersiz kimlik bilgileri');
         }
         return this.authService.generateToken(user.id);
     }

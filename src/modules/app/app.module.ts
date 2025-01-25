@@ -12,6 +12,7 @@ import { loggerConfig } from 'src/providers/logger.config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
 import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercepter';
+import { RequestMiddleware } from 'src/providers/request.middleware';
 
 @Module({
   imports: [
@@ -33,6 +34,11 @@ import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercept
       sortSchema: true,
       playground: false,
       introspection: true,
+      context: ({req}) => {
+        return {
+          requestId: req.requestId
+        }
+      }
     }),
     UserModule,
     AuthModule,
@@ -52,6 +58,6 @@ import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercept
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-
+    consumer.apply(RequestMiddleware).forRoutes('*');
   }
 }

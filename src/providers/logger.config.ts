@@ -1,29 +1,28 @@
 import { LoggerOptions } from 'winston';
 import * as winston from 'winston';
-import { EmailTransport } from './logger-email-transport';
 import * as moment from 'moment-timezone';
 
-const format = winston.format.combine(
+// Ortak format (renksiz)
+const commonFormat = winston.format.combine(
   winston.format.timestamp({
     format: () => moment().tz('Europe/Istanbul').format('YYYY-MM-DD HH:mm:ss.SSS'),
   }),
-  winston.format.colorize(),
-  winston.format.printf(({ timestamp, level, message }) => `[${timestamp}] ${level}: ${message}`),
+  winston.format.printf(({ timestamp, level, message, stack, context }) => `[${timestamp}] ${level}: Message: ${message} Context: ${context} Stack: ${stack || ''}`),
 );
 
 export const loggerConfig: LoggerOptions = {
   level: 'info',
   transports: [
+    // Konsol için renkli format
     new winston.transports.Console({
-      format: format,
+      format: winston.format.combine(
+        winston.format.colorize(), // Sadece konsola renk ekler
+        commonFormat
+      ),
     }),
-    new winston.transports.File({ format: format, filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ format: format, filename: 'logs/combined.log' }),
-    new EmailTransport({
-      level: 'error',
-      handleExceptions: true,
-      format: format,
-    }),
+    // Dosya logları için renksiz format
+    new winston.transports.File({ format: commonFormat, filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ format: commonFormat, filename: 'logs/combined.log' }),
   ],
   exitOnError: false,
 };
