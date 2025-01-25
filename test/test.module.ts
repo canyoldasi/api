@@ -9,6 +9,7 @@ import { RoleEnum } from '../src/providers/role.enum';
 import { Role } from '../src/entities/role.entity';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { WinstonModule } from 'nest-winston';
 
 @Injectable()
 export class TestService {
@@ -19,6 +20,7 @@ export class TestService {
 @Global()
 @Module({
   imports: [
+    WinstonModule.forRoot({}),
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',

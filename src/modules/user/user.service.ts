@@ -25,7 +25,7 @@ export class UserService {
         password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
       });
 
-      throw new ManagedException("Bu managed hata bildirilir", true)
+      //throw new ManagedException("Bu managed hata bildirilir", true)
       //this.logger.log(`User added: ${ret}`);
       for (const x of dto.roles) {
         await manager.save(UserRole, {
