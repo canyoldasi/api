@@ -32,7 +32,7 @@ import { RequestMiddleware } from 'src/providers/request.middleware';
       driver: ApolloDriver,
       autoSchemaFile: true,
       sortSchema: true,
-      playground: false,
+      playground: process.env.NODE_ENV == 'development',
       introspection: true,
       context: ({req}) => {
         return {
