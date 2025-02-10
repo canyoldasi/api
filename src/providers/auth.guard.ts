@@ -36,8 +36,6 @@ export class AuthGuard implements CanActivate {
                 }
             );
 
-            request['user'] = payload;
-
             const userId = payload.sub;
 
             const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(process.env.METADATA_ROLES, [
@@ -50,10 +48,10 @@ export class AuthGuard implements CanActivate {
             }
 
             //kullanıcının rollerini veritabanından çek
-            const userRoles = await this.roleService.findUserRoles(userId);
+            const assignedRoles = await this.roleService.findUserRoles(userId);
             
             //kullanıcı acaba belirtilen rollerden herhangi birine sahip mi
-            const hasRole = userRoles.some((x) => {
+            const hasRole = assignedRoles.some((x) => {
                 return requiredRoles.find(y => String(y) === String(x.id));
             })
 
@@ -82,6 +80,13 @@ export class AuthGuard implements CanActivate {
             //izni yoksa erişemesin
             if (!hasPermission) {
                 return false;
+            }
+
+            //uygulamanın kalanında kullanılabilin diye kullanıcının bilgilerini request'e koyuyorum
+            request['user'] = {
+                id: userId,
+                roles: assignedRoles,
+                permissions: assignedPermissions
             }
 
             //tüm kontrollerden geçtiyse izin ver erişsin
