@@ -13,20 +13,30 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
 import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercepter';
 import { RequestMiddleware } from 'src/providers/request.middleware';
+import { User } from 'src/entities/user.entity';
+import { Role } from 'src/entities/role.entity';
+import { UserRole } from 'src/entities/user-role.entity';
+import { RolePermission } from 'src/entities/role-permission.entity';
 
 @Module({
   imports: [
     WinstonModule.forRoot(loggerConfig),
     PassportModule,
     TypeOrmModule.forRoot({
-      type: 'mysql',
+      type: 'postgres',
       host: process.env.DATABASE_HOST,
       port: Number(process.env.DATABASE_PORT),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       synchronize: Boolean(process.env.DATABASE_SYNC),
-      autoLoadEntities: true,
+      autoLoadEntities: false,
+      entities: [
+        User,
+        Role,
+        UserRole,
+        RolePermission
+      ]
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

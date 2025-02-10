@@ -9,6 +9,7 @@ import { UseGuards } from '@nestjs/common';
 import { RoleEnum } from '../../providers/role.enum';
 import { Roles } from '../../providers/roles.decorator';
 import { ManagedException } from 'src/providers/managed.exception';
+import { Permissions } from 'src/providers/permissions.decorator';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard)
@@ -19,7 +20,8 @@ export class UserResolver {
     ) {}
 
     @Query(() => User, {nullable: true})
-    @Roles(RoleEnum.User)
+    @Roles(RoleEnum.User, RoleEnum.Admin)
+    @Permissions('UserView')
     async getUser(@Args('id', {type: () => String}) id: string): Promise<User | null> {
         return this.userService.getOneById(id);
     }

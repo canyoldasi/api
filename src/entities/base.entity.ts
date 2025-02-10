@@ -8,19 +8,19 @@ export abstract class BaseEntity{
     @Field({nullable: false})
     id: string;
 
-    @CreateDateColumn({ type: 'datetime', nullable: false })
+    @CreateDateColumn({ type: 'timestamp', nullable: false })
     createdAt: Date;
 
     @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
     public createdBy: User;
 
-    @UpdateDateColumn({ type: 'datetime', nullable: true })
+    @UpdateDateColumn({ type: 'timestamp', nullable: true })
     updatedAt: Date;
 
     @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
     public updatedBy: User;
 
-    @DeleteDateColumn({ type: 'datetime', nullable: true })
+    @DeleteDateColumn({ type: 'timestamp', nullable: true })
     deletedAt: Date;
 
     @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
