@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { RoleEnum } from '../providers/role.enum';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { RoleService } from '../modules/user/role.service';
-import { METADATA_NAME_PERMISSIONS, Permission } from 'src/constants';
+import { METADATA_NAME_PERMISSIONS, METADATA_NAME_ROLES, Permission } from 'src/constants';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -38,7 +38,7 @@ export class AuthGuard implements CanActivate {
 
             const userId = payload.sub;
 
-            const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(process.env.METADATA_ROLES, [
+            const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(METADATA_NAME_ROLES, [
                 context.getHandler(),
                 context.getClass(),
             ]);
