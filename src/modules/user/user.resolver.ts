@@ -6,10 +6,9 @@ import { Role } from '../../entities/role.entity';
 import { AddUpdateUserDto } from './add-update-user.dto';
 import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { RoleEnum } from '../../providers/role.enum';
-import { Roles } from '../../providers/roles.decorator';
 import { ManagedException } from 'src/providers/managed.exception';
 import { Permissions } from 'src/providers/permissions.decorator';
+import { GetUsersDTO } from './get-users.dto';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard)
@@ -20,10 +19,15 @@ export class UserResolver {
     ) {}
 
     @Query(() => User, {nullable: true})
-    @Roles(RoleEnum.User, RoleEnum.Admin)
     @Permissions('UserView')
     async getUser(@Args('id', {type: () => String}) id: string): Promise<User | null> {
         return this.userService.getOneById(id);
+    }
+
+    @Query(() => User, {nullable: true})
+    @Permissions('UserView')
+    async getUsers(@Args('filters', {type: () => GetUsersDTO, nullable: true}) filters: GetUsersDTO): Promise<User[]> {
+        return this.userService.getUsersByFilters(filters);
     }
 
     @ResolveField('roles', () => [Role], {nullable: true})
@@ -32,7 +36,7 @@ export class UserResolver {
     }
 
     @Mutation(() => String)
-    @Roles(RoleEnum.Admin)
+    @Permissions('UserMutation')
     async addUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
         //throw new ManagedException("Başlamadım bile!")
         const r = await this.userService.add(dto);
@@ -40,14 +44,14 @@ export class UserResolver {
     }
 
     @Mutation(() => String)
-    @Roles(RoleEnum.Admin)
+    @Permissions('UserMutation')
     async updateUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
         const r = await this.userService.update(dto);
         return r?.id;
     }
 
     @Mutation(() => Boolean)
-    @Roles(RoleEnum.Admin)
+    @Permissions('UserMutation')
     async removeUser(@Args('id', {type: () => String}) id: string) {
         this.userService.removeOneById(id);
         return true

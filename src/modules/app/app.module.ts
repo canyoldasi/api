@@ -17,6 +17,7 @@ import { User } from 'src/entities/user.entity';
 import { Role } from 'src/entities/role.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
+import { SnakeNamingStrategy } from 'src/providers/snake.naming-strategy';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { RolePermission } from 'src/entities/role-permission.entity';
         Role,
         UserRole,
         RolePermission
-      ]
+      ],
+      namingStrategy: new SnakeNamingStrategy()
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

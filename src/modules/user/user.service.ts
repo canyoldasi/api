@@ -1,11 +1,12 @@
 import { Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
-import { EntityManager } from 'typeorm';
+import { EntityManager, FindOptionsWhere, Like } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AddUpdateUserDto } from './add-update-user.dto';
 import { UserRole } from '../../entities/user-role.entity';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { ManagedException } from '../../providers/managed.exception';
+import { GetUsersDTO } from './get-users.dto';
 
 @Injectable()
 export class UserService {
@@ -93,10 +94,13 @@ export class UserService {
     })
   }
 
-  async getAll(): Promise<User[] | undefined> {
+  async getUsersByFilters(filters: GetUsersDTO): Promise<User[] | undefined> {
+    const q = `
+      SELECT
+    `
     return this.entityManager.find(User, {
       where: {
-        isActive: true
+        id: 'asdasd',
       },
       relations: {
         roles: true

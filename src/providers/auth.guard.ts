@@ -6,10 +6,9 @@ UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
-import { RoleEnum } from '../providers/role.enum';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { RoleService } from '../modules/user/role.service';
-import { METADATA_NAME_PERMISSIONS, METADATA_NAME_ROLES, Permission } from 'src/constants';
+import { METADATA_NAME_PERMISSIONS, Permission } from 'src/constants';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -38,28 +37,10 @@ export class AuthGuard implements CanActivate {
 
             const userId = payload.sub;
 
-            const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(METADATA_NAME_ROLES, [
-                context.getHandler(),
-                context.getClass(),
-            ]);
-            //Eğer resolver için bir rol kısıtlaması belirtilmemişse istemci erişebilsin
-            if (!requiredRoles) {
-                return true;
-            }
-
             //kullanıcının rollerini veritabanından çek
             const assignedRoles = await this.roleService.findUserRoles(userId);
-            
-            //kullanıcı acaba belirtilen rollerden herhangi birine sahip mi
-            const hasRole = assignedRoles.some((x) => {
-                return requiredRoles.find(y => String(y) === String(x.id));
-            })
 
-            //sahip değilse izin verme
-            if (!hasRole) {
-                throw new UnauthorizedException('Rolünüz yeterli değil.');
-            }
-
+            //gerekli izinleri tespit et
             const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(METADATA_NAME_PERMISSIONS, [
                 context.getHandler(),
                 context.getClass()
@@ -70,9 +51,10 @@ export class AuthGuard implements CanActivate {
                 return true;
             }
 
+            //kullanıcının izinlerini veritabanından çek
             const assignedPermissions = await this.roleService.findUserPermissions(userId);
 
-            //izinlerin tamamına sahip olmalı
+            //gerekli izinlerin tamamına sahip mi
             const hasPermission = assignedPermissions.every((x) => {
                 return requiredPermissions.find(y => y == x)
             })
