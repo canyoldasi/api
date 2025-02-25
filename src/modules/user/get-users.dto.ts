@@ -1,7 +1,8 @@
 import { Field, InputType } from "@nestjs/graphql";
+import { PaginationBaseDTO } from "src/providers/pagination-base.dto";
 
 @InputType()
-export class GetUsersDTO {
+export class GetUsersDTO extends PaginationBaseDTO {
     @Field({nullable: true})
     text?: string;
 

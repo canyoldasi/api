@@ -13,7 +13,7 @@ import { AuthResolver } from './auth.resolver';
       global: true,
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: '24h'
+        expiresIn: '100d'
       }
     }),
   ]

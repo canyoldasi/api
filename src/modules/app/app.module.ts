@@ -38,7 +38,7 @@ import { SnakeNamingStrategy } from 'src/providers/snake.naming-strategy';
         UserRole,
         RolePermission
       ],
-      namingStrategy: new SnakeNamingStrategy()
+      //namingStrategy: new SnakeNamingStrategy()
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

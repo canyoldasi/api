@@ -24,10 +24,11 @@ export class UserResolver {
         return this.userService.getOneById(id);
     }
 
-    @Query(() => User, {nullable: true})
+    @Query(() => [User], {nullable: true})
     @Permissions('UserView')
-    async getUsers(@Args('filters', {type: () => GetUsersDTO, nullable: true}) filters: GetUsersDTO): Promise<User[]> {
-        return this.userService.getUsersByFilters(filters);
+    async getUsers(@Args('filters', {type: () => GetUsersDTO, nullable: true}) filters: GetUsersDTO): Promise<Partial<User>[]> {
+        const r = this.userService.getUsersByFilters(filters);
+        return r;
     }
 
     @ResolveField('roles', () => [Role], {nullable: true})

@@ -95,16 +95,27 @@ export class UserService {
   }
 
   async getUsersByFilters(filters: GetUsersDTO): Promise<User[] | undefined> {
-    const q = `
-      SELECT
-    `
-    return this.entityManager.find(User, {
-      where: {
-        id: 'asdasd',
-      },
-      relations: {
-        roles: true
-      }
-    })
+    const queryBuilder = this.entityManager.createQueryBuilder(User, 'user');
+
+    queryBuilder.where('user.deletedAt IS NULL');
+
+    if (filters.text) {
+      queryBuilder.andWhere('(user.username LIKE :text OR user.fullName LIKE :text)', { text: `%${filters.text}%` });
+    }
+
+    if (filters.isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', { isActive: filters.isActive });
+    }
+
+    if (filters.roleIds && filters.roleIds.length > 0) {
+      queryBuilder.andWhere('user.id IN (SELECT user_role.userId FROM user_role WHERE user_role.roleId IN (:...roleIds))', { roleIds: filters.roleIds });
+    }
+
+    queryBuilder.orderBy(filters.orderBy || 'user.fullName', filters.orderDirection);
+
+    queryBuilder.skip(filters.pageIndex * filters.pageSize).take(filters.pageSize);
+
+    const r = await queryBuilder.getMany();
+    return r;
   }
 }

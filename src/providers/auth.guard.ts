@@ -55,9 +55,9 @@ export class AuthGuard implements CanActivate {
             const assignedPermissions = await this.roleService.findUserPermissions(userId);
 
             //gerekli izinlerin tamamına sahip mi
-            const hasPermission = assignedPermissions.every((x) => {
-                return requiredPermissions.find(y => y == x)
-            })
+            const hasPermission = requiredPermissions.every((permission) => {
+                return assignedPermissions.includes(permission);
+            });
 
             //izni yoksa erişemesin
             if (!hasPermission) {
