@@ -17,7 +17,6 @@ import { User } from 'src/entities/user.entity';
 import { Role } from 'src/entities/role.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
-import { SnakeNamingStrategy } from 'src/providers/snake.naming-strategy';
 
 @Module({
   imports: [
@@ -32,12 +31,7 @@ import { SnakeNamingStrategy } from 'src/providers/snake.naming-strategy';
       database: process.env.DATABASE_NAME,
       synchronize: Boolean(process.env.DATABASE_SYNC),
       autoLoadEntities: false,
-      entities: [
-        User,
-        Role,
-        UserRole,
-        RolePermission
-      ],
+      entities: [User, Role, UserRole, RolePermission],
       //namingStrategy: new SnakeNamingStrategy()
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -46,11 +40,11 @@ import { SnakeNamingStrategy } from 'src/providers/snake.naming-strategy';
       sortSchema: true,
       playground: process.env.NODE_ENV == 'development',
       introspection: true,
-      context: ({req}) => {
+      context: ({ req }) => {
         return {
-          requestId: req.requestId
-        }
-      }
+          requestId: req.requestId,
+        };
+      },
     }),
     UserModule,
     AuthModule,

@@ -1,0 +1,6 @@
+{
+    "cSpell.ignoreRegExpList": [
+        "/\\/\\/.*$/",   // Tek satır yorumları (// ...)
+        "/\\/\\*[\\s\\S]*?\\*\\//" // Çok satırlı yorumlar (/* ... */)
+    ]
+}

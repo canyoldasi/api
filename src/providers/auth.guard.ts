@@ -1,59 +1,51 @@
-import {
-CanActivate,
-ExecutionContext,
-Injectable,
-UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { RoleService } from '../modules/user/role.service';
 import { METADATA_NAME_PERMISSIONS, Permission } from 'src/constants';
+import { UserService } from 'src/modules/user/user.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(
-        private jwtService: JwtService, 
+        private jwtService: JwtService,
         private reflector: Reflector,
-        private roleService: RoleService
+        private roleService: RoleService,
+        private userService: UserService
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
         const request = ctx.getContext().req;
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        let userId: string;
 
         if (type !== 'Bearer' || !token) {
             throw new UnauthorizedException('Token türü Bearer olmalıdır');
         }
 
         try {
-            const payload = await this.jwtService.verifyAsync(
-                token,
-                {
-                secret: process.env.JWT_SECRET
-                }
-            );
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: process.env.JWT_SECRET,
+            });
 
-            const userId = payload.sub;
+            userId = payload.sub;
+        } catch (e) {
+            throw new UnauthorizedException('Token geçersiz veya güvenlik kontrolü esnasında hata oluştu');
+        }
 
-            //kullanıcının rollerini veritabanından çek
-            const assignedRoles = await this.roleService.findUserRoles(userId);
+        //kullanıcının izinlerini veritabanından çek
+        const assignedPermissions = await this.roleService.findUserPermissions(userId);
 
-            //gerekli izinleri tespit et
-            const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(METADATA_NAME_PERMISSIONS, [
-                context.getHandler(),
-                context.getClass()
-            ]);
+        //gerekli izinleri tespit et
+        const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(METADATA_NAME_PERMISSIONS, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
 
-            //izin kısıtlaması yoksa bırak erişebilsin
-            if (requiredPermissions.length == 0) {
-                return true;
-            }
-
-            //kullanıcının izinlerini veritabanından çek
-            const assignedPermissions = await this.roleService.findUserPermissions(userId);
-
+        //izin kısıtlaması varsa detay kontrollere başla
+        if (requiredPermissions && requiredPermissions.length > 0) {
             //gerekli izinlerin tamamına sahip mi
             const hasPermission = requiredPermissions.every((permission) => {
                 return assignedPermissions.includes(permission);
@@ -63,19 +55,16 @@ export class AuthGuard implements CanActivate {
             if (!hasPermission) {
                 return false;
             }
-
-            //uygulamanın kalanında kullanılabilin diye kullanıcının bilgilerini request'e koyuyorum
-            request['user'] = {
-                id: userId,
-                roles: assignedRoles,
-                permissions: assignedPermissions
-            }
-
-            //tüm kontrollerden geçtiyse izin ver erişsin
-            return true;
-        } catch (e) {   
-            throw new UnauthorizedException('Token geçersiz veya güvenlik kontrolü esnasında hata oluştu');
         }
-        return false;
+
+        //uygulamanın kalanında kullanılabilin diye kullanıcının bilgilerini request'e koyuyorum
+        request['user'] = {
+            user: await this.userService.getOneById(userId),
+            roles: await this.roleService.findUserRoles(userId), //kullanıcının rollerini veritabanından çek
+            permissions: assignedPermissions,
+        };
+
+        //tüm kontrollerden geçtiyse izin ver erişsin
+        return true;
     }
 }
