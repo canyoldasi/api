@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { Role } from '../../entities/role.entity';
 import { UserRole } from '../../entities/user-role.entity';
-import { EntityManager, In } from 'typeorm';
+import { EntityManager, In, IsNull } from 'typeorm';
 import { Permission } from 'src/constants';
 import { RolePermission } from 'src/entities/role-permission.entity';
 
@@ -13,7 +13,16 @@ export class RoleService {
         private entityManager: EntityManager
     ) {}
 
-    async findUserRoles(userId: string): Promise<Role[]> {
+    async getRoles(): Promise<Role[]> {
+        const r = await this.entityManager.find(Role, {
+            where: {
+                deletedAt: IsNull(),
+            },
+        });
+        return r;
+    }
+
+    async getRolesByUser(userId: string): Promise<Role[]> {
         const userRoles = await this.entityManager.find(UserRole, {
             where: {
                 user: {
@@ -27,8 +36,20 @@ export class RoleService {
         return userRoles.map((x) => x.role);
     }
 
+    async getOneById(id: string): Promise<Role> {
+        const r = await this.entityManager.findOne(Role, {
+            where: {
+                id: id,
+            },
+            relations: {
+                rolePermissions: true,
+            },
+        });
+        return r;
+    }
+
     async findUserPermissions(userId: string): Promise<Permission[]> {
-        const roles = await this.findUserRoles(userId);
+        const roles = await this.getRolesByUser(userId);
         const roleIds = roles.map((x) => {
             return x.id;
         });

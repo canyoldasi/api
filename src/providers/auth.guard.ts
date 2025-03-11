@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { RoleService } from '../modules/user/role.service';
+import { RoleService } from '../modules/role/role.service';
 import { METADATA_NAME_PERMISSIONS, Permission } from 'src/constants';
 import { UserService } from 'src/modules/user/user.service';
 
@@ -60,7 +60,7 @@ export class AuthGuard implements CanActivate {
         //uygulamanın kalanında kullanılabilin diye kullanıcının bilgilerini request'e koyuyorum
         request['user'] = {
             user: await this.userService.getOneById(userId),
-            roles: await this.roleService.findUserRoles(userId), //kullanıcının rollerini veritabanından çek
+            roles: await this.roleService.getRolesByUser(userId), //kullanıcının rollerini veritabanından çek
             permissions: assignedPermissions,
         };
 

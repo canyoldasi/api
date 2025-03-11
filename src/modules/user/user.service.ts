@@ -106,6 +106,18 @@ export class UserService {
             });
         }
 
+        if (filters.createdAtStart) {
+            queryBuilder.andWhere('user.createdAt >= :createdAtStart', {
+                createdAtStart: filters.createdAtStart,
+            });
+        }
+
+        if (filters.createdAtEnd) {
+            queryBuilder.andWhere('user.createdAt <= :createdAtEnd', {
+                createdAtEnd: filters.createdAtEnd,
+            });
+        }
+
         if (filters.isActive !== undefined) {
             queryBuilder.andWhere('user.isActive = :isActive', {
                 isActive: filters.isActive,
@@ -114,7 +126,7 @@ export class UserService {
 
         if (filters.roleIds && filters.roleIds.length > 0) {
             queryBuilder.andWhere(
-                'user.id IN (SELECT user_role.userId FROM user_role WHERE user_role.roleId IN (:...roleIds))',
+                'user.id IN (SELECT user_role."userId" FROM user_role WHERE user_role."roleId" IN (:...roleIds))',
                 { roleIds: filters.roleIds }
             );
         }

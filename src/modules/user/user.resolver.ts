@@ -1,6 +1,6 @@
-import { Resolver, ResolveField, Args, Query, Parent, Mutation, Context } from '@nestjs/graphql';
+import { Resolver, ResolveField, Args, Query, Parent, Mutation } from '@nestjs/graphql';
 import { UserService } from './user.service';
-import { RoleService } from './role.service';
+import { RoleService } from '../role/role.service';
 import { User } from '../../entities/user.entity';
 import { Role } from '../../entities/role.entity';
 import { AddUpdateUserDto } from './add-update-user.dto';
@@ -8,7 +8,6 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetUsersDTO } from './get-users.dto';
-import { UserResponseDTO } from './get-user-response.dto';
 @Resolver(() => User)
 @UseGuards(AuthGuard)
 export class UserResolver {
@@ -16,11 +15,6 @@ export class UserResolver {
         private userService: UserService,
         private roleService: RoleService
     ) {}
-
-    @Query(() => UserResponseDTO, { nullable: true })
-    async me(@Context() context): Promise<User | null> {
-        return context.req.user;
-    }
 
     @Query(() => User, { nullable: true })
     @Permissions('UserView')
@@ -31,7 +25,7 @@ export class UserResolver {
     @Query(() => [User], { nullable: true })
     @Permissions('UserView')
     async getUsers(
-        @Args('filters', { type: () => GetUsersDTO, nullable: true })
+        @Args('dto', { type: () => GetUsersDTO, nullable: true })
         filters: GetUsersDTO
     ): Promise<Partial<User>[]> {
         const r = this.userService.getUsersByFilters(filters);
@@ -40,7 +34,7 @@ export class UserResolver {
 
     @ResolveField('roles', () => [Role], { nullable: true })
     async getUserRoles(@Parent() user: Partial<User>): Promise<Role[]> {
-        return this.roleService.findUserRoles(user.id);
+        return this.roleService.getRolesByUser(user.id);
     }
 
     @Mutation(() => String)

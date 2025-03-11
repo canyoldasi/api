@@ -5,12 +5,12 @@ import { User } from '../../entities/user.entity';
 import { Role } from '../../entities/role.entity';
 import { UserRole } from '../../entities/user-role.entity';
 import { UserResolver } from './user.resolver';
-import { RoleService } from './role.service';
+import { RoleService } from '../role/role.service';
 
 @Module({
-  controllers: [],
-  providers: [UserService, UserResolver, RoleService],
-  exports: [UserService, TypeOrmModule, RoleService],
-  imports: [TypeOrmModule.forFeature([User, Role, UserRole])],
+    controllers: [],
+    providers: [UserService, UserResolver, RoleService],
+    exports: [UserService, TypeOrmModule, RoleService],
+    imports: [TypeOrmModule.forFeature([User, Role, UserRole])],
 })
 export class UserModule {}
