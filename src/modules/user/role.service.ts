@@ -1,14 +1,14 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { InjectEntityManager } from "@nestjs/typeorm";
-import { Role } from "../../entities/role.entity";
-import { UserRole } from "../../entities/user-role.entity";
-import { EntityManager, In } from "typeorm";
-import { Permission } from "src/constants";
-import { RolePermission } from "src/entities/role-permission.entity";
+import { Injectable } from '@nestjs/common';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { Role } from '../../entities/role.entity';
+import { UserRole } from '../../entities/user-role.entity';
+import { EntityManager, In } from 'typeorm';
+import { Permission } from 'src/constants';
+import { RolePermission } from 'src/entities/role-permission.entity';
 
 @Injectable()
 export class RoleService {
-    constructor (
+    constructor(
         @InjectEntityManager()
         private entityManager: EntityManager
     ) {}
@@ -17,31 +17,31 @@ export class RoleService {
         const userRoles = await this.entityManager.find(UserRole, {
             where: {
                 user: {
-                    id: userId
-                }
+                    id: userId,
+                },
             },
             relations: {
-                role: true
-            }
+                role: true,
+            },
         });
-        return userRoles.map(x => x.role)
+        return userRoles.map((x) => x.role);
     }
 
     async findUserPermissions(userId: string): Promise<Permission[]> {
         const roles = await this.findUserRoles(userId);
-        const roleIds = roles.map((x)=> {
+        const roleIds = roles.map((x) => {
             return x.id;
-        })
+        });
 
         const permissions = await this.entityManager.findBy(RolePermission, {
             role: {
-                id: In(roleIds)
-            }
-        })
+                id: In(roleIds),
+            },
+        });
 
         const permissionCodes = permissions.map((x) => {
-            return x.permission
-        })
+            return x.permission;
+        });
 
         return permissionCodes;
     }
@@ -49,9 +49,8 @@ export class RoleService {
     async removeByUserId(id: string) {
         await this.entityManager.delete(UserRole, {
             user: {
-                id: id
-            }
-        })
+                id: id,
+            },
+        });
     }
-    
 }
