@@ -18,6 +18,8 @@ import { Role } from 'src/entities/role.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { RoleModule } from '../role/role.module';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { fastify } from 'fastify';
 
 @Module({
     imports: [
@@ -41,11 +43,12 @@ import { RoleModule } from '../role/role.module';
             sortSchema: true,
             playground: process.env.NODE_ENV == 'development',
             introspection: true,
-            context: ({ req }) => {
+            context: ({ request }) => {
                 return {
-                    requestId: req.requestId,
+                    requestId: request?.headers?.['x-request-id'] || 'default-id',
                 };
             },
+            plugins: [ApolloServerPluginDrainHttpServer({ httpServer: fastify().server })],
         }),
         UserModule,
         AuthModule,
