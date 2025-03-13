@@ -42,11 +42,12 @@ import FastifyRequestCustom from '../../providers/fastify-request-custom';
             sortSchema: true,
             playground: process.env.NODE_ENV === 'development',
             introspection: true,
-            context: ({ request }) => {
-                const fastifyRequest = request as FastifyRequestCustom;
+            context: (context) => {
+                const fastifyRequest = context.raw as FastifyRequestCustom;
                 return {
-                    requestId: fastifyRequest.requestId || 'default-id',
-                    user: fastifyRequest.user,
+                    requestId: fastifyRequest?.requestId || 'default-id',
+                    user: fastifyRequest?.user,
+                    reply: context.reply,
                 };
             },
         }),
@@ -57,14 +58,14 @@ import FastifyRequestCustom from '../../providers/fastify-request-custom';
     controllers: [AppController],
     providers: [
         JwtStrategy,
-        {
+        /*{
             provide: APP_FILTER,
             useClass: GlobalExceptionFilter,
         },
         {
             provide: APP_INTERCEPTOR,
             useClass: ExecutionTimeInterceptor,
-        },
+        },*/
     ],
 })
 export class AppModule implements NestModule {
