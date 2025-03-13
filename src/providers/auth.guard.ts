@@ -5,6 +5,7 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { RoleService } from '../modules/role/role.service';
 import { METADATA_NAME_PERMISSIONS, Permission } from 'src/constants';
 import { UserService } from 'src/modules/user/user.service';
+import FastifyRequestCustom from './fastify-request-custom';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -17,8 +18,9 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
-        const request = ctx.getContext().req;
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        const request = ctx.getContext().req as FastifyRequestCustom;
+        const authHeader = request.headers.authorization;
+        const [type, token] = authHeader?.split(' ') ?? [];
         let userId: string;
 
         if (type !== 'Bearer' || !token) {
@@ -58,7 +60,7 @@ export class AuthGuard implements CanActivate {
         }
 
         //uygulamanın kalanında kullanılabilin diye kullanıcının bilgilerini request'e koyuyorum
-        request['user'] = {
+        request.user = {
             user: await this.userService.getOneById(userId),
             roles: await this.roleService.getRolesByUser(userId), //kullanıcının rollerini veritabanından çek
             permissions: assignedPermissions,
