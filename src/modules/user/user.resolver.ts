@@ -8,6 +8,7 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetUsersDTO } from './get-users.dto';
+
 @Resolver(() => User)
 @UseGuards(AuthGuard)
 export class UserResolver {
@@ -40,7 +41,6 @@ export class UserResolver {
     @Mutation(() => String)
     @Permissions('UserMutation')
     async addUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
-        //throw new ManagedException("Başlamadım bile!")
         const r = await this.userService.add(dto);
         return r?.id;
     }

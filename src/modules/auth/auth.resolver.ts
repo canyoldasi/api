@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserResponseDTO } from '../user/get-user-response.dto';
 import { User } from 'src/entities/user.entity';
+import FastifyRequestCustom from '../../providers/fastify-request-custom';
 
 @ObjectType()
 export class AuthResolver {
@@ -21,7 +22,7 @@ export class AuthResolver {
     }
 
     @Query(() => UserResponseDTO, { nullable: true })
-    async me(@Context() context): Promise<User | null> {
-        return context.req.user;
+    async me(@Context() context: { req: FastifyRequestCustom }): Promise<User | null> {
+        return context.req.user?.user || null;
     }
 }
