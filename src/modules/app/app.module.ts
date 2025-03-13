@@ -18,7 +18,6 @@ import { Role } from 'src/entities/role.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { RoleModule } from '../role/role.module';
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import FastifyRequestCustom from '../../providers/fastify-request-custom';
 
 @Module({
@@ -50,7 +49,6 @@ import FastifyRequestCustom from '../../providers/fastify-request-custom';
                     user: fastifyRequest.user,
                 };
             },
-            plugins: [ApolloServerPluginDrainHttpServer({ httpServer: fastify().server })],
         }),
         UserModule,
         AuthModule,

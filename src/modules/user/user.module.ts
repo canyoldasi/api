@@ -9,7 +9,7 @@ import { RoleService } from '../role/role.service';
 
 @Module({
     controllers: [],
-    providers: [UserService, UserResolver, RoleService],
+    providers: [UserService, UserResolver, RoleService, UserService],
     exports: [UserService, TypeOrmModule, RoleService],
     imports: [TypeOrmModule.forFeature([User, Role, UserRole])],
 })

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { RoleService } from '../modules/role/role.service';
-import { METADATA_NAME_PERMISSIONS, Permission } from 'src/constants';
+import { PERMISSIONS_METADATA_NAME, Permission } from 'src/constants';
 import { UserService } from 'src/modules/user/user.service';
 import FastifyRequestCustom from './fastify-request-custom';
 
@@ -41,7 +41,7 @@ export class AuthGuard implements CanActivate {
         const assignedPermissions = await this.roleService.findUserPermissions(userId);
 
         //gerekli izinleri tespit et
-        const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(METADATA_NAME_PERMISSIONS, [
+        const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_METADATA_NAME, [
             context.getHandler(),
             context.getClass(),
         ]);
