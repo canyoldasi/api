@@ -1,17 +1,17 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Role } from "./role.entity";
-import { ObjectType, Field, Int } from "@nestjs/graphql";
-import { BaseEntity } from "./base.entity";
-import { Permission } from "src/constants";
+import { Column, Entity, ManyToOne } from 'typeorm';
+import { Role } from './role.entity';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { BaseEntity } from './base.entity';
+import { Permission } from '../constants';
 
 @Entity()
 @ObjectType()
 export class RolePermission extends BaseEntity {
-    @ManyToOne(() => Role, (role) => role.rolePermissions, { onDelete: "CASCADE" })
+    @ManyToOne(() => Role, (role) => role.rolePermissions)
     @Field(() => Role)
     role: Role;
 
-    @Column({ nullable: false })
+    @Column()
     @Field()
     permission: Permission;
 }

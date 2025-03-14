@@ -12,8 +12,16 @@ export class Role extends BaseEntity {
     name: string;
 
     @OneToMany(() => User, (x) => x.roles)
+    @Field(() => [User], { nullable: true })
     users?: User[];
 
     @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
+    @Field(() => [RolePermission], { nullable: true })
     rolePermissions?: RolePermission[];
+
+    @Field()
+    createdAt: Date;
+
+    @Field()
+    updatedAt: Date;
 }
