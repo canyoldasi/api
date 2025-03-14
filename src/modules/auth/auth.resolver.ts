@@ -22,7 +22,8 @@ export class AuthResolver {
     }
 
     @Query(() => UserResponseDTO, { nullable: true })
-    async me(@Context() context: { req: FastifyRequestCustom }): Promise<User | null> {
-        return context.req.user?.user || null;
+    async me(@Context() context: { req: FastifyRequestCustom }): Promise<UserResponseDTO | null> {
+        const r = context.req.user;
+        return r;
     }
 }

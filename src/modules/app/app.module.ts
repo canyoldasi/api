@@ -9,7 +9,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UserModule } from '../user/user.module';
 import { WinstonModule } from 'nest-winston';
 import { loggerConfig } from 'src/providers/logger.config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
 import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercepter';
 import { RequestMiddleware } from 'src/providers/request.middleware';
@@ -19,11 +19,17 @@ import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { RoleModule } from '../role/role.module';
 import FastifyRequestCustom from '../../providers/fastify-request-custom';
+import { AuthGuard } from '../../providers/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
     imports: [
         WinstonModule.forRoot(loggerConfig),
         PassportModule,
+        JwtModule.register({
+            secret: process.env.JWT_SECRET,
+            signOptions: { expiresIn: '24h' },
+        }),
         TypeOrmModule.forRoot({
             type: 'postgres',
             host: process.env.DATABASE_HOST,
@@ -42,12 +48,11 @@ import FastifyRequestCustom from '../../providers/fastify-request-custom';
             sortSchema: true,
             playground: process.env.NODE_ENV === 'development',
             introspection: true,
-            context: (context) => {
-                const fastifyRequest = context.raw as FastifyRequestCustom;
+            context: ({ req }) => {
+                const fastifyRequest = req as FastifyRequestCustom;
                 return {
-                    requestId: fastifyRequest?.requestId || 'default-id',
+                    req: fastifyRequest,
                     user: fastifyRequest?.user,
-                    reply: context.reply,
                 };
             },
         }),
@@ -58,6 +63,10 @@ import FastifyRequestCustom from '../../providers/fastify-request-custom';
     controllers: [AppController],
     providers: [
         JwtStrategy,
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+        },
         /*{
             provide: APP_FILTER,
             useClass: GlobalExceptionFilter,
