@@ -16,15 +16,6 @@ export class RoleService {
         private readonly logger: WinstonLogger
     ) {}
 
-    async getRoles(): Promise<Role[]> {
-        const r = await this.entityManager.find(Role, {
-            where: {
-                deletedAt: IsNull(),
-            },
-        });
-        return r;
-    }
-
     async getRolesByUser(userId: string): Promise<Role[]> {
         const userRoles = await this.entityManager.find(UserRole, {
             where: {
