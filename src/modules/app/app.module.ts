@@ -72,10 +72,10 @@ import { LoggingInterceptor } from 'src/providers/logging.interceptor';
             provide: APP_INTERCEPTOR,
             useClass: LoggingInterceptor,
         },
-        /*{
+        {
             provide: APP_FILTER,
             useClass: GlobalExceptionFilter,
-        },*/
+        },
     ],
 })
 export class AppModule implements NestModule {

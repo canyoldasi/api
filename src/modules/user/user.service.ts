@@ -6,6 +6,7 @@ import { AddUpdateUserDto } from './add-update-user.dto';
 import { UserRole } from '../../entities/user-role.entity';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetUsersDTO } from './get-users.dto';
+import { ManagedException } from 'src/providers/managed.exception';
 
 @Injectable()
 export class UserService {
@@ -24,7 +25,7 @@ export class UserService {
                 password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
             });
 
-            //throw new ManagedException("Bu managed hata bildirilir", true)
+            throw new ManagedException('Bu managed hata bildirilir', true);
             //this.logger.log(`User added: ${ret}`);
             for (const x of dto.roles) {
                 await manager.save(UserRole, {
