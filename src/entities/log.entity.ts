@@ -20,13 +20,13 @@ export class Log {
     @Field({ nullable: true })
     module?: string;
 
-    @Column({ nullable: false })
-    @Field()
-    action: string;
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    action?: string;
 
-    @Column({ nullable: false })
-    @Field()
-    message: string;
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    message?: string;
 
     @Column({ nullable: true })
     @Field(() => String, { nullable: true })
