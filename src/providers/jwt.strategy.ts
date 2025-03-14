@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         request.user = {
             user: { userId: payload.sub, username: payload.username },
             roles: payload.roles || [],
-            permissions: payload.permissions || []
+            permissions: payload.permissions || [],
         };
         return request.user;
     }

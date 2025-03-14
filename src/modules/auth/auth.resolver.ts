@@ -2,7 +2,6 @@ import { Args, Context, ObjectType, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserResponseDTO } from '../user/get-user-response.dto';
-import { User } from 'src/entities/user.entity';
 import FastifyRequestCustom from '../../providers/fastify-request-custom';
 
 @ObjectType()
