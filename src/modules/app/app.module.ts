@@ -11,16 +11,17 @@ import { WinstonModule } from 'nest-winston';
 import { loggerConfig } from 'src/providers/logger.config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
-import { ExecutionTimeInterceptor } from 'src/providers/execution-time.intercepter';
 import { RequestMiddleware } from 'src/providers/request.middleware';
 import { User } from 'src/entities/user.entity';
 import { Role } from 'src/entities/role.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { RoleModule } from '../role/role.module';
-import FastifyRequestCustom from '../../providers/fastify-request-custom';
 import { AuthGuard } from '../../providers/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { Log } from 'src/entities/log.entity';
+import { LogModule } from '../log/log.module';
+import { LoggingInterceptor } from 'src/providers/logging.interceptor';
 
 @Module({
     imports: [
@@ -39,7 +40,7 @@ import { JwtModule } from '@nestjs/jwt';
             database: process.env.DATABASE_NAME,
             synchronize: Boolean(process.env.DATABASE_SYNC),
             autoLoadEntities: false,
-            entities: [User, Role, UserRole, RolePermission],
+            entities: [User, Role, UserRole, RolePermission, Log],
             //namingStrategy: new SnakeNamingStrategy()
         }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -58,6 +59,7 @@ import { JwtModule } from '@nestjs/jwt';
         UserModule,
         AuthModule,
         RoleModule,
+        LogModule.forRoot(),
     ],
     controllers: [AppController],
     providers: [
@@ -66,13 +68,13 @@ import { JwtModule } from '@nestjs/jwt';
             provide: APP_GUARD,
             useClass: AuthGuard,
         },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: LoggingInterceptor,
+        },
         /*{
             provide: APP_FILTER,
             useClass: GlobalExceptionFilter,
-        },
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: ExecutionTimeInterceptor,
         },*/
     ],
 })

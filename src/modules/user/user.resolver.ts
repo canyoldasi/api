@@ -19,7 +19,7 @@ export class UserResolver {
 
     @Query(() => User, { nullable: true })
     @Permissions('UserRead')
-    async getUser(@Args('id', { type: () => String }) id: string): Promise<User | null> {
+    async getUser(@Args('id') id: string): Promise<User> {
         return this.userService.getOneById(id);
     }
 
@@ -29,8 +29,7 @@ export class UserResolver {
         @Args('dto', { type: () => GetUsersDTO, nullable: true })
         filters: GetUsersDTO
     ): Promise<Partial<User>[]> {
-        const r = this.userService.getUsersByFilters(filters);
-        return r;
+        return this.userService.getUsersByFilters(filters);
     }
 
     @ResolveField('roles', () => [Role], { nullable: true })

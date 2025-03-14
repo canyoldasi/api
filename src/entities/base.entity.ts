@@ -1,11 +1,11 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { Column, CreateDateColumn, DeleteDateColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { User } from "./user.entity";
+import { Field, ObjectType } from '@nestjs/graphql';
+import { CreateDateColumn, DeleteDateColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { User } from './user.entity';
 
 @ObjectType()
-export abstract class BaseEntity{
+export abstract class BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    @Field({nullable: false})
+    @Field({ nullable: false })
     id: string;
 
     @CreateDateColumn({ type: 'timestamp', nullable: false })
