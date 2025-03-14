@@ -13,13 +13,13 @@ export class RoleResolver {
     constructor(private roleService: RoleService) {}
 
     @Query(() => Role, { nullable: true })
-    @Permissions('RoleView')
+    @Permissions('RoleRead')
     async getRole(@Args('id', { type: () => String }) id: string): Promise<Role | null> {
         return this.roleService.getOneById(id);
     }
 
     @Query(() => [Role], { nullable: true })
-    @Permissions('RoleView')
+    @Permissions('RoleRead')
     async getRoles(
         @Args('dto', { type: () => GetRolesDTO, nullable: true })
         filters: GetRolesDTO
@@ -28,23 +28,23 @@ export class RoleResolver {
     }
 
     @Mutation(() => String)
-    @Permissions('RoleMutation')
-    async addRole(@Args('dto') dto: AddUpdateRoleDto): Promise<string> {
-        const r = await this.roleService.add(dto);
+    @Permissions('RoleCreate')
+    async createRole(@Args('dto') dto: AddUpdateRoleDto): Promise<string> {
+        const r = await this.roleService.create(dto);
         return r?.id;
     }
 
     @Mutation(() => String)
-    @Permissions('RoleMutation')
+    @Permissions('RoleUpdate')
     async updateRole(@Args('dto') dto: AddUpdateRoleDto): Promise<string> {
         const r = await this.roleService.update(dto);
         return r?.id;
     }
 
     @Mutation(() => Boolean)
-    @Permissions('RoleMutation')
-    async removeRole(@Args('id', { type: () => String }) id: string) {
-        await this.roleService.removeOneById(id);
+    @Permissions('RoleDelete')
+    async deleteRole(@Args('id', { type: () => String }) id: string) {
+        await this.roleService.deleteOneById(id);
         return true;
     }
 }

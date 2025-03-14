@@ -15,7 +15,7 @@ export class UserService {
         private readonly logger: WinstonLogger
     ) {}
 
-    async add(dto: AddUpdateUserDto): Promise<User> {
+    async create(dto: AddUpdateUserDto): Promise<User> {
         let ret: User;
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(User, {
@@ -75,7 +75,7 @@ export class UserService {
         return ret;
     }
 
-    async removeOneById(id: string): Promise<void> {
+    async deleteOneById(id: string): Promise<void> {
         await this.entityManager.delete(User, {
             id: id,
         });

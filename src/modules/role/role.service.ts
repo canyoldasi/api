@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Role } from '../../entities/role.entity';
 import { UserRole } from '../../entities/user-role.entity';
-import { EntityManager, In, IsNull } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { Permission } from 'src/constants';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { AddUpdateRoleDto } from './add-update-role.dto';
@@ -61,7 +61,7 @@ export class RoleService {
         return permissionCodes;
     }
 
-    async add(dto: AddUpdateRoleDto): Promise<Role> {
+    async create(dto: AddUpdateRoleDto): Promise<Role> {
         let ret: Role;
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(Role, {
@@ -107,7 +107,7 @@ export class RoleService {
         return ret;
     }
 
-    async removeOneById(id: string): Promise<void> {
+    async deleteOneById(id: string): Promise<void> {
         await this.entityManager.update(
             Role,
             { id: id },

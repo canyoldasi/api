@@ -1,8 +1,12 @@
 export const PERMISSIONS = {
-    UserView: 'UserView',
-    UserMutation: 'UserMutation',
-    RoleView: 'RoleView',
-    RoleMutation: 'RoleMutation',
+    UserRead: 'UserRead',
+    UserCreate: 'UserCreate',
+    UserUpdate: 'UserUpdate',
+    UserDelete: 'UserDelete',
+    RoleRead: 'RoleRead',
+    RoleCreate: 'RoleCreate',
+    RoleUpdate: 'RoleUpdate',
+    RoleDelete: 'RoleDelete',
 } as const;
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 

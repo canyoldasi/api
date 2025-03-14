@@ -18,13 +18,13 @@ export class UserResolver {
     ) {}
 
     @Query(() => User, { nullable: true })
-    @Permissions('UserView')
+    @Permissions('UserRead')
     async getUser(@Args('id', { type: () => String }) id: string): Promise<User | null> {
         return this.userService.getOneById(id);
     }
 
     @Query(() => [User], { nullable: true })
-    @Permissions('UserView')
+    @Permissions('UserRead')
     async getUsers(
         @Args('dto', { type: () => GetUsersDTO, nullable: true })
         filters: GetUsersDTO
@@ -39,23 +39,23 @@ export class UserResolver {
     }
 
     @Mutation(() => String)
-    @Permissions('UserMutation')
-    async addUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
-        const r = await this.userService.add(dto);
+    @Permissions('UserCreate')
+    async createUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
+        const r = await this.userService.create(dto);
         return r?.id;
     }
 
     @Mutation(() => String)
-    @Permissions('UserMutation')
+    @Permissions('UserUpdate')
     async updateUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
         const r = await this.userService.update(dto);
         return r?.id;
     }
 
     @Mutation(() => Boolean)
-    @Permissions('UserMutation')
-    async removeUser(@Args('id', { type: () => String }) id: string) {
-        this.userService.removeOneById(id);
+    @Permissions('UserDelete')
+    async deleteUser(@Args('id', { type: () => String }) id: string) {
+        this.userService.deleteOneById(id);
         return true;
     }
 }
