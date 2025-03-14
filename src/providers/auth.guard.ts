@@ -18,27 +18,33 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
-        const request = ctx.getContext().req as FastifyRequestCustom;
-        const authHeader = request.headers.authorization;
-        const [type, token] = authHeader?.split(' ') ?? [];
-        let userId: string;
+        const gqlContext = ctx.getContext();
+        const raw = gqlContext.req || gqlContext.request?.raw;
+        const request = raw as FastifyRequestCustom;
 
-        if (type !== 'Bearer' || !token) {
+        const authHeader = request?.headers?.authorization;
+        const [type, token] = authHeader?.split(' ') ?? [];
+
+        if (authHeader && type !== 'Bearer') {
             throw new UnauthorizedException('Token türü Bearer olmalıdır');
         }
 
-        try {
-            const payload = await this.jwtService.verifyAsync(token, {
-                secret: process.env.JWT_SECRET,
-            });
+        let userId: string;
 
-            userId = payload.sub;
-        } catch (e) {
-            throw new UnauthorizedException('Token geçersiz veya güvenlik kontrolü esnasında hata oluştu');
+        if (token) {
+            try {
+                const payload = await this.jwtService.verifyAsync(token, {
+                    secret: process.env.JWT_SECRET,
+                });
+
+                userId = payload.sub;
+            } catch (e) {
+                throw new UnauthorizedException('Token geçersiz veya güvenlik kontrolü esnasında hata oluştu');
+            }
         }
 
         //kullanıcının izinlerini veritabanından çek
-        const assignedPermissions = await this.roleService.findUserPermissions(userId);
+        const assignedPermissions = userId ? await this.roleService.findUserPermissions(userId) : [];
 
         //gerekli izinleri tespit et
         const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_METADATA_NAME, [
@@ -59,12 +65,14 @@ export class AuthGuard implements CanActivate {
             }
         }
 
-        //uygulamanın kalanında kullanılabilin diye kullanıcının bilgilerini request'e koyuyorum
-        request.user = {
-            user: await this.userService.getOneById(userId),
-            roles: await this.roleService.getRolesByUser(userId), //kullanıcının rollerini veritabanından çek
-            permissions: assignedPermissions,
-        };
+        if (userId) {
+            //uygulamanın kalanında kullanılabilsin diye kullanıcının bilgilerini request'e koyuyorum
+            request.user = {
+                user: await this.userService.getOneById(userId),
+                roles: await this.roleService.getRolesByUser(userId), //kullanıcının rollerini veritabanından çek
+                permissions: assignedPermissions,
+            };
+        }
 
         //tüm kontrollerden geçtiyse izin ver erişsin
         return true;

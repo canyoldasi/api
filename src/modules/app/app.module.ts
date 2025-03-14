@@ -48,11 +48,10 @@ import { JwtModule } from '@nestjs/jwt';
             sortSchema: true,
             playground: process.env.NODE_ENV === 'development',
             introspection: true,
-            context: ({ req }) => {
-                const fastifyRequest = req as FastifyRequestCustom;
+            context: (context) => {
                 return {
-                    req: fastifyRequest,
-                    user: fastifyRequest?.user,
+                    req: context,
+                    user: context?.raw?.user,
                 };
             },
         }),

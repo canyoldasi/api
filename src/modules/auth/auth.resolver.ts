@@ -2,7 +2,6 @@ import { Args, Context, ObjectType, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserResponseDTO } from '../user/get-user-response.dto';
-import FastifyRequestCustom from '../../providers/fastify-request-custom';
 
 @ObjectType()
 export class AuthResolver {
@@ -21,8 +20,8 @@ export class AuthResolver {
     }
 
     @Query(() => UserResponseDTO, { nullable: true })
-    async me(@Context() context: { req: FastifyRequestCustom }): Promise<UserResponseDTO | null> {
-        const r = context.req.user;
+    async me(@Context() context: any): Promise<UserResponseDTO | null> {
+        const r = context.req?.user || context.request?.raw.user;
         return r;
     }
 }
