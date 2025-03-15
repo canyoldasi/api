@@ -39,7 +39,9 @@ export class AuthGuard implements CanActivate {
 
                 userId = payload.sub;
             } catch (e) {
-                throw new UnauthorizedException('Token geçersiz veya güvenlik kontrolü esnasında hata oluştu');
+                throw new UnauthorizedException(
+                    'Token geçersiz veya güvenlik kontrolü esnasında hata oluştu: ' + e.toString()
+                );
             }
         }
 
