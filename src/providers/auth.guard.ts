@@ -44,7 +44,7 @@ export class AuthGuard implements CanActivate {
         }
 
         //kullanıcının izinlerini veritabanından çek
-        const assignedPermissions = userId ? await this.roleService.findUserPermissions(userId) : [];
+        const assignedPermissions = userId ? await this.roleService.getUserPermissions(userId) : [];
 
         //gerekli izinleri tespit et
         const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_METADATA_NAME, [

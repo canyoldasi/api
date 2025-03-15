@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Role } from '../../entities/role.entity';
 import { UserRole } from '../../entities/user-role.entity';
 import { EntityManager, In } from 'typeorm';
-import { Permission } from 'src/constants';
+import { Permission, PERMISSIONS } from 'src/constants';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { AddUpdateRoleDto } from './add-update-role.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
@@ -42,7 +42,7 @@ export class RoleService {
         return r;
     }
 
-    async findUserPermissions(userId: string): Promise<Permission[]> {
+    async getUserPermissions(userId: string): Promise<Permission[]> {
         const roles = await this.getRolesByUser(userId);
         const roleIds = roles.map((x) => {
             return x.id;
@@ -140,5 +140,9 @@ export class RoleService {
         queryBuilder.skip(filters.pageIndex * filters.pageSize).take(filters.pageSize);
 
         return await queryBuilder.getMany();
+    }
+
+    getPermissions(): Permission[] {
+        return Object.values(PERMISSIONS);
     }
 }

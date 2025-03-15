@@ -6,6 +6,7 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetRolesDTO } from './get-roles.dto';
+import { Permission } from 'src/constants';
 
 @Resolver(() => Role)
 @UseGuards(AuthGuard)
@@ -46,5 +47,10 @@ export class RoleResolver {
     async deleteRole(@Args('id', { type: () => String }) id: string) {
         await this.roleService.deleteOneById(id);
         return true;
+    }
+
+    @Query(() => [String])
+    getPermissions(): Permission[] {
+        return this.roleService.getPermissions();
     }
 }
