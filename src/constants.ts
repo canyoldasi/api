@@ -25,12 +25,4 @@ export const PERSON_TYPE = {
     CORPORATE: 'CORPORATE',
 } as const;
 
-export const CUSTOMER_STATUS = {
-    ACTIVE: 'ACTIVE',
-    PASSIVE: 'PASSIVE',
-    LEAD: 'LEAD',
-    BLOCKED: 'BLOCKED',
-} as const;
-
 export type PersonType = (typeof PERSON_TYPE)[keyof typeof PERSON_TYPE];
-export type CustomerStatus = (typeof CUSTOMER_STATUS)[keyof typeof CUSTOMER_STATUS];

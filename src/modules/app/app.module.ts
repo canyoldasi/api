@@ -22,6 +22,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { Log } from 'src/entities/log.entity';
 import { LogModule } from '../log/log.module';
 import { LoggingInterceptor } from 'src/providers/logging.interceptor';
+import { Account } from 'src/entities/account.entity';
+import { Contact } from 'src/entities/contact.entity';
+import { OpportunityStatus } from 'src/entities/opportunity-status.entity';
+import { Opportunity } from 'src/entities/opportunity.entity';
+import { Product } from 'src/entities/product.entity';
+import { AccountType } from 'src/entities/account-type.entity';
+import { AccountArea } from 'src/entities/account-area.entity';
+import { City } from 'src/entities/city.entity';
+import { County } from 'src/entities/county.entity';
 
 @Module({
     imports: [
@@ -40,7 +49,22 @@ import { LoggingInterceptor } from 'src/providers/logging.interceptor';
             database: process.env.DATABASE_NAME,
             synchronize: Boolean(process.env.DATABASE_SYNC),
             autoLoadEntities: false,
-            entities: [User, Role, UserRole, RolePermission, Log],
+            entities: [
+                User,
+                Role,
+                UserRole,
+                RolePermission,
+                Log,
+                Account,
+                Contact,
+                Opportunity,
+                OpportunityStatus,
+                Product,
+                AccountType,
+                City,
+                County,
+                AccountArea,
+            ],
             //namingStrategy: new SnakeNamingStrategy()
         }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
