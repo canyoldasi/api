@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, ManyToOne } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
 import { Account } from './account.entity';
@@ -7,7 +7,7 @@ import { County } from './county.entity';
 
 @Entity()
 @ObjectType()
-export class AccountArea extends BaseEntity {
+export class AccountLocation extends BaseEntity {
     @ManyToOne(() => Account, (account) => account.areas)
     @Field(() => Account)
     account: Account;
@@ -19,8 +19,4 @@ export class AccountArea extends BaseEntity {
     @ManyToOne(() => County, (county) => county.accountAreas, { nullable: true })
     @Field(() => County, { nullable: true })
     county?: County;
-
-    @Column({ default: false })
-    @Field()
-    isAllCounties: boolean;
 }

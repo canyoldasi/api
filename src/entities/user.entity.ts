@@ -1,28 +1,28 @@
 import { UserRole } from '../entities/user-role.entity';
-import {Entity, Column, PrimaryGeneratedColumn, OneToMany} from 'typeorm'
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Entity, Column, OneToMany } from 'typeorm';
+import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
 
 @Entity()
 @ObjectType()
-export class User extends BaseEntity{
+export class User extends BaseEntity {
     @Column()
-    @Field({nullable: false})
+    @Field({ nullable: false })
     username: string;
 
     @Column()
-    @Field({nullable: false})
+    @Field({ nullable: false })
     password: string;
 
     @Column()
-    @Field({nullable: true})
+    @Field({ nullable: false })
     fullName: string;
-  
+
     @Column({ default: true })
-    @Field({nullable: true, defaultValue: true})
+    @Field({ nullable: true, defaultValue: true })
     isActive: boolean;
 
     @OneToMany(() => UserRole, (x) => x.user)
-    @Field(type => [UserRole], {nullable: true})
+    @Field(() => [UserRole], { nullable: true })
     roles?: UserRole[];
 }

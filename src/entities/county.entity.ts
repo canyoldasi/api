@@ -1,7 +1,8 @@
 import { Entity, Column, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { City } from './city.entity';
-import { AccountArea } from './account-area.entity';
+import { AccountLocation } from './account-location.entity';
+import { District } from './district.entity';
 
 @Entity()
 @ObjectType()
@@ -18,7 +19,15 @@ export class County {
     @Field(() => City)
     city: City;
 
-    @OneToMany(() => AccountArea, (area) => area.county)
-    @Field(() => [AccountArea], { nullable: true })
-    accountAreas?: AccountArea[];
+    @Column()
+    @Field()
+    cityId: string;
+
+    @Field(() => [District], { nullable: true })
+    @OneToMany(() => District, (district) => district.county)
+    districts?: District[];
+
+    @OneToMany(() => AccountLocation, (area) => area.county)
+    @Field(() => [AccountLocation], { nullable: true })
+    accountAreas?: AccountLocation[];
 }

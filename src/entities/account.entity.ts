@@ -7,7 +7,7 @@ import { AccountType } from './account-type.entity';
 import { BaseEntity } from './base.entity';
 import { City } from './city.entity';
 import { County } from './county.entity';
-import { AccountArea } from './account-area.entity';
+import { AccountLocation } from './account-location.entity';
 
 @Entity()
 @ObjectType()
@@ -107,7 +107,7 @@ export class Account extends BaseEntity {
     lastContactDate?: Date;
 
     // Hizmet Alanları
-    @OneToMany(() => AccountArea, (area) => area.account)
-    @Field(() => [AccountArea], { nullable: true })
-    areas?: AccountArea[];
+    @OneToMany(() => AccountLocation, (area) => area.account)
+    @Field(() => [AccountLocation], { nullable: true })
+    areas?: AccountLocation[];
 }

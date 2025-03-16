@@ -19,12 +19,13 @@ import { Log } from './entities/log.entity';
 import { AccountType } from './entities/account-type.entity';
 import { City } from './entities/city.entity';
 import { County } from './entities/county.entity';
-import { AccountArea } from './entities/account-area.entity';
+import { AccountLocation } from './entities/account-location.entity';
 
 // Modules
 import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
 import { LogModule } from './modules/log/log.module';
+import { LocationModule } from './modules/location/location.module';
 
 @Module({
     imports: [
@@ -54,7 +55,7 @@ import { LogModule } from './modules/log/log.module';
                     AccountType,
                     City,
                     County,
-                    AccountArea,
+                    AccountLocation,
                 ],
                 synchronize: configService.get('NODE_ENV') !== 'production',
                 logging: configService.get('NODE_ENV') !== 'production',
@@ -69,6 +70,7 @@ import { LogModule } from './modules/log/log.module';
         UserModule,
         RoleModule,
         LogModule,
+        LocationModule,
     ],
 })
 export class AppModule {}

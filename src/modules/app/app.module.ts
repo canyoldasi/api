@@ -28,9 +28,13 @@ import { OpportunityStatus } from 'src/entities/opportunity-status.entity';
 import { Opportunity } from 'src/entities/opportunity.entity';
 import { Product } from 'src/entities/product.entity';
 import { AccountType } from 'src/entities/account-type.entity';
-import { AccountArea } from 'src/entities/account-area.entity';
+import { AccountLocation } from 'src/entities/account-location.entity';
 import { City } from 'src/entities/city.entity';
 import { County } from 'src/entities/county.entity';
+import { LocationModule } from '../location/location.module';
+import { Country } from 'src/entities/country.entity';
+import { District } from 'src/entities/district.entity';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
     imports: [
@@ -61,11 +65,13 @@ import { County } from 'src/entities/county.entity';
                 OpportunityStatus,
                 Product,
                 AccountType,
+                Country,
                 City,
                 County,
-                AccountArea,
+                District,
+                AccountLocation,
             ],
-            //namingStrategy: new SnakeNamingStrategy()
+            namingStrategy: new SnakeNamingStrategy(),
         }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
@@ -84,6 +90,7 @@ import { County } from 'src/entities/county.entity';
         AuthModule,
         RoleModule,
         LogModule.forRoot(),
+        LocationModule,
     ],
     controllers: [AppController],
     providers: [
