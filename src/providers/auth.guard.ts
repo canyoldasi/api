@@ -2,17 +2,16 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { RoleService } from '../modules/role/role.service';
 import { PERMISSIONS_METADATA_NAME, Permission } from 'src/constants';
 import { UserService } from 'src/modules/user/user.service';
 import FastifyRequestCustom from './fastify-request-custom';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
         private reflector: Reflector,
-        private roleService: RoleService,
         private userService: UserService
     ) {}
 
@@ -45,8 +44,10 @@ export class AuthGuard implements CanActivate {
             }
         }
 
+        const user: User = userId ? await this.userService.getOne(userId) : null;
+
         //kullanıcının izinlerini veritabanından çek
-        const assignedPermissions = userId ? await this.roleService.getUserPermissions(userId) : [];
+        const assignedPermissions = userId ? await user.role.rolePermissions : [];
 
         //gerekli izinleri tespit et
         const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_METADATA_NAME, [
@@ -58,7 +59,7 @@ export class AuthGuard implements CanActivate {
         if (requiredPermissions && requiredPermissions.length > 0) {
             //gerekli izinlerin tamamına sahip mi
             const hasPermission = requiredPermissions.every((permission) => {
-                return assignedPermissions.includes(permission);
+                return assignedPermissions.some((rp) => rp.permission === permission);
             });
 
             //izni yoksa erişemesin
@@ -67,14 +68,8 @@ export class AuthGuard implements CanActivate {
             }
         }
 
-        if (userId) {
-            //uygulamanın kalanında kullanılabilsin diye kullanıcının bilgilerini request'e koyuyorum
-            request.user = {
-                user: await this.userService.getOneById(userId),
-                roles: await this.roleService.getRolesByUser(userId), //kullanıcının rollerini veritabanından çek
-                permissions: assignedPermissions,
-            };
-        }
+        //uygulamanın kalanında kullanılabilsin diye kullanıcının bilgilerini request'e koyuyorum
+        request.user = user;
 
         //tüm kontrollerden geçtiyse izin ver erişsin
         return true;

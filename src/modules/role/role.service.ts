@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Role } from '../../entities/role.entity';
-import { UserRole } from '../../entities/user-role.entity';
-import { EntityManager, In } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import { Permission, PERMISSIONS } from 'src/constants';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { AddUpdateRoleDto } from './add-update-role.dto';
@@ -16,20 +15,6 @@ export class RoleService {
         private readonly logger: WinstonLogger
     ) {}
 
-    async getRolesByUser(userId: string): Promise<Role[]> {
-        const userRoles = await this.entityManager.find(UserRole, {
-            where: {
-                user: {
-                    id: userId,
-                },
-            },
-            relations: {
-                role: true,
-            },
-        });
-        return userRoles.map((x) => x.role);
-    }
-
     async getOneById(id: string): Promise<Role> {
         const r = await this.entityManager.findOne(Role, {
             where: {
@@ -40,25 +25,6 @@ export class RoleService {
             },
         });
         return r;
-    }
-
-    async getUserPermissions(userId: string): Promise<Permission[]> {
-        const roles = await this.getRolesByUser(userId);
-        const roleIds = roles.map((x) => {
-            return x.id;
-        });
-
-        const permissions = await this.entityManager.findBy(RolePermission, {
-            role: {
-                id: In(roleIds),
-            },
-        });
-
-        const permissionCodes = permissions.map((x) => {
-            return x.permission;
-        });
-
-        return permissionCodes;
     }
 
     async create(dto: AddUpdateRoleDto): Promise<Role> {
@@ -118,9 +84,10 @@ export class RoleService {
     }
 
     async getRolesByFilters(filters: GetRolesDTO): Promise<Role[] | undefined> {
-        const queryBuilder = this.entityManager.createQueryBuilder(Role, 'role');
+        const queryBuilder = this.entityManager
+            .createQueryBuilder(Role, 'role')
+            .leftJoinAndSelect('role.rolePermissions', 'rp');
 
-        queryBuilder.leftJoinAndSelect('role.rolePermissions', 'rolePermissions');
         queryBuilder.where('role.deletedAt IS NULL');
 
         if (filters.text) {
@@ -128,16 +95,21 @@ export class RoleService {
                 text: `%${filters.text}%`,
             });
         }
-
+        ///TODO: Bu kısımda hata var.
+        /*
         if (filters.permissions && filters.permissions.length > 0) {
             queryBuilder.andWhere(
-                'EXISTS (SELECT 1 FROM role_permission rp WHERE rp."roleId" = role.id AND rp.permission IN (:...permissions))',
+                'EXISTS (SELECT 1 FROM role_permission rp2 WHERE rp2.role_id = role.id AND rp2.permission IN (:...permissions))',
                 { permissions: filters.permissions }
             );
         }
+        */
 
-        queryBuilder.orderBy(filters.orderBy || 'role.name', filters.orderDirection || 'ASC');
-        queryBuilder.skip(filters.pageIndex * filters.pageSize).take(filters.pageSize);
+        queryBuilder.orderBy(`role.${filters.orderBy || 'name'}`, filters.orderDirection || 'ASC');
+
+        if (filters.pageSize) {
+            queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
+        }
 
         return await queryBuilder.getMany();
     }

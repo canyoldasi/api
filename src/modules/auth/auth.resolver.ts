@@ -1,7 +1,7 @@
 import { Args, Context, ObjectType, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
-import { UserResponseDTO } from '../user/get-user-response.dto';
+import { User } from 'src/entities/user.entity';
 
 @ObjectType()
 export class AuthResolver {
@@ -19,8 +19,8 @@ export class AuthResolver {
         return this.authService.generateToken(user.id);
     }
 
-    @Query(() => UserResponseDTO, { nullable: true })
-    async me(@Context() context: any): Promise<UserResponseDTO | null> {
+    @Query(() => User, { nullable: true })
+    async me(@Context() context: any): Promise<User | null> {
         const r = context.req?.user || context.request?.raw.user;
         return r;
     }

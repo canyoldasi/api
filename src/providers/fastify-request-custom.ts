@@ -1,10 +1,8 @@
 import { FastifyRequest } from 'fastify';
+import { User } from 'src/entities/user.entity';
 
 export default interface FastifyRequestCustom extends FastifyRequest {
     requestId?: string;
-    user?: {
-        user: any;
-        roles: any[];
-        permissions: string[];
-    };
+    userId?: string;
+    user?: User;
 }

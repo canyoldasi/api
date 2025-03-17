@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AuthModule } from '../auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from '../../providers/jwt.strategy';
+//import { JwtStrategy } from '../../providers/jwt.strategy';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UserModule } from '../user/user.module';
@@ -14,7 +14,6 @@ import { GlobalExceptionFilter } from 'src/providers/global.exception-filter';
 import { RequestMiddleware } from 'src/providers/request.middleware';
 import { User } from 'src/entities/user.entity';
 import { Role } from 'src/entities/role.entity';
-import { UserRole } from 'src/entities/user-role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { RoleModule } from '../role/role.module';
 import { AuthGuard } from '../../providers/auth.guard';
@@ -56,7 +55,6 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
             entities: [
                 User,
                 Role,
-                UserRole,
                 RolePermission,
                 Log,
                 Account,
@@ -94,7 +92,8 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
     ],
     controllers: [AppController],
     providers: [
-        JwtStrategy,
+        //TODO: JwtStrategy geliştirilecek ve request.user içine kullanıcı bilgileri eklenecek.
+        //JwtStrategy,
         {
             provide: APP_GUARD,
             useClass: AuthGuard,

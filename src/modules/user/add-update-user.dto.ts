@@ -19,6 +19,6 @@ export class AddUpdateUserDto {
     @Field()
     isActive?: boolean = true;
 
-    @Field(() => [String])
-    roles: string[];
+    @Field()
+    roleId: string;
 }

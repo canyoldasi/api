@@ -16,10 +16,10 @@ export class LocationResolver {
 
     @Query(() => [City])
     async getCities(
-        @Args('countryId') countryId?: string,
+        @Args('countryId', { nullable: true }) countryId?: string,
         @Args('text', { nullable: true }) text?: string
     ): Promise<City[]> {
-        return this.locationService.getCities(countryId, text);
+        return this.locationService.getCities(countryId ? countryId : '9031e567-8901-2345-da62-812329101923', text);
     }
 
     @Query(() => [County])

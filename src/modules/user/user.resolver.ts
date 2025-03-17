@@ -20,7 +20,7 @@ export class UserResolver {
     @Query(() => User, { nullable: true })
     @Permissions('UserRead')
     async getUser(@Args('id') id: string): Promise<User> {
-        return this.userService.getOneById(id);
+        return this.userService.getOne(id);
     }
 
     @Query(() => [User], { nullable: true })
@@ -32,9 +32,9 @@ export class UserResolver {
         return this.userService.getUsersByFilters(filters);
     }
 
-    @ResolveField('roles', () => [Role], { nullable: true })
-    async getUserRoles(@Parent() user: Partial<User>): Promise<Role[]> {
-        return this.roleService.getRolesByUser(user.id);
+    @ResolveField('role', () => Role, { nullable: true })
+    async getUserRole(@Parent() user: Partial<User>): Promise<Role> {
+        return this.roleService.getOneById(user.role.id);
     }
 
     @Mutation(() => String)

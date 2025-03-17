@@ -8,7 +8,6 @@ import { join } from 'path';
 // Entities
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
-import { UserRole } from './entities/user-role.entity';
 import { RolePermission } from './entities/role-permission.entity';
 import { Account } from './entities/account.entity';
 import { Contact } from './entities/contact.entity';
@@ -44,7 +43,6 @@ import { LocationModule } from './modules/location/location.module';
                 entities: [
                     User,
                     Role,
-                    UserRole,
                     RolePermission,
                     Account,
                     Contact,

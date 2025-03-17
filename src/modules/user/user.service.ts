@@ -3,10 +3,8 @@ import { User } from '../../entities/user.entity';
 import { EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AddUpdateUserDto } from './add-update-user.dto';
-import { UserRole } from '../../entities/user-role.entity';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetUsersDTO } from './get-users.dto';
-import { ManagedException } from 'src/providers/managed.exception';
 
 @Injectable()
 export class UserService {
@@ -23,21 +21,10 @@ export class UserService {
                 username: dto.username,
                 fullName: dto.fullName,
                 password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
+                role: {
+                    id: dto.roleId,
+                },
             });
-
-            throw new ManagedException('Bu managed hata bildirilir', true);
-            //this.logger.log(`User added: ${ret}`);
-            for (const x of dto.roles) {
-                await manager.save(UserRole, {
-                    role: {
-                        id: x,
-                    },
-                    user: {
-                        id: ret.id,
-                    },
-                });
-                this.logger.log(`Role ${x} assigned to user.`);
-            }
         });
         return ret;
     }
@@ -57,20 +44,11 @@ export class UserService {
                 password: dto.password
                     ? await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT))
                     : existingUser.password,
+                role: {
+                    id: dto.roleId,
+                },
             });
             this.logger.log(`User updated: ${ret}`);
-
-            // Remove existing roles
-            await manager.delete(UserRole, { user: { id: dto.id } });
-
-            // Assign new roles
-            for (const x of dto.roles) {
-                await manager.save(UserRole, {
-                    role: { id: x },
-                    user: { id: ret.id },
-                });
-                this.logger.log(`Role ${x} assigned to user.`);
-            }
         });
 
         return ret;
@@ -82,9 +60,12 @@ export class UserService {
         });
     }
 
-    async getOneById(id: string): Promise<User> {
-        return await this.entityManager.findOneBy(User, {
-            id: id,
+    async getOne(id: string): Promise<User> {
+        return await this.entityManager.findOne(User, {
+            where: {
+                id: id,
+            },
+            relations: ['role', 'role.rolePermissions'],
         });
     }
 
@@ -97,12 +78,12 @@ export class UserService {
     }
 
     async getUsersByFilters(filters: GetUsersDTO): Promise<User[] | undefined> {
-        const queryBuilder = this.entityManager.createQueryBuilder(User, 'user');
+        const queryBuilder = this.entityManager.createQueryBuilder(User, 'user').leftJoinAndSelect('user.role', 'role');
 
         queryBuilder.where('user.deletedAt IS NULL');
 
         if (filters.text) {
-            queryBuilder.andWhere('(user.username LIKE :text OR user.fullName LIKE :text)', {
+            queryBuilder.andWhere('(user.username ILIKE :text OR user.fullName ILIKE :text)', {
                 text: `%${filters.text}%`,
             });
         }
@@ -126,17 +107,17 @@ export class UserService {
         }
 
         if (filters.roleIds && filters.roleIds.length > 0) {
-            queryBuilder.andWhere(
-                'user.id IN (SELECT user_role."userId" FROM user_role WHERE user_role."roleId" IN (:...roleIds))',
-                { roleIds: filters.roleIds }
-            );
+            queryBuilder.andWhere('user.roleId IN (:...roleIds)', {
+                roleIds: filters.roleIds,
+            });
         }
 
-        queryBuilder.orderBy(filters.orderBy || 'user.fullName', filters.orderDirection);
+        queryBuilder.orderBy(`user.${filters.orderBy || 'fullName'}`, filters.orderDirection);
 
-        queryBuilder.skip(filters.pageIndex * filters.pageSize).take(filters.pageSize);
+        if (filters.pageSize) {
+            queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
+        }
 
-        const r = await queryBuilder.getMany();
-        return r;
+        return await queryBuilder.getMany();
     }
 }
