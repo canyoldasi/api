@@ -42,5 +42,5 @@ export class Contact extends BaseEntity {
     // Ek Bilgiler
     @Column({ type: 'text', nullable: true })
     @Field({ nullable: true })
-    notes?: string;
+    note?: string;
 }

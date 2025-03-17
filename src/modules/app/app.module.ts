@@ -34,6 +34,7 @@ import { LocationModule } from '../location/location.module';
 import { Country } from 'src/entities/country.entity';
 import { District } from 'src/entities/district.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AccountGroup } from 'src/entities/account-group.entity';
 
 @Module({
     imports: [
@@ -68,6 +69,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
                 County,
                 District,
                 AccountLocation,
+                AccountGroup,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),

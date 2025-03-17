@@ -29,5 +29,5 @@ export class County {
 
     @OneToMany(() => AccountLocation, (area) => area.county)
     @Field(() => [AccountLocation], { nullable: true })
-    accountAreas?: AccountLocation[];
+    accountLocations?: AccountLocation[];
 }

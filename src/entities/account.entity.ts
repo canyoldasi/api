@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany, ManyToMany, JoinTable, ManyToOne } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { PersonType } from '../constants';
+import { Gender, PersonType } from '../constants';
 import { Contact } from './contact.entity';
 import { Opportunity } from './opportunity.entity';
 import { AccountType } from './account-type.entity';
@@ -8,13 +8,17 @@ import { BaseEntity } from './base.entity';
 import { City } from './city.entity';
 import { County } from './county.entity';
 import { AccountLocation } from './account-location.entity';
+import { AccountGroup } from './account-group.entity';
+import { Country } from './country.entity';
+import { District } from './district.entity';
+import { User } from './user.entity';
 
 @Entity()
 @ObjectType()
 export class Account extends BaseEntity {
     @Column({ type: 'varchar' })
     @Field(() => String)
-    type: PersonType;
+    personType: PersonType;
 
     @ManyToMany(() => AccountType)
     @JoinTable({
@@ -23,10 +27,17 @@ export class Account extends BaseEntity {
     @Field(() => [AccountType], { nullable: true })
     accountTypes?: AccountType[];
 
-    // Temel Bilgiler - Hem bireysel hem kurumsal için
     @Column()
     @Field()
     name: string;
+
+    @Column()
+    @Field()
+    firstName: string;
+
+    @Column()
+    @Field()
+    lastName: string;
 
     @Column({ unique: true })
     @Field()
@@ -36,11 +47,14 @@ export class Account extends BaseEntity {
     @Field()
     phone: string;
 
+    @Column({ unique: true })
+    @Field()
+    phone2: string;
+
     @Column({ nullable: true })
     @Field({ nullable: true })
-    alternativePhone?: string;
+    gender?: Gender;
 
-    // Kurumsal müşteri bilgileri
     @Column({ nullable: true })
     @Field({ nullable: true })
     taxNumber?: string;
@@ -49,65 +63,58 @@ export class Account extends BaseEntity {
     @Field({ nullable: true })
     taxOffice?: string;
 
-    // Bireysel müşteri bilgileri
     @Column({ unique: true, nullable: true })
     @Field({ nullable: true })
     nationalId?: string;
 
-    // İletişim Bilgileri
-    @Column({ type: 'text', nullable: true })
-    @Field({ nullable: true })
-    address?: string;
+    @ManyToOne(() => Country)
+    @Field(() => Country, { nullable: true })
+    country?: Country;
 
     @ManyToOne(() => City)
     @Field(() => City, { nullable: true })
-    addressCity?: City;
+    city?: City;
 
     @ManyToOne(() => County)
     @Field(() => County, { nullable: true })
-    addressCounty?: County;
+    county?: County;
+
+    @ManyToOne(() => District)
+    @Field(() => District, { nullable: true })
+    district?: District;
+
+    @Column({ type: 'text', nullable: true })
+    @Field({ nullable: true })
+    address?: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
     postalCode?: string;
 
-    // Ek Bilgiler
     @Column({ type: 'text', nullable: true })
     @Field({ nullable: true })
-    notes?: string;
+    note?: string;
 
-    // İlişkiler
-    @OneToMany(() => Contact, (contact) => contact.account)
+    @OneToMany(() => Contact, (x) => x.account)
     @Field(() => [Contact], { nullable: true })
     contacts?: Contact[];
 
-    @OneToMany(() => Opportunity, (opportunity) => opportunity.account)
+    @OneToMany(() => Opportunity, (x) => x.account)
     @Field(() => [Opportunity], { nullable: true })
     opportunities?: Opportunity[];
 
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    assignedTo?: string;
+    @ManyToOne(() => User, { nullable: true })
+    @Field(() => User, { nullable: true })
+    assignedTo?: User;
 
-    // İstatistikler
-    @Column({ type: 'int', default: 0 })
-    @Field()
-    totalOrders: number;
-
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    @Field()
-    totalRevenue: number;
-
-    @Column({ type: 'timestamp', nullable: true })
-    @Field({ nullable: true })
-    lastOrderDate?: Date;
-
-    @Column({ type: 'timestamp', nullable: true })
-    @Field({ nullable: true })
-    lastContactDate?: Date;
-
-    // Hizmet Alanları
-    @OneToMany(() => AccountLocation, (area) => area.account)
+    @OneToMany(() => AccountLocation, (x) => x.account)
     @Field(() => [AccountLocation], { nullable: true })
-    areas?: AccountLocation[];
+    locations?: AccountLocation[];
+
+    @ManyToMany(() => AccountGroup, (x) => x.accounts)
+    @JoinTable({
+        name: 'account_account_group',
+    })
+    @Field(() => [AccountGroup], { nullable: true })
+    accountGroups?: AccountGroup[];
 }

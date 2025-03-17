@@ -23,9 +23,9 @@ export class City {
     @Field(() => [County], { nullable: true })
     counties?: County[];
 
-    @OneToMany(() => AccountLocation, (area) => area.city)
+    @OneToMany(() => AccountLocation, (location) => location.city)
     @Field(() => [AccountLocation], { nullable: true })
-    accountAreas?: AccountLocation[];
+    accountLocations?: AccountLocation[];
 
     @Field(() => Country)
     @ManyToOne(() => Country, (country) => country.cities)

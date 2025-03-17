@@ -26,3 +26,10 @@ export const PERSON_TYPE = {
 } as const;
 
 export type PersonType = (typeof PERSON_TYPE)[keyof typeof PERSON_TYPE];
+
+export const GENDER = {
+    MALE: 'MALE',
+    FEMALE: 'FEMALE',
+} as const;
+
+export type Gender = (typeof GENDER)[keyof typeof GENDER];
