@@ -3,11 +3,11 @@ import { UserService } from './user.service';
 import { RoleService } from '../role/role.service';
 import { User } from '../../entities/user.entity';
 import { Role } from '../../entities/role.entity';
-import { AddUpdateUserDto } from './add-update-user.dto';
+import { AddUpdateUserDto } from './dto/add-update-user.dto';
 import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
-import { GetUsersDTO } from './get-users.dto';
+import { GetUsersDTO } from './dto/get-users.dto';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard)

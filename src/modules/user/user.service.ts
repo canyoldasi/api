@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AddUpdateUserDto } from './add-update-user.dto';
+import { AddUpdateUserDto } from './dto/add-update-user.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
-import { GetUsersDTO } from './get-users.dto';
+import { GetUsersDTO } from './dto/get-users.dto';
 
 @Injectable()
 export class UserService {

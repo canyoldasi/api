@@ -1,11 +1,11 @@
 import { Resolver, Args, Query, Mutation } from '@nestjs/graphql';
 import { RoleService } from './role.service';
 import { Role } from '../../entities/role.entity';
-import { AddUpdateRoleDto } from './add-update-role.dto';
+import { AddUpdateRoleDto } from './dto/add-update-role.dto';
 import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
-import { GetRolesDTO } from './get-roles.dto';
+import { GetRolesDTO } from './dto/get-roles.dto';
 import { Permission } from 'src/constants';
 
 @Resolver(() => Role)

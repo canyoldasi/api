@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { PaginationBaseDTO } from '../../providers/pagination-base.dto';
+import { PaginationBaseDTO } from '../../../providers/pagination-base.dto';
 import { Permission } from 'src/constants';
 
 @InputType()
