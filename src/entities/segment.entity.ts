@@ -1,14 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany } from 'typeorm';
 import { Account } from './account.entity';
+import { BaseEntity } from './base.entity';
 
 @ObjectType()
 @Entity()
-export class AccountGroup {
-    @Field()
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
-
+export class Segment extends BaseEntity {
     @Field()
     @Column()
     name: string;
@@ -18,6 +15,6 @@ export class AccountGroup {
     note?: string;
 
     @Field(() => [Account], { nullable: true })
-    @ManyToMany(() => Account, (account) => account.accountGroups)
+    @ManyToMany(() => Account, (account) => account.segments)
     accounts?: Account[];
 }

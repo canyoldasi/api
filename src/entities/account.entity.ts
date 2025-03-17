@@ -8,7 +8,7 @@ import { BaseEntity } from './base.entity';
 import { City } from './city.entity';
 import { County } from './county.entity';
 import { AccountLocation } from './account-location.entity';
-import { AccountGroup } from './account-group.entity';
+import { Segment } from './segment.entity';
 import { Country } from './country.entity';
 import { District } from './district.entity';
 import { User } from './user.entity';
@@ -111,10 +111,10 @@ export class Account extends BaseEntity {
     @Field(() => [AccountLocation], { nullable: true })
     locations?: AccountLocation[];
 
-    @ManyToMany(() => AccountGroup, (x) => x.accounts)
+    @ManyToMany(() => Segment, (segment) => segment.accounts)
     @JoinTable({
-        name: 'account_account_group',
+        name: 'account_segment',
     })
-    @Field(() => [AccountGroup], { nullable: true })
-    accountGroups?: AccountGroup[];
+    @Field(() => [Segment], { nullable: true })
+    segments?: Segment[];
 }

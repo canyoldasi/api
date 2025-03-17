@@ -33,3 +33,15 @@ export const GENDER = {
 } as const;
 
 export type Gender = (typeof GENDER)[keyof typeof GENDER];
+
+export const ACCOUNT_TYPE_CODE = {
+    CUSTOMER: 'CUSTOMER', // Müşteri
+    SUPPLIER: 'SUPPLIER', // Tedarikçi
+    CONTRACTOR: 'CONTRACTOR', // Müteahhit
+    PARTNER: 'PARTNER', // İş Ortağı
+    COMPETITOR: 'COMPETITOR', // Rakip
+    CONSULTANT: 'CONSULTANT', // Danışman
+    OTHER: 'OTHER', // Diğer
+} as const;
+
+export type AccountTypeCode = (typeof ACCOUNT_TYPE_CODE)[keyof typeof ACCOUNT_TYPE_CODE];
