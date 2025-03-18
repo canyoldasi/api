@@ -69,7 +69,9 @@ export class LocationService {
     }
 
     async getDistricts(countyId?: string, text?: string): Promise<District[]> {
-        const query = this.districtRepository.createQueryBuilder('district').leftJoinAndSelect('district.city', 'city');
+        const query = this.districtRepository
+            .createQueryBuilder('district')
+            .leftJoinAndSelect('district.county', 'county');
 
         if (text) {
             query.where('LOWER(district.name) LIKE LOWER(:text)', { text: `%${text}%` });
