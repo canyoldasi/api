@@ -55,21 +55,11 @@ export class AccountService {
         await this.entityManager.transaction(async (manager) => {
             // İlişkili tablolardaki mevcut kayıtları sil
             if (dto.accountTypeIds) {
-                await manager
-                    .createQueryBuilder()
-                    .delete()
-                    .from('account_account_type')
-                    .where('account_id = :accountId', { accountId: dto.id })
-                    .execute();
+                await manager.delete('account_account_type', { account_id: dto.id });
             }
 
             if (dto.segmentIds) {
-                await manager
-                    .createQueryBuilder()
-                    .delete()
-                    .from('account_segment')
-                    .where('account_id = :accountId', { accountId: dto.id })
-                    .execute();
+                await manager.delete('account_segment', { account_id: dto.id });
             }
 
             if (dto.locations) {
@@ -77,7 +67,7 @@ export class AccountService {
             }
 
             // Temel account nesnesini güncelle
-            const toUpdate = {
+            const accountToUpdate = {
                 ...dto,
                 accountTypes: dto.accountTypeIds?.map((id) => ({ id })),
                 segments: dto.segmentIds?.map((id) => ({ id })),
@@ -88,10 +78,9 @@ export class AccountService {
                 district: dto.districtId ? { id: dto.districtId } : null,
             };
 
-            const updatedAccount = await manager.save(Account, toUpdate);
+            const updatedAccount = await manager.save(Account, accountToUpdate);
             accountId = updatedAccount.id;
 
-            // Locations varsa ayrıca ekle
             if (dto.locations?.length) {
                 const accountLocations = dto.locations.map((location) => ({
                     account: { id: accountId },
