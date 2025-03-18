@@ -1,6 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { County } from './county.entity';
+import { AccountLocation } from './account-location.entity';
 
 @ObjectType()
 @Entity()
@@ -20,4 +21,8 @@ export class District {
     @Field()
     @Column()
     countyId: string;
+
+    @OneToMany(() => AccountLocation, (x) => x.district)
+    @Field(() => [AccountLocation], { nullable: true })
+    accountLocations?: AccountLocation[];
 }

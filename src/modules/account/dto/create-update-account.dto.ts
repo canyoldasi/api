@@ -1,5 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { Gender, PersonType } from '../../../constants';
+import { CreateUpdateAccountLocationDTO } from 'src/modules/account/dto/create-update-account-location.dto';
 
 @InputType()
 export class CreateUpdateAccountDTO {
@@ -68,4 +69,7 @@ export class CreateUpdateAccountDTO {
 
     @Field(() => [String], { nullable: true })
     segmentIds?: string[];
+
+    @Field(() => [CreateUpdateAccountLocationDTO], { nullable: true })
+    locations?: CreateUpdateAccountLocationDTO[];
 }
