@@ -7,6 +7,10 @@ export const PERMISSIONS = {
     RoleCreate: 'RoleCreate',
     RoleUpdate: 'RoleUpdate',
     RoleDelete: 'RoleDelete',
+    AccountRead: 'AccountRead',
+    AccountCreate: 'AccountCreate',
+    AccountUpdate: 'AccountUpdate',
+    AccountDelete: 'AccountDelete',
 } as const;
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 

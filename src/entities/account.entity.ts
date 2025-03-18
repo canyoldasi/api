@@ -47,7 +47,7 @@ export class Account extends BaseEntity {
     @Field()
     phone: string;
 
-    @Column({ unique: true })
+    @Column()
     @Field()
     phone2: string;
 
@@ -105,7 +105,7 @@ export class Account extends BaseEntity {
 
     @ManyToOne(() => User, { nullable: true })
     @Field(() => User, { nullable: true })
-    assignedTo?: User;
+    assignedUser?: User;
 
     @OneToMany(() => AccountLocation, (x) => x.account)
     @Field(() => [AccountLocation], { nullable: true })

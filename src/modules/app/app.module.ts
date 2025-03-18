@@ -35,6 +35,7 @@ import { Country } from 'src/entities/country.entity';
 import { District } from 'src/entities/district.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Segment } from 'src/entities/segment.entity';
+import { AccountModule } from '../account/account.module';
 
 @Module({
     imports: [
@@ -91,6 +92,7 @@ import { Segment } from 'src/entities/segment.entity';
         RoleModule,
         LogModule.forRoot(),
         LocationModule,
+        AccountModule,
     ],
     controllers: [AppController],
     providers: [
