@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
 import { Role } from './role.entity';
@@ -6,7 +6,7 @@ import { Role } from './role.entity';
 @Entity()
 @ObjectType()
 export class User extends BaseEntity {
-    @Column()
+    @Column({ unique: true })
     @Field({ nullable: false })
     username: string;
 
@@ -22,11 +22,7 @@ export class User extends BaseEntity {
     @Field({ nullable: true, defaultValue: true })
     isActive: boolean;
 
-    @Column({ name: 'roleId' })
-    roleId: string;
-
     @ManyToOne(() => Role, (role) => role.users, { nullable: false })
-    @JoinColumn({ name: 'roleId' })
     @Field(() => Role)
     role: Role;
 }

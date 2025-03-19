@@ -44,19 +44,23 @@ export class AuthGuard implements CanActivate {
             }
         }
 
-        const user: User = userId ? await this.userService.getOne(userId) : null;
-
-        //kullanıcının izinlerini veritabanından çek
-        const assignedPermissions = userId ? await user.role.rolePermissions : [];
-
         //gerekli izinleri tespit et
         const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_METADATA_NAME, [
             context.getHandler(),
             context.getClass(),
         ]);
 
+        const user: User = userId ? await this.userService.getOne(userId) : null;
+
         //izin kısıtlaması varsa detay kontrollere başla
         if (requiredPermissions && requiredPermissions.length > 0) {
+            if (!user) {
+                return false;
+            }
+
+            //kullanıcının izinlerini veritabanından çek
+            const assignedPermissions = userId ? await user.role.rolePermissions : [];
+
             //gerekli izinlerin tamamına sahip mi
             const hasPermission = requiredPermissions.every((permission) => {
                 return assignedPermissions.some((rp) => rp.permission === permission);
@@ -68,7 +72,7 @@ export class AuthGuard implements CanActivate {
             }
         }
 
-        //uygulamanın kalanında kullanılabilsin diye kullanıcının bilgilerini request'e koyuyorum
+        //uygulamanın kalanında kullanılabilsin diye kullanıcının bilgilerini request'e koy
         request.user = user;
 
         //tüm kontrollerden geçtiyse izin ver erişsin
