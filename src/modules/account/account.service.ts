@@ -5,6 +5,8 @@ import { CreateUpdateAccountDTO } from './dto/create-update-account.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetAccountsDTO } from './dto/get-accounts.dto';
 import { AccountLocation } from '../../entities/account-location.entity';
+import { AccountSegment } from '../../entities/account-segment.entity';
+import { AccountAccountType } from '../../entities/account-account-type.entity';
 
 @Injectable()
 export class AccountService {
@@ -18,11 +20,9 @@ export class AccountService {
         let toSave = null;
 
         await this.entityManager.transaction(async (manager) => {
-            // Önce temel account nesnesini kaydet (locations olmadan)
+            // Önce temel account nesnesini kaydet (ilişkiler olmadan)
             toSave = {
                 ...dto,
-                accountTypes: dto.accountTypeIds?.map((id) => ({ id })),
-                segments: dto.segmentIds?.map((id) => ({ id })),
                 assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
                 country: dto.countryId ? { id: dto.countryId } : null,
                 city: dto.cityId ? { id: dto.cityId } : null,
@@ -31,6 +31,16 @@ export class AccountService {
             };
 
             const savedEntity = await manager.save(Account, toSave);
+
+            // AccountType ilişkileri kaydet
+            if (dto.accountTypeIds?.length) {
+                const accountAccountTypes = dto.accountTypeIds.map((id) => ({
+                    account: { id: savedEntity.id },
+                    accountType: { id },
+                }));
+
+                await manager.save(AccountAccountType, accountAccountTypes);
+            }
 
             // Locations varsa ayrıca kaydet
             if (dto.locations?.length) {
@@ -44,6 +54,16 @@ export class AccountService {
 
                 await manager.save(AccountLocation, accountLocations);
             }
+
+            // Segments varsa ayrıca kaydet
+            if (dto.segmentIds?.length) {
+                const accountSegments = dto.segmentIds.map((id) => ({
+                    account: { id: savedEntity.id },
+                    segment: { id },
+                }));
+
+                await manager.save(AccountSegment, accountSegments);
+            }
         });
 
         return toSave.id ? this.getOne(toSave.id) : null;
@@ -55,11 +75,11 @@ export class AccountService {
         await this.entityManager.transaction(async (manager) => {
             // İlişkili tablolardaki mevcut kayıtları sil
             if (dto.accountTypeIds) {
-                await manager.delete('account_account_type', { account_id: dto.id });
+                await manager.delete(AccountAccountType, { account: { id: dto.id } });
             }
 
             if (dto.segmentIds) {
-                await manager.delete('account_segment', { account_id: dto.id });
+                await manager.delete(AccountSegment, { account: { id: dto.id } });
             }
 
             if (dto.locations) {
@@ -67,10 +87,8 @@ export class AccountService {
             }
 
             // Temel account nesnesini güncelle
-            const accountToUpdate = {
+            const toUpdate = {
                 ...dto,
-                accountTypes: dto.accountTypeIds?.map((id) => ({ id })),
-                segments: dto.segmentIds?.map((id) => ({ id })),
                 assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
                 country: dto.countryId ? { id: dto.countryId } : null,
                 city: dto.cityId ? { id: dto.cityId } : null,
@@ -78,9 +96,20 @@ export class AccountService {
                 district: dto.districtId ? { id: dto.districtId } : null,
             };
 
-            const updatedAccount = await manager.save(Account, accountToUpdate);
+            const updatedAccount = await manager.save(Account, toUpdate);
             accountId = updatedAccount.id;
 
+            // AccountType ilişkilerini ekle
+            if (dto.accountTypeIds?.length) {
+                const accountAccountTypes = dto.accountTypeIds.map((id) => ({
+                    account: { id: accountId },
+                    accountType: { id },
+                }));
+
+                await manager.save(AccountAccountType, accountAccountTypes);
+            }
+
+            // Locations varsa ayrıca kaydet
             if (dto.locations?.length) {
                 const accountLocations = dto.locations.map((location) => ({
                     account: { id: accountId },
@@ -91,6 +120,16 @@ export class AccountService {
                 }));
 
                 await manager.save(AccountLocation, accountLocations);
+            }
+
+            // Segments varsa ayrıca ekle
+            if (dto.segmentIds?.length) {
+                const accountSegments = dto.segmentIds.map((id) => ({
+                    account: { id: accountId },
+                    segment: { id },
+                }));
+
+                await manager.save(AccountSegment, accountSegments);
             }
 
             this.logger.log(`Account updated: ${updatedAccount.id}`);
@@ -112,8 +151,10 @@ export class AccountService {
                 id,
             },
             relations: [
-                'accountTypes',
+                'accountAccountTypes',
+                'accountAccountTypes.accountType',
                 'segments',
+                'segments.segment',
                 'assignedUser',
                 'country',
                 'city',
@@ -133,8 +174,10 @@ export class AccountService {
     async getAccountsByFilters(filters: GetAccountsDTO): Promise<Account[]> {
         const queryBuilder = this.entityManager
             .createQueryBuilder(Account, 'account')
-            .leftJoinAndSelect('account.accountTypes', 'accountTypes')
+            .leftJoinAndSelect('account.accountAccountTypes', 'accountAccountTypes')
+            .leftJoinAndSelect('accountAccountTypes.accountType', 'accountType')
             .leftJoinAndSelect('account.segments', 'segments')
+            .leftJoinAndSelect('segments.segment', 'segment')
             .leftJoinAndSelect('account.assignedUser', 'assignedUser')
             .leftJoinAndSelect('account.country', 'country')
             .leftJoinAndSelect('account.city', 'city')
@@ -143,7 +186,8 @@ export class AccountService {
             .leftJoinAndSelect('account.locations', 'locations')
             .leftJoinAndSelect('locations.country', 'locationCountry')
             .leftJoinAndSelect('locations.city', 'locationCity')
-            .leftJoinAndSelect('locations.county', 'locationCounty');
+            .leftJoinAndSelect('locations.county', 'locationCounty')
+            .leftJoinAndSelect('locations.district', 'locationDistrict');
 
         queryBuilder.where('account.deletedAt IS NULL');
 
@@ -185,13 +229,13 @@ export class AccountService {
         }
 
         if (filters.accountTypeIds?.length > 0) {
-            queryBuilder.andWhere('accountTypes.id IN (:...accountTypeIds)', {
+            queryBuilder.andWhere('accountType.id IN (:...accountTypeIds)', {
                 accountTypeIds: filters.accountTypeIds,
             });
         }
 
         if (filters.segmentIds?.length > 0) {
-            queryBuilder.andWhere('segments.id IN (:...segmentIds)', {
+            queryBuilder.andWhere('segment.id IN (:...segmentIds)', {
                 segmentIds: filters.segmentIds,
             });
         }

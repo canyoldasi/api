@@ -1,17 +1,17 @@
-import { Entity, Column, OneToMany, ManyToMany, JoinTable, ManyToOne } from 'typeorm';
+import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Gender, PersonType } from '../constants';
 import { Contact } from './contact.entity';
 import { Opportunity } from './opportunity.entity';
-import { AccountType } from './account-type.entity';
 import { BaseEntity } from './base.entity';
 import { City } from './city.entity';
 import { County } from './county.entity';
 import { AccountLocation } from './account-location.entity';
-import { Segment } from './segment.entity';
 import { Country } from './country.entity';
 import { District } from './district.entity';
 import { User } from './user.entity';
+import { AccountSegment } from './account-segment.entity';
+import { AccountAccountType } from './account-account-type.entity';
 
 @Entity()
 @ObjectType()
@@ -20,12 +20,9 @@ export class Account extends BaseEntity {
     @Field(() => String)
     personType: PersonType;
 
-    @ManyToMany(() => AccountType)
-    @JoinTable({
-        name: 'account_account_type',
-    })
-    @Field(() => [AccountType], { nullable: true })
-    accountTypes?: AccountType[];
+    @OneToMany(() => AccountAccountType, (accountAccountType) => accountAccountType.account)
+    @Field(() => [AccountAccountType], { nullable: true })
+    accountAccountTypes?: AccountAccountType[];
 
     @Column()
     @Field()
@@ -111,10 +108,7 @@ export class Account extends BaseEntity {
     @Field(() => [AccountLocation], { nullable: true })
     locations?: AccountLocation[];
 
-    @ManyToMany(() => Segment, (segment) => segment.accounts)
-    @JoinTable({
-        name: 'account_segment',
-    })
-    @Field(() => [Segment], { nullable: true })
-    segments?: Segment[];
+    @OneToMany(() => AccountSegment, (accountSegment) => accountSegment.account)
+    @Field(() => [AccountSegment], { nullable: true })
+    segments?: AccountSegment[];
 }

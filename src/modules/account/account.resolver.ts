@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { AccountService } from './account.service';
 import { Account } from '../../entities/account.entity';
 import { CreateUpdateAccountDTO } from './dto/create-update-account.dto';
@@ -7,6 +7,8 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../providers/auth.guard';
 import { Permissions } from '../../providers/permissions.decorator';
 import { PERMISSIONS } from '../../constants';
+import { Segment } from '../../entities/segment.entity';
+import { AccountType } from '../../entities/account-type.entity';
 
 @Resolver(() => Account)
 @UseGuards(AuthGuard)
@@ -41,5 +43,21 @@ export class AccountResolver {
     @Permissions(PERMISSIONS.AccountDelete)
     async deleteAccount(@Args('id') id: string): Promise<boolean> {
         return this.accountService.delete(id);
+    }
+
+    @ResolveField('segments', () => [Segment], { nullable: true })
+    async getSegments(@Parent() account: Account) {
+        if (account.segments) {
+            return account.segments.map((as) => as.segment);
+        }
+        return [];
+    }
+
+    @ResolveField('accountTypes', () => [AccountType], { nullable: true })
+    async getAccountTypes(@Parent() account: Account) {
+        if (account.accountAccountTypes) {
+            return account.accountAccountTypes.map((aat) => aat.accountType);
+        }
+        return [];
     }
 }

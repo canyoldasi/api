@@ -1,8 +1,9 @@
-import { Entity, Column, ManyToMany } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
-import { Account } from './account.entity';
+import { AccountAccountType } from './account-account-type.entity';
 import { AccountTypeCode } from '../constants';
+
 @Entity()
 @ObjectType()
 export class AccountType extends BaseEntity {
@@ -22,7 +23,7 @@ export class AccountType extends BaseEntity {
     @Field()
     isActive: boolean;
 
-    @ManyToMany(() => Account, (account) => account.accountTypes)
-    @Field(() => [Account], { nullable: true })
-    accounts?: Account[];
+    @OneToMany(() => AccountAccountType, (accountAccountType) => accountAccountType.accountType)
+    @Field(() => [AccountAccountType], { nullable: true })
+    accountAccountTypes?: AccountAccountType[];
 }

@@ -1,20 +1,20 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToMany } from 'typeorm';
-import { Account } from './account.entity';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
+import { AccountSegment } from './account-segment.entity';
 
 @ObjectType()
 @Entity()
 export class Segment extends BaseEntity {
-    @Field()
     @Column()
+    @Field()
     name: string;
 
-    @Field({ nullable: true })
     @Column({ nullable: true })
+    @Field({ nullable: true })
     note?: string;
 
-    @Field(() => [Account], { nullable: true })
-    @ManyToMany(() => Account, (account) => account.segments)
-    accounts?: Account[];
+    @OneToMany(() => AccountSegment, (accountSegment) => accountSegment.segment)
+    @Field(() => [AccountSegment], { nullable: true })
+    accountSegments?: AccountSegment[];
 }

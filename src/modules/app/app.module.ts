@@ -36,7 +36,8 @@ import { District } from 'src/entities/district.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Segment } from 'src/entities/segment.entity';
 import { AccountModule } from '../account/account.module';
-
+import { AccountSegment } from 'src/entities/account-segment.entity';
+import { AccountAccountType } from 'src/entities/account-account-type.entity';
 @Module({
     imports: [
         WinstonModule.forRoot(loggerConfig),
@@ -71,6 +72,8 @@ import { AccountModule } from '../account/account.module';
                 District,
                 AccountLocation,
                 Segment,
+                AccountSegment,
+                AccountAccountType,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),
