@@ -12,6 +12,7 @@ import { District } from './district.entity';
 import { User } from './user.entity';
 import { AccountSegment } from './account-segment.entity';
 import { AccountAccountType } from './account-account-type.entity';
+import { Transaction } from './transaction.entity';
 
 @Entity()
 @ObjectType()
@@ -111,4 +112,8 @@ export class Account extends BaseEntity {
     @OneToMany(() => AccountSegment, (accountSegment) => accountSegment.account)
     @Field(() => [AccountSegment], { nullable: true })
     segments?: AccountSegment[];
+
+    @OneToMany(() => Transaction, (transaction) => transaction.account)
+    @Field(() => [Transaction], { nullable: true })
+    transactions?: Transaction[];
 }

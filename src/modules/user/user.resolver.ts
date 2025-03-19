@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { RoleService } from '../role/role.service';
 import { User } from '../../entities/user.entity';
 import { Role } from '../../entities/role.entity';
-import { AddUpdateUserDto } from './dto/add-update-user.dto';
+import { CreateUpdateUserDto } from './dto/create-update-user.dto';
 import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
@@ -39,14 +39,14 @@ export class UserResolver {
 
     @Mutation(() => String)
     @Permissions('UserCreate')
-    async createUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
+    async createUser(@Args('dto') dto: CreateUpdateUserDto): Promise<string> {
         const r = await this.userService.create(dto);
         return r?.id;
     }
 
     @Mutation(() => String)
     @Permissions('UserUpdate')
-    async updateUser(@Args('dto') dto: AddUpdateUserDto): Promise<string> {
+    async updateUser(@Args('dto') dto: CreateUpdateUserDto): Promise<string> {
         const r = await this.userService.update(dto);
         return r?.id;
     }

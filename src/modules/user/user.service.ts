@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AddUpdateUserDto } from './dto/add-update-user.dto';
+import { CreateUpdateUserDto } from './dto/create-update-user.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetUsersDTO } from './dto/get-users.dto';
 
@@ -14,7 +14,7 @@ export class UserService {
         private readonly logger: WinstonLogger
     ) {}
 
-    async create(dto: AddUpdateUserDto): Promise<User> {
+    async create(dto: CreateUpdateUserDto): Promise<User> {
         let ret: User;
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(User, {
@@ -29,7 +29,7 @@ export class UserService {
         return ret;
     }
 
-    async update(dto: AddUpdateUserDto): Promise<User> {
+    async update(dto: CreateUpdateUserDto): Promise<User> {
         let ret: User;
 
         const existingUser = await this.entityManager.findOneBy(User, {

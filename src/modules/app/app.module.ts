@@ -38,6 +38,8 @@ import { Segment } from 'src/entities/segment.entity';
 import { AccountModule } from '../account/account.module';
 import { AccountSegment } from 'src/entities/account-segment.entity';
 import { AccountAccountType } from 'src/entities/account-account-type.entity';
+import { Transaction } from 'src/entities/transaction.entity';
+import { TransactionStatus } from 'src/entities/transaction-status.entity';
 @Module({
     imports: [
         WinstonModule.forRoot(loggerConfig),
@@ -74,6 +76,8 @@ import { AccountAccountType } from 'src/entities/account-account-type.entity';
                 Segment,
                 AccountSegment,
                 AccountAccountType,
+                Transaction,
+                TransactionStatus,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),
