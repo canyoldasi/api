@@ -106,9 +106,9 @@ export class UserService {
             });
         }
 
-        if (filters.roleIds && filters.roleIds.length > 0) {
-            queryBuilder.andWhere('user.roleId IN (:...roleIds)', {
-                roleIds: filters.roleIds,
+        if (filters.roleId) {
+            queryBuilder.andWhere('role.id = :roleId', {
+                roleId: filters.roleId,
             });
         }
 
