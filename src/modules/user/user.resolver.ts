@@ -8,6 +8,10 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetUsersDTO } from './dto/get-users.dto';
+import { Paginated, PaginatedResult } from '../../types/pagination';
+
+// Create a reusable type for paginated users
+const PaginatedUser = Paginated(User);
 
 @Resolver(() => User)
 @UseGuards(AuthGuard)
@@ -23,12 +27,12 @@ export class UserResolver {
         return this.userService.getOne(id);
     }
 
-    @Query(() => [User], { nullable: true })
+    @Query(() => PaginatedUser, { nullable: true })
     @Permissions('UserRead')
     async getUsers(
         @Args('dto', { type: () => GetUsersDTO, nullable: true })
         filters: GetUsersDTO
-    ): Promise<Partial<User>[]> {
+    ): Promise<PaginatedResult<User>> {
         return this.userService.getUsersByFilters(filters);
     }
 

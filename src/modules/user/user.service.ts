@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUpdateUserDto } from './dto/create-update-user.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetUsersDTO } from './dto/get-users.dto';
+import { PaginatedResult } from '../../types/pagination';
 
 @Injectable()
 export class UserService {
@@ -77,7 +78,7 @@ export class UserService {
         });
     }
 
-    async getUsersByFilters(filters: GetUsersDTO): Promise<User[] | undefined> {
+    async getUsersByFilters(filters: GetUsersDTO): Promise<PaginatedResult<User>> {
         const queryBuilder = this.entityManager.createQueryBuilder(User, 'user').leftJoinAndSelect('user.role', 'role');
 
         queryBuilder.where('user.deletedAt IS NULL');
@@ -112,12 +113,20 @@ export class UserService {
             });
         }
 
+        // Get total count before applying pagination
+        const itemCount = await queryBuilder.getCount();
+
+        // Calculate page count
+        const pageSize = filters.pageSize || itemCount; // If no pageSize, assume all items on one page
+        const pageCount = pageSize > 0 ? Math.ceil(itemCount / pageSize) : 0;
+
         queryBuilder.orderBy(`user.${filters.orderBy || 'fullName'}`, filters.orderDirection);
 
         if (filters.pageSize) {
             queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
         }
 
-        return await queryBuilder.getMany();
+        const items = await queryBuilder.getMany();
+        return { items, itemCount, pageCount };
     }
 }
