@@ -1,5 +1,4 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AuthModule } from '../auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
@@ -40,8 +39,12 @@ import { AccountSegment } from 'src/entities/account-segment.entity';
 import { AccountAccountType } from 'src/entities/account-account-type.entity';
 import { Transaction } from 'src/entities/transaction.entity';
 import { TransactionStatus } from 'src/entities/transaction-status.entity';
+import { AppResolver } from './app.resolver';
+import { ConfigModule } from '@nestjs/config';
+
 @Module({
     imports: [
+        ConfigModule.forRoot(),
         WinstonModule.forRoot(loggerConfig),
         PassportModule,
         JwtModule.register({
@@ -85,7 +88,7 @@ import { TransactionStatus } from 'src/entities/transaction-status.entity';
             driver: ApolloDriver,
             autoSchemaFile: true,
             sortSchema: true,
-            playground: process.env.NODE_ENV === 'development',
+            playground: true, // Always enable playground for API testing
             introspection: true,
             context: (context) => {
                 return {
@@ -101,8 +104,9 @@ import { TransactionStatus } from 'src/entities/transaction-status.entity';
         LocationModule,
         AccountModule,
     ],
-    controllers: [AppController],
+    controllers: [],
     providers: [
+        AppResolver,
         //TODO: JwtStrategy geliştirilecek ve request.user içine kullanıcı bilgileri eklenecek.
         //JwtStrategy,
         {

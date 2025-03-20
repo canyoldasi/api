@@ -22,7 +22,7 @@ export class RoleResolver {
     @Query(() => [Role], { nullable: true })
     @Permissions('RoleRead')
     async getRoles(
-        @Args('dto', { type: () => GetRolesDTO, nullable: true })
+        @Args('input', { type: () => GetRolesDTO, nullable: true })
         filters: GetRolesDTO
     ): Promise<Partial<Role>[]> {
         return this.roleService.getRolesByFilters(filters);
@@ -30,14 +30,14 @@ export class RoleResolver {
 
     @Mutation(() => String)
     @Permissions('RoleCreate')
-    async createRole(@Args('dto') dto: AddUpdateRoleDto): Promise<string> {
+    async createRole(@Args('input') dto: AddUpdateRoleDto): Promise<string> {
         const r = await this.roleService.create(dto);
         return r?.id;
     }
 
     @Mutation(() => String)
     @Permissions('RoleUpdate')
-    async updateRole(@Args('dto') dto: AddUpdateRoleDto): Promise<string> {
+    async updateRole(@Args('input') dto: AddUpdateRoleDto): Promise<string> {
         const r = await this.roleService.update(dto);
         return r?.id;
     }

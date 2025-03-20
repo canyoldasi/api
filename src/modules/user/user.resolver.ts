@@ -30,7 +30,7 @@ export class UserResolver {
     @Query(() => PaginatedUser, { nullable: true })
     @Permissions('UserRead')
     async getUsers(
-        @Args('dto', { type: () => GetUsersDTO, nullable: true })
+        @Args('input', { type: () => GetUsersDTO, nullable: true })
         filters: GetUsersDTO
     ): Promise<PaginatedResult<User>> {
         return this.userService.getUsersByFilters(filters);
@@ -43,14 +43,14 @@ export class UserResolver {
 
     @Mutation(() => String)
     @Permissions('UserCreate')
-    async createUser(@Args('dto') dto: CreateUpdateUserDto): Promise<string> {
+    async createUser(@Args('input') dto: CreateUpdateUserDto): Promise<string> {
         const r = await this.userService.create(dto);
         return r?.id;
     }
 
     @Mutation(() => String)
     @Permissions('UserUpdate')
-    async updateUser(@Args('dto') dto: CreateUpdateUserDto): Promise<string> {
+    async updateUser(@Args('input') dto: CreateUpdateUserDto): Promise<string> {
         const r = await this.userService.update(dto);
         return r?.id;
     }

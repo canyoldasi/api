@@ -15,6 +15,6 @@ export class GetUsersDTO extends PaginationBaseDTO {
     @Field(() => String, { nullable: true })
     createdAtEnd?: string;
 
-    @Field(() => String, { nullable: true })
-    roleId?: string;
+    @Field(() => [String], { nullable: true })
+    roleIds?: string[];
 }
