@@ -10,7 +10,6 @@ import { City } from '../../entities/city.entity';
 import { County } from '../../entities/county.entity';
 import { District } from '../../entities/district.entity';
 import { Contact } from '../../entities/contact.entity';
-import { Opportunity } from '../../entities/opportunity.entity';
 import { AccountLocation } from '../../entities/account-location.entity';
 import { AccountResolver } from './account.resolver';
 import { UserService } from '../user/user.service';
@@ -30,7 +29,6 @@ import { UserService } from '../user/user.service';
             County,
             District,
             Contact,
-            Opportunity,
             AccountLocation,
         ]),
     ],

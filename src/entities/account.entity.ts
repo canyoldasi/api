@@ -2,7 +2,6 @@ import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Gender, PersonType } from '../constants';
 import { Contact } from './contact.entity';
-import { Opportunity } from './opportunity.entity';
 import { BaseEntity } from './base.entity';
 import { City } from './city.entity';
 import { County } from './county.entity';
@@ -96,10 +95,6 @@ export class Account extends BaseEntity {
     @OneToMany(() => Contact, (x) => x.account)
     @Field(() => [Contact], { nullable: true })
     contacts?: Contact[];
-
-    @OneToMany(() => Opportunity, (x) => x.account)
-    @Field(() => [Opportunity], { nullable: true })
-    opportunities?: Opportunity[];
 
     @ManyToOne(() => User, { nullable: true })
     @Field(() => User, { nullable: true })

@@ -20,7 +20,7 @@ export class Contact extends BaseEntity {
 
     @Column()
     @Field()
-    phone: string;
+    mobilePhone: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
@@ -30,16 +30,14 @@ export class Contact extends BaseEntity {
     @Field()
     role: string; // Örn: "Satın Alma Müdürü", "Muhasebe Yetkilisi"
 
-    @Column({ default: false })
+    @Column({ default: true })
     @Field()
     isPrimary: boolean; // Ana iletişim kişisi mi?
 
-    // İlişkiler
     @ManyToOne(() => Account, (account) => account.contacts)
     @Field(() => Account)
     account: Account;
 
-    // Ek Bilgiler
     @Column({ type: 'text', nullable: true })
     @Field({ nullable: true })
     note?: string;

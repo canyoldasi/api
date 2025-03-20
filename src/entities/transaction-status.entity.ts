@@ -25,6 +25,14 @@ export class TransactionStatus {
     @Field()
     isActive: boolean;
 
+    @Column({ default: false })
+    @Field()
+    isSuccess: boolean;
+
+    @Column({ default: false })
+    @Field()
+    isCancel: boolean;
+
     @OneToMany(() => Transaction, (transaction) => transaction.status)
     transactions: Transaction[];
 }

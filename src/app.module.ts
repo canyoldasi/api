@@ -11,8 +11,6 @@ import { Role } from './entities/role.entity';
 import { RolePermission } from './entities/role-permission.entity';
 import { Account } from './entities/account.entity';
 import { Contact } from './entities/contact.entity';
-import { Opportunity } from './entities/opportunity.entity';
-import { OpportunityStatus } from './entities/opportunity-status.entity';
 import { Product } from './entities/product.entity';
 import { Log } from './entities/log.entity';
 import { AccountType } from './entities/account-type.entity';
@@ -25,6 +23,9 @@ import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
 import { LogModule } from './modules/log/log.module';
 import { LocationModule } from './modules/location/location.module';
+import { Transaction } from './entities/transaction.entity';
+import { TransactionProduct } from './entities/transaction-product.entity';
+import { TransactionStatus } from './entities/transaction-status.entity';
 
 @Module({
     imports: [
@@ -46,14 +47,15 @@ import { LocationModule } from './modules/location/location.module';
                     RolePermission,
                     Account,
                     Contact,
-                    Opportunity,
-                    OpportunityStatus,
                     Product,
                     Log,
                     AccountType,
                     City,
                     County,
                     AccountLocation,
+                    Transaction,
+                    TransactionProduct,
+                    TransactionStatus,
                 ],
                 synchronize: configService.get('NODE_ENV') !== 'production',
                 logging: configService.get('NODE_ENV') !== 'production',

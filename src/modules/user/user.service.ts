@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUpdateUserDto } from './dto/create-update-user.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetUsersDTO } from './dto/get-users.dto';
-import { PaginatedResult } from '../../types/pagination';
+import { PaginatedResult } from '../../types/paginated';
 
 @Injectable()
 export class UserService {

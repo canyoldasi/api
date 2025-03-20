@@ -1,9 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Account } from './account.entity';
 import { TransactionType } from '../constants';
 import { BaseEntity } from './base.entity';
 import { TransactionStatus } from './transaction-status.entity';
+import { TransactionProduct } from './transaction-product.entity';
+import { User } from './user.entity';
 
 @ObjectType()
 @Entity()
@@ -20,6 +22,14 @@ export class Transaction extends BaseEntity {
     @Field(() => TransactionStatus)
     status: TransactionStatus;
 
+    @ManyToOne(() => User, (user) => user.assignedTransactions, { nullable: true })
+    @Field(() => User, { nullable: true })
+    assignedUser?: User;
+
+    @OneToMany(() => TransactionProduct, (transactionProduct) => transactionProduct.transaction)
+    @Field(() => [TransactionProduct], { nullable: true })
+    transactionProducts?: TransactionProduct[];
+
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     @Field()
     amount: number;
@@ -32,17 +42,21 @@ export class Transaction extends BaseEntity {
     @Field({ nullable: true })
     referenceNumber?: string;
 
-    @Column({ type: 'timestamptz', nullable: true })
+    @Column({ type: 'date', nullable: true })
     @Field({ nullable: true })
-    scheduledDate?: Date;
+    closedDate?: Date;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
-    cancelReason?: string;
+    cancelNote?: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
-    notes?: string;
+    successNote?: string;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    note?: string;
 
     // STK'ya özel alanlar
     @Column({ nullable: true })

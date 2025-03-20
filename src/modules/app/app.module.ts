@@ -22,8 +22,6 @@ import { LogModule } from '../log/log.module';
 import { LoggingInterceptor } from 'src/providers/logging.interceptor';
 import { Account } from 'src/entities/account.entity';
 import { Contact } from 'src/entities/contact.entity';
-import { OpportunityStatus } from 'src/entities/opportunity-status.entity';
-import { Opportunity } from 'src/entities/opportunity.entity';
 import { Product } from 'src/entities/product.entity';
 import { AccountType } from 'src/entities/account-type.entity';
 import { AccountLocation } from 'src/entities/account-location.entity';
@@ -39,6 +37,7 @@ import { AccountSegment } from 'src/entities/account-segment.entity';
 import { AccountAccountType } from 'src/entities/account-account-type.entity';
 import { Transaction } from 'src/entities/transaction.entity';
 import { TransactionStatus } from 'src/entities/transaction-status.entity';
+import { TransactionProduct } from 'src/entities/transaction-product.entity';
 import { AppResolver } from './app.resolver';
 import { ConfigModule } from '@nestjs/config';
 
@@ -67,8 +66,6 @@ import { ConfigModule } from '@nestjs/config';
                 Log,
                 Account,
                 Contact,
-                Opportunity,
-                OpportunityStatus,
                 Product,
                 AccountType,
                 Country,
@@ -81,6 +78,7 @@ import { ConfigModule } from '@nestjs/config';
                 AccountAccountType,
                 Transaction,
                 TransactionStatus,
+                TransactionProduct,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),

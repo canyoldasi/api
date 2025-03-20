@@ -1,7 +1,8 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
 import { Role } from './role.entity';
+import { Transaction } from './transaction.entity';
 
 @Entity()
 @ObjectType()
@@ -26,4 +27,8 @@ export class User extends BaseEntity {
     @JoinColumn({ name: 'role_id' }) //TODO: bunu kaldırmamız gerekiyor. ama kaldırınca field adı roleId oluyor. çözülecek.
     @Field(() => Role)
     role: Role;
+
+    @OneToMany(() => Transaction, (transaction) => transaction.assignedUser)
+    @Field(() => [Transaction], { nullable: true })
+    assignedTransactions?: Transaction[];
 }

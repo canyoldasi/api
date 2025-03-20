@@ -8,7 +8,7 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetUsersDTO } from './dto/get-users.dto';
-import { Paginated, PaginatedResult } from '../../types/pagination';
+import { Paginated, PaginatedResult } from '../../types/paginated';
 
 // Create a reusable type for paginated users
 const PaginatedUser = Paginated(User);
