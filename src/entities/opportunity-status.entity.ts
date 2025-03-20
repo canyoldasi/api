@@ -11,7 +11,7 @@ export class OpportunityStatus extends BaseEntity {
 
     @Column({ type: 'int' })
     @Field()
-    sortOrder: number;
+    sequence: number;
 
     @Column({ default: true })
     @Field()

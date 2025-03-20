@@ -17,6 +17,14 @@ export class TransactionStatus {
     @Field({ nullable: true })
     code?: string;
 
+    @Column({ type: 'int' })
+    @Field()
+    sequence: number;
+
+    @Column({ default: true })
+    @Field()
+    isActive: boolean;
+
     @OneToMany(() => Transaction, (transaction) => transaction.status)
     transactions: Transaction[];
 }
