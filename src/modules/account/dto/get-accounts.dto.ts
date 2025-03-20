@@ -8,7 +8,7 @@ export class GetAccountsDTO extends PaginationBaseDTO {
     text?: string;
 
     @Field(() => String, { nullable: true })
-    type?: PersonType;
+    personType?: PersonType;
 
     @Field(() => String, { nullable: true })
     gender?: Gender;

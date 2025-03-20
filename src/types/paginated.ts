@@ -8,7 +8,11 @@ export interface PaginatedResult<T> {
 }
 
 export function Paginated<T>(classRef: Type<T>): Type<any> {
-    @ObjectType({ isAbstract: true })
+    // Get the name of the class being paginated
+    const typeName = classRef.name;
+
+    // Create a unique name for this paginated type
+    @ObjectType(`Paginated${typeName}`)
     abstract class PaginatedType {
         @Field(() => [classRef])
         items: T[];

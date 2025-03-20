@@ -9,6 +9,9 @@ import { Permissions } from '../../providers/permissions.decorator';
 import { PERMISSIONS } from '../../constants';
 import { Segment } from '../../entities/segment.entity';
 import { AccountType } from '../../entities/account-type.entity';
+import { Paginated, PaginatedResult } from '../../types/paginated';
+
+const PaginatedAccount = Paginated(Account);
 
 @Resolver(() => Account)
 @UseGuards(AuthGuard)
@@ -21,9 +24,9 @@ export class AccountResolver {
         return this.accountService.getOne(id);
     }
 
-    @Query(() => [Account])
+    @Query(() => PaginatedAccount)
     @Permissions(PERMISSIONS.AccountRead)
-    async getAccounts(@Args('input') input: GetAccountsDTO): Promise<Account[]> {
+    async getAccounts(@Args('input') input: GetAccountsDTO): Promise<PaginatedResult<Account>> {
         return this.accountService.getAccountsByFilters(input);
     }
 

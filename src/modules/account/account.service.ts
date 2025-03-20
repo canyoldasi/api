@@ -7,6 +7,7 @@ import { GetAccountsDTO } from './dto/get-accounts.dto';
 import { AccountLocation } from '../../entities/account-location.entity';
 import { AccountSegment } from '../../entities/account-segment.entity';
 import { AccountAccountType } from '../../entities/account-account-type.entity';
+import { PaginatedResult } from '../../types/paginated';
 
 @Injectable()
 export class AccountService {
@@ -171,7 +172,7 @@ export class AccountService {
         });
     }
 
-    async getAccountsByFilters(filters: GetAccountsDTO): Promise<Account[]> {
+    async getAccountsByFilters(filters: GetAccountsDTO): Promise<PaginatedResult<Account>> {
         const queryBuilder = this.entityManager
             .createQueryBuilder(Account, 'account')
             .leftJoinAndSelect('account.accountAccountTypes', 'accountAccountTypes')
@@ -198,8 +199,8 @@ export class AccountService {
             );
         }
 
-        if (filters.type) {
-            queryBuilder.andWhere('account.type = :type', { type: filters.type });
+        if (filters.personType) {
+            queryBuilder.andWhere('account.personType = :personType', { personType: filters.personType });
         }
 
         if (filters.gender) {
@@ -207,25 +208,25 @@ export class AccountService {
         }
 
         if (filters.assignedUserId) {
-            queryBuilder.andWhere('account.assignedUserId = :assignedUserId', {
+            queryBuilder.andWhere('assignedUser.id = :assignedUserId', {
                 assignedUserId: filters.assignedUserId,
             });
         }
 
         if (filters.countryId) {
-            queryBuilder.andWhere('account.countryId = :countryId', { countryId: filters.countryId });
+            queryBuilder.andWhere('country.id = :countryId', { countryId: filters.countryId });
         }
 
         if (filters.cityId) {
-            queryBuilder.andWhere('account.cityId = :cityId', { cityId: filters.cityId });
+            queryBuilder.andWhere('city.id = :cityId', { cityId: filters.cityId });
         }
 
         if (filters.countyId) {
-            queryBuilder.andWhere('account.countyId = :countyId', { countyId: filters.countyId });
+            queryBuilder.andWhere('county.id = :countyId', { countyId: filters.countyId });
         }
 
         if (filters.districtId) {
-            queryBuilder.andWhere('account.districtId = :districtId', { districtId: filters.districtId });
+            queryBuilder.andWhere('district.id = :districtId', { districtId: filters.districtId });
         }
 
         if (filters.accountTypeIds?.length > 0) {
@@ -252,12 +253,26 @@ export class AccountService {
             });
         }
 
-        queryBuilder.orderBy(`account.${filters.orderBy || 'name'}`, filters.orderDirection);
+        // Get total count before applying pagination
+        const itemCount = await queryBuilder.getCount();
 
+        // Calculate page count
+        const pageSize = filters.pageSize || itemCount; // If no pageSize, assume all items on one page
+        const pageCount = pageSize > 0 ? Math.ceil(itemCount / pageSize) : 0;
+
+        // Apply ordering
+        if (filters.orderBy) {
+            queryBuilder.orderBy(`account.${filters.orderBy}`, filters.orderDirection);
+        } else {
+            queryBuilder.orderBy('account.createdAt', 'DESC');
+        }
+
+        // Apply pagination
         if (filters.pageSize) {
             queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
         }
 
-        return await queryBuilder.getMany();
+        const items = await queryBuilder.getMany();
+        return { items, itemCount, pageCount };
     }
 }
