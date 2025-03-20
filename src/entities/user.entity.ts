@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
 import { Role } from './role.entity';
@@ -23,6 +23,7 @@ export class User extends BaseEntity {
     isActive: boolean;
 
     @ManyToOne(() => Role, (role) => role.users, { nullable: false })
+    @JoinColumn({ name: 'role_id' }) //TODO: bunu kaldırmamız gerekiyor. ama kaldırınca field adı roleId oluyor. çözülecek.
     @Field(() => Role)
     role: Role;
 }
