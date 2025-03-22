@@ -19,6 +19,7 @@ export class UserService {
         let ret: User;
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(User, {
+                isActive: dto.isActive,
                 username: dto.username,
                 fullName: dto.fullName,
                 password: await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT)),
@@ -39,7 +40,8 @@ export class UserService {
 
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(User, {
-                id: dto.id, // Update user by id
+                id: dto.id,
+                isActive: dto.isActive,
                 username: dto.username,
                 fullName: dto.fullName,
                 password: dto.password
@@ -120,7 +122,7 @@ export class UserService {
         const pageSize = filters.pageSize || itemCount; // If no pageSize, assume all items on one page
         const pageCount = pageSize > 0 ? Math.ceil(itemCount / pageSize) : 0;
 
-        queryBuilder.orderBy(`user.${filters.orderBy || 'fullName'}`, filters.orderDirection);
+        queryBuilder.orderBy(filters.orderBy || 'fullName', filters.orderDirection);
 
         if (filters.pageSize) {
             queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
