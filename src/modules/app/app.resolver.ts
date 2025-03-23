@@ -23,8 +23,8 @@ export class AppResolver {
     @Query(() => AppInfo)
     getApp(): AppInfo {
         return {
-            name: this.configService.get('APP_NAME') || 'Kurum Adı',
-            logo: this.configService.get('APP_LOGO') || '',
+            name: process.env.APP_NAME || 'Kurum Adı',
+            logo: process.env.APP_LOGO || '',
         };
     }
 }
