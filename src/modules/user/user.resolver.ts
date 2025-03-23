@@ -37,6 +37,7 @@ export class UserResolver {
         return this.userService.getUsersByFilters(filters);
     }
 
+    //TODO: Login olmayan kullanıcılar erişemeyecek. @Permissions('') olabilir örneğin.
     @Query(() => PaginatedUser, { nullable: true })
     async getUsersLookup(
         @Args('input', { type: () => GetLookupDTO, nullable: true })
