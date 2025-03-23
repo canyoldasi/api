@@ -141,8 +141,9 @@ export class AccountService {
     }
 
     async delete(id: string): Promise<boolean> {
-        await this.entityManager.delete(Account, {
-            id,
+        // Fiziksel silme yerine deletedAt alanını güncelliyoruz (soft delete)
+        await this.entityManager.update(Account, id, {
+            deletedAt: new Date(),
         });
         return true;
     }
@@ -151,6 +152,7 @@ export class AccountService {
         return await this.entityManager.findOne(Account, {
             where: {
                 id,
+                deletedAt: null,
             },
             relations: [
                 'accountAccountTypes',
