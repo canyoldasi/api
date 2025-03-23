@@ -166,7 +166,7 @@ export class AccountService {
                 'county',
                 'district',
                 'contacts',
-                'opportunities',
+                'transactions',
                 'locations',
                 'locations.country',
                 'locations.city',
