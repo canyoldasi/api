@@ -9,6 +9,7 @@ import { AccountSegment } from '../../entities/account-segment.entity';
 import { AccountAccountType } from '../../entities/account-account-type.entity';
 import { PaginatedResult } from '../../types/paginated';
 import { AccountType } from '../../entities/account-type.entity';
+import { Segment } from '../../entities/segment.entity';
 
 @Injectable()
 export class AccountService {
@@ -284,6 +285,18 @@ export class AccountService {
      */
     async getAccountTypes(): Promise<AccountType[]> {
         return this.entityManager.find(AccountType, {
+            where: {
+                deletedAt: null,
+                isActive: true,
+            },
+            order: {
+                name: 'ASC',
+            },
+        });
+    }
+
+    async getSegments(): Promise<Segment[]> {
+        return this.entityManager.find(Segment, {
             where: {
                 deletedAt: null,
             },

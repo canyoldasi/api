@@ -35,6 +35,11 @@ export class AccountResolver {
         return this.accountService.getAccountTypes();
     }
 
+    @Query(() => [Segment])
+    async getSegments(): Promise<Segment[]> {
+        return this.accountService.getSegments();
+    }
+
     @Mutation(() => Account)
     @Permissions(PERMISSIONS.AccountCreate)
     async createAccount(@Args('input') input: CreateUpdateAccountDTO): Promise<Account> {
