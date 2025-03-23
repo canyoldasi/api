@@ -10,6 +10,8 @@ import { PERMISSIONS } from '../../constants';
 import { Segment } from '../../entities/segment.entity';
 import { AccountType } from '../../entities/account-type.entity';
 import { Paginated, PaginatedResult } from '../../types/paginated';
+import { Contact } from '../../entities/contact.entity';
+import { Transaction } from '../../entities/transaction.entity';
 
 const PaginatedAccount = Paginated(Account);
 
@@ -70,6 +72,22 @@ export class AccountResolver {
     async getAccountTypesOfAccount(@Parent() account: Account) {
         if (account.accountAccountTypes) {
             return account.accountAccountTypes.map((aat) => aat.accountType);
+        }
+        return [];
+    }
+
+    @ResolveField('contacts', () => [Contact], { nullable: true })
+    async getContactsOfAccount(@Parent() account: Account) {
+        if (account.contacts) {
+            return account.contacts;
+        }
+        return [];
+    }
+
+    @ResolveField('transactions', () => [Transaction], { nullable: true })
+    async getTransactionsOfAccount(@Parent() account: Account) {
+        if (account.transactions) {
+            return account.transactions;
         }
         return [];
     }
