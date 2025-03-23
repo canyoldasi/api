@@ -40,6 +40,7 @@ export class LoggingInterceptor implements NestInterceptor {
         return next.handle().pipe(
             tap({
                 next: (data) => {
+                    //TODO: Veritabanı işlemi timeout hatası verdi ama burası "başarıyla tamamlandı" logu veriyor. Düzeltilecek.
                     // Başarılı işlem logu
                     const duration = Date.now() - startTime;
                     this.logService.log({
