@@ -31,7 +31,7 @@ export class AccountResolver {
     }
 
     @Query(() => [AccountType])
-    async getAccountTypesLookup(): Promise<AccountType[]> {
+    async getAccountTypes(): Promise<AccountType[]> {
         return this.accountService.getAccountTypes();
     }
 
@@ -54,7 +54,7 @@ export class AccountResolver {
     }
 
     @ResolveField('segments', () => [Segment], { nullable: true })
-    async getSegments(@Parent() account: Account) {
+    async getSegmentsOfAccount(@Parent() account: Account) {
         if (account.segments) {
             return account.segments.map((as) => as.segment);
         }
@@ -62,7 +62,7 @@ export class AccountResolver {
     }
 
     @ResolveField('accountTypes', () => [AccountType], { nullable: true })
-    async getAccountTypes(@Parent() account: Account) {
+    async getAccountTypesOfAccount(@Parent() account: Account) {
         if (account.accountAccountTypes) {
             return account.accountAccountTypes.map((aat) => aat.accountType);
         }
