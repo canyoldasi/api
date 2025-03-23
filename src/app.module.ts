@@ -26,6 +26,7 @@ import { LocationModule } from './modules/location/location.module';
 import { Transaction } from './entities/transaction.entity';
 import { TransactionProduct } from './entities/transaction-product.entity';
 import { TransactionStatus } from './entities/transaction-status.entity';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
     imports: [
@@ -71,6 +72,7 @@ import { TransactionStatus } from './entities/transaction-status.entity';
         RoleModule,
         LogModule,
         LocationModule,
+        EmailModule,
     ],
 })
 export class AppModule {}

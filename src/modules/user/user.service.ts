@@ -122,7 +122,7 @@ export class UserService {
         const pageSize = filters.pageSize || itemCount; // If no pageSize, assume all items on one page
         const pageCount = pageSize > 0 ? Math.ceil(itemCount / pageSize) : 0;
 
-        queryBuilder.orderBy(filters.orderBy || 'fullName', filters.orderDirection);
+        queryBuilder.orderBy(`${filters.orderBy || 'fullName'}`, filters.orderDirection);
 
         if (filters.pageSize) {
             queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
