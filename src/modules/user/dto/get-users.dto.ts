@@ -6,6 +6,9 @@ export class GetUsersDTO extends PaginationBaseDTO {
     @Field(() => String, { nullable: true })
     text?: string;
 
+    @Field(() => String, { nullable: true })
+    id?: string;
+
     @Field({ nullable: true })
     isActive?: boolean;
 

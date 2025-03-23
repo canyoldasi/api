@@ -9,6 +9,7 @@ import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetUsersDTO } from './dto/get-users.dto';
 import { Paginated, PaginatedResult } from '../../types/paginated';
+import { GetLookupDTO } from '../../types/lookup.dto';
 
 // Create a reusable type for paginated users
 const PaginatedUser = Paginated(User);
@@ -34,6 +35,20 @@ export class UserResolver {
         filters: GetUsersDTO
     ): Promise<PaginatedResult<User>> {
         return this.userService.getUsersByFilters(filters);
+    }
+
+    @Query(() => PaginatedUser, { nullable: true })
+    async getUsersLookup(
+        @Args('input', { type: () => GetLookupDTO, nullable: true })
+        filters: GetLookupDTO
+    ): Promise<PaginatedResult<User>> {
+        return this.userService.getUsersByFilters({
+            ...(filters?.id && { id: filters.id }),
+            ...(filters?.text && { text: filters.text }),
+            ...(filters?.isActive !== undefined && { isActive: filters.isActive }),
+            pageSize: filters?.pageSize || 10000,
+            pageIndex: filters?.pageIndex || 0,
+        });
     }
 
     @ResolveField('role', () => Role, { nullable: true })

@@ -85,6 +85,12 @@ export class UserService {
 
         queryBuilder.where('user.deletedAt IS NULL');
 
+        if (filters.id) {
+            queryBuilder.andWhere('(user.id = :id)', {
+                id: filters.id,
+            });
+        }
+
         if (filters.text) {
             queryBuilder.andWhere('(user.username ILIKE :text OR user.fullName ILIKE :text)', {
                 text: `%${filters.text}%`,
@@ -122,7 +128,7 @@ export class UserService {
         const pageSize = filters.pageSize || itemCount; // If no pageSize, assume all items on one page
         const pageCount = pageSize > 0 ? Math.ceil(itemCount / pageSize) : 0;
 
-        queryBuilder.orderBy(`${filters.orderBy || 'fullName'}`, filters.orderDirection);
+        queryBuilder.orderBy(`user.${filters.orderBy || 'fullName'}`, filters.orderDirection);
 
         if (filters.pageSize) {
             queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
