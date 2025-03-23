@@ -8,6 +8,7 @@ import { AccountLocation } from '../../entities/account-location.entity';
 import { AccountSegment } from '../../entities/account-segment.entity';
 import { AccountAccountType } from '../../entities/account-account-type.entity';
 import { PaginatedResult } from '../../types/paginated';
+import { AccountType } from '../../entities/account-type.entity';
 
 @Injectable()
 export class AccountService {
@@ -274,5 +275,19 @@ export class AccountService {
 
         const items = await queryBuilder.getMany();
         return { items, itemCount, pageCount };
+    }
+
+    /**
+     * Tüm aktif AccountType kayıtlarını ada göre sıralı olarak döndürür
+     */
+    async getAccountTypes(): Promise<AccountType[]> {
+        return this.entityManager.find(AccountType, {
+            where: {
+                deletedAt: null,
+            },
+            order: {
+                name: 'ASC',
+            },
+        });
     }
 }

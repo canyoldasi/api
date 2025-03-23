@@ -30,6 +30,11 @@ export class AccountResolver {
         return this.accountService.getAccountsByFilters(input);
     }
 
+    @Query(() => [AccountType])
+    async getAccountTypesLookup(): Promise<AccountType[]> {
+        return this.accountService.getAccountTypes();
+    }
+
     @Mutation(() => Account)
     @Permissions(PERMISSIONS.AccountCreate)
     async createAccount(@Args('input') input: CreateUpdateAccountDTO): Promise<Account> {
