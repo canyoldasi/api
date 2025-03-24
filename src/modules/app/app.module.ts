@@ -42,6 +42,8 @@ import { AppResolver } from './app.resolver';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
 import { TransactionModule } from '../transaction/transaction.module';
+import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
+
 @Module({
     imports: [
         ConfigModule.forRoot(),
@@ -83,18 +85,23 @@ import { TransactionModule } from '../transaction/transaction.module';
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),
-        GraphQLModule.forRoot<ApolloDriverConfig>({
+        GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            autoSchemaFile: true,
-            sortSchema: true,
-            playground: true, // Always enable playground for API testing
-            introspection: true,
-            context: (context) => {
-                return {
-                    req: context,
-                    user: context?.raw?.user,
-                };
-            },
+            imports: [LogModule],
+            useFactory: (graphQLLoggerPlugin: GraphQLLoggerPlugin) => ({
+                autoSchemaFile: true,
+                sortSchema: true,
+                playground: true,
+                introspection: true,
+                context: (context) => {
+                    return {
+                        req: context,
+                        user: context?.raw?.user,
+                    };
+                },
+                plugins: [graphQLLoggerPlugin],
+            }),
+            inject: [GraphQLLoggerPlugin],
         }),
         UserModule,
         AuthModule,
