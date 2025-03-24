@@ -1,48 +1,164 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { Transaction } from '../../entities/transaction.entity';
-import { TransactionType } from '../../constants';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { EntityManager } from 'typeorm';
+import { CreateUpdateTransactionDTO } from './dto/create-update-transaction.dto';
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
+import { GetTransactionsDTO } from './dto/get-transactions.dto';
+import { PaginatedResult } from '../../types/paginated';
+import { TransactionStatus } from '../../entities/transaction-status.entity';
 
 @Injectable()
 export class TransactionService {
     constructor(
-        @InjectRepository(Transaction)
-        private transactionRepository: Repository<Transaction>
+        @Inject(EntityManager) private entityManager: EntityManager,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER)
+        private readonly logger: WinstonLogger
     ) {}
 
-    async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
-        // İşlem tipine göre account kontrolü
-        if (createTransactionDto.type === TransactionType.RESERVATION && !createTransactionDto.accountId) {
-            throw new BadRequestException('Taşımacılık/Rezervasyon işlemlerinde account zorunludur.');
-        }
+    async create(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
+        let toSave = null;
 
-        const transaction = this.transactionRepository.create(createTransactionDto);
-        return this.transactionRepository.save(transaction);
-    }
+        await this.entityManager.transaction(async (manager) => {
+            // Temel transaction nesnesini kaydet
+            toSave = {
+                ...dto,
+                account: dto.accountId ? { id: dto.accountId } : null,
+                status: { id: dto.statusId },
+                assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
+            };
 
-    async update(id: string, updateTransactionDto: CreateTransactionDto): Promise<Transaction> {
-        const transaction = await this.transactionRepository.findOne({
-            where: { id },
+            const savedEntity = await manager.save(Transaction, toSave);
+            toSave.id = savedEntity.id;
         });
 
-        if (!transaction) {
-            throw new BadRequestException('İşlem bulunamadı');
-        }
-
-        // İşlem tipine göre account kontrolü
-        if (
-            (transaction.type === TransactionType.RESERVATION ||
-                updateTransactionDto.type === TransactionType.RESERVATION) &&
-            updateTransactionDto.accountId === null
-        ) {
-            throw new BadRequestException('Taşımacılık/Rezervasyon işlemlerinde account zorunludur.');
-        }
-
-        Object.assign(transaction, updateTransactionDto);
-        return this.transactionRepository.save(transaction);
+        return toSave.id ? this.getOne(toSave.id) : null;
     }
 
-    // Diğer servis metodları...
+    async update(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
+        await this.entityManager.transaction(async (manager) => {
+            // Temel transaction nesnesini güncelle
+            const toUpdate = {
+                ...dto,
+                account: dto.accountId ? { id: dto.accountId } : null,
+                status: { id: dto.statusId },
+                assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
+            };
+
+            await manager.save(Transaction, toUpdate);
+            this.logger.log(`Transaction updated: ${dto.id}`);
+        });
+
+        return this.getOne(dto.id);
+    }
+
+    async delete(id: string): Promise<boolean> {
+        // Fiziksel silme yerine deletedAt alanını güncelliyoruz (soft delete)
+        await this.entityManager.update(Transaction, id, {
+            deletedAt: new Date(),
+        });
+        return true;
+    }
+
+    async getOne(id: string): Promise<Transaction> {
+        return this.entityManager
+            .createQueryBuilder(Transaction, 'transaction')
+            .leftJoinAndSelect('transaction.account', 'account')
+            .leftJoinAndSelect('transaction.status', 'status')
+            .leftJoinAndSelect('transaction.assignedUser', 'user')
+            .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
+            .leftJoinAndSelect('transactionProducts.product', 'product')
+            .where('transaction.id = :id', { id })
+            .andWhere('transaction.deletedAt IS NULL')
+            .getOne();
+    }
+
+    async getTransactionsByFilters(filters: GetTransactionsDTO): Promise<PaginatedResult<Transaction>> {
+        const queryBuilder = this.entityManager
+            .createQueryBuilder(Transaction, 'transaction')
+            .leftJoinAndSelect('transaction.account', 'account')
+            .leftJoinAndSelect('transaction.status', 'status')
+            .leftJoinAndSelect('transaction.assignedUser', 'user')
+            .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
+            .leftJoinAndSelect('transactionProducts.product', 'product')
+            .where('transaction.deletedAt IS NULL');
+
+        // Filtreleri uygula
+        if (filters.text) {
+            queryBuilder.andWhere(
+                '(transaction.referenceNumber LIKE :text OR transaction.details LIKE :text OR transaction.note LIKE :text)',
+                { text: `%${filters.text}%` }
+            );
+        }
+
+        if (filters.type) {
+            queryBuilder.andWhere('transaction.type = :type', { type: filters.type });
+        }
+
+        if (filters.statusId) {
+            queryBuilder.andWhere('status.id = :statusId', { statusId: filters.statusId });
+        }
+
+        if (filters.accountId) {
+            queryBuilder.andWhere('account.id = :accountId', { accountId: filters.accountId });
+        }
+
+        if (filters.assignedUserId) {
+            queryBuilder.andWhere('user.id = :assignedUserId', { assignedUserId: filters.assignedUserId });
+        }
+
+        if (filters.createdAtStart) {
+            queryBuilder.andWhere('transaction.createdAt >= :createdAtStart', {
+                createdAtStart: new Date(filters.createdAtStart),
+            });
+        }
+
+        if (filters.createdAtEnd) {
+            queryBuilder.andWhere('transaction.createdAt <= :createdAtEnd', {
+                createdAtEnd: new Date(filters.createdAtEnd),
+            });
+        }
+
+        if (filters.closedDateStart) {
+            queryBuilder.andWhere('transaction.closedDate >= :closedDateStart', {
+                closedDateStart: new Date(filters.closedDateStart),
+            });
+        }
+
+        if (filters.closedDateEnd) {
+            queryBuilder.andWhere('transaction.closedDate <= :closedDateEnd', {
+                closedDateEnd: new Date(filters.closedDateEnd),
+            });
+        }
+
+        // Get total count before applying pagination
+        const itemCount = await queryBuilder.getCount();
+
+        // Calculate page count
+        const pageSize = filters.pageSize || itemCount; // If no pageSize, assume all items on one page
+        const pageCount = pageSize > 0 ? Math.ceil(itemCount / pageSize) : 0;
+
+        // Sıralama
+        queryBuilder.orderBy(`transaction.${filters.orderBy || 'createdAt'}`, filters.orderDirection);
+
+        // Sayfalama
+        if (filters.pageSize) {
+            queryBuilder.skip((filters.pageIndex || 0) * filters.pageSize).take(filters.pageSize);
+        }
+
+        // Sonuçları getir
+        const items = await queryBuilder.getMany();
+
+        return {
+            items,
+            itemCount,
+            pageCount,
+        };
+    }
+
+    async getTransactionStatuses(): Promise<TransactionStatus[]> {
+        return this.entityManager.find(TransactionStatus, {
+            where: { isActive: true },
+            order: { sequence: 'ASC' },
+        });
+    }
 }

@@ -41,6 +41,7 @@ import { TransactionProduct } from 'src/entities/transaction-product.entity';
 import { AppResolver } from './app.resolver';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
+import { TransactionModule } from '../transaction/transaction.module';
 @Module({
     imports: [
         ConfigModule.forRoot(),
@@ -102,6 +103,7 @@ import { EmailModule } from '../email/email.module';
         LocationModule,
         AccountModule,
         EmailModule,
+        TransactionModule,
     ],
     controllers: [],
     providers: [
