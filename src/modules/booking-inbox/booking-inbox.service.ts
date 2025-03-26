@@ -197,7 +197,7 @@ export class BookingInboxService implements OnModuleInit {
                             entityType: this.BOOKING_INBOX_ENTITY_TYPE,
                         });
 
-                        const fetch = this.imap.fetch(results, { bodies: '', markSeen: true });
+                        const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
                         let processedCount = 0;
 
                         fetch.on('message', (msg) => {
