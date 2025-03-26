@@ -1,5 +1,4 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import * as IMAP from 'node-imap';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
@@ -29,7 +28,6 @@ export class EmailService implements OnModuleInit {
     private imap: IMAP;
     private readonly emailCheckInterval: number;
     private readonly emailKeywords: string[];
-    private readonly cronExpression: string;
     private readonly EMAIL_MODULE_NAME = 'EmailService';
     private readonly EMAIL_ENTITY_TYPE = 'EMAIL';
 
@@ -42,9 +40,6 @@ export class EmailService implements OnModuleInit {
             process.env.BL_EMAIL_CHECK_INTERVAL || '15', // Varsayılan 15 dakika
             10
         );
-
-        // Cron ifadesini oluştur
-        this.cronExpression = `0 */${this.emailCheckInterval} * * * *`;
 
         // İşlem oluşturmak için aranacak anahtar kelimeleri al
         this.emailKeywords = (process.env.BL_EMAIL_KEYWORDS || 'sipariş,bağış,ödeme').split(',');
@@ -104,7 +99,6 @@ export class EmailService implements OnModuleInit {
     /**
      * .env dosyasında belirtilen aralıklarla e-postaları kontrol et
      */
-    @Cron('0 */1 * * * *') // Her 1 dakikada bir kontrol et
     async checkEmails() {
         return;
         await this.logService.log({
