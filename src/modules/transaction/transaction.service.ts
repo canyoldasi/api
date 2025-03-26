@@ -6,6 +6,8 @@ import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetTransactionsDTO } from './dto/get-transactions.dto';
 import { PaginatedResult } from '../../types/paginated';
 import { TransactionStatus } from '../../entities/transaction-status.entity';
+import { TransactionProduct } from '../../entities/transaction-product.entity';
+import { TransactionType } from '../../entities/transaction-type.entity';
 
 @Injectable()
 export class TransactionService {
@@ -24,11 +26,27 @@ export class TransactionService {
                 ...dto,
                 account: dto.accountId ? { id: dto.accountId } : null,
                 status: { id: dto.statusId },
+                type: dto.typeId ? { id: dto.typeId } : null,
                 assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
             };
 
             const savedEntity = await manager.save(Transaction, toSave);
             toSave.id = savedEntity.id;
+
+            // Transaction ürünlerini kaydet
+            if (dto.products && dto.products.length > 0) {
+                const transactionProducts = dto.products.map((product) => ({
+                    transaction: { id: savedEntity.id },
+                    product: { id: product.productId },
+                    quantity: product.quantity,
+                    unitPrice: product.unitPrice,
+                    totalPrice:
+                        product.totalPrice ||
+                        (product.quantity && product.unitPrice ? product.quantity * product.unitPrice : null),
+                }));
+
+                await manager.save(TransactionProduct, transactionProducts);
+            }
         });
 
         return toSave.id ? this.getOne(toSave.id) : null;
@@ -41,10 +59,30 @@ export class TransactionService {
                 ...dto,
                 account: dto.accountId ? { id: dto.accountId } : null,
                 status: { id: dto.statusId },
+                type: dto.typeId ? { id: dto.typeId } : null,
                 assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
             };
 
             await manager.save(Transaction, toUpdate);
+
+            // Mevcut transaction ürünlerini sil
+            await manager.delete(TransactionProduct, { transaction: { id: dto.id } });
+
+            // Yeni transaction ürünlerini kaydet
+            if (dto.products && dto.products.length > 0) {
+                const transactionProducts = dto.products.map((product) => ({
+                    transaction: { id: dto.id },
+                    product: { id: product.productId },
+                    quantity: product.quantity,
+                    unitPrice: product.unitPrice,
+                    totalPrice:
+                        product.totalPrice ||
+                        (product.quantity && product.unitPrice ? product.quantity * product.unitPrice : null),
+                }));
+
+                await manager.save(TransactionProduct, transactionProducts);
+            }
+
             this.logger.log(`Transaction updated: ${dto.id}`);
         });
 
@@ -60,16 +98,18 @@ export class TransactionService {
     }
 
     async getOne(id: string): Promise<Transaction> {
-        return this.entityManager
+        const result = await this.entityManager
             .createQueryBuilder(Transaction, 'transaction')
             .leftJoinAndSelect('transaction.account', 'account')
             .leftJoinAndSelect('transaction.status', 'status')
+            .leftJoinAndSelect('transaction.type', 'type')
             .leftJoinAndSelect('transaction.assignedUser', 'user')
             .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
             .leftJoinAndSelect('transactionProducts.product', 'product')
             .where('transaction.id = :id', { id })
             .andWhere('transaction.deletedAt IS NULL')
             .getOne();
+        return result;
     }
 
     async getTransactionsByFilters(filters: GetTransactionsDTO): Promise<PaginatedResult<Transaction>> {
@@ -77,6 +117,7 @@ export class TransactionService {
             .createQueryBuilder(Transaction, 'transaction')
             .leftJoinAndSelect('transaction.account', 'account')
             .leftJoinAndSelect('transaction.status', 'status')
+            .leftJoinAndSelect('transaction.type', 'type')
             .leftJoinAndSelect('transaction.assignedUser', 'user')
             .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
             .leftJoinAndSelect('transactionProducts.product', 'product')
@@ -90,8 +131,8 @@ export class TransactionService {
             );
         }
 
-        if (filters.type) {
-            queryBuilder.andWhere('transaction.type = :type', { type: filters.type });
+        if (filters.typeId) {
+            queryBuilder.andWhere('type.id = :typeId', { typeId: filters.typeId });
         }
 
         if (filters.statusId) {
@@ -158,6 +199,12 @@ export class TransactionService {
     async getTransactionStatuses(): Promise<TransactionStatus[]> {
         return this.entityManager.find(TransactionStatus, {
             where: { isActive: true },
+            order: { sequence: 'ASC' },
+        });
+    }
+
+    async getTransactionTypesLookup(): Promise<TransactionType[]> {
+        return this.entityManager.find(TransactionType, {
             order: { sequence: 'ASC' },
         });
     }

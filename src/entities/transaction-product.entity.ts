@@ -18,9 +18,9 @@ export class TransactionProduct {
     @Field(() => Product)
     product: Product;
 
-    @Column({ type: 'integer', default: 1 })
-    @Field(() => Int)
-    quantity: number;
+    @Column({ type: 'integer', default: 1, nullable: true })
+    @Field(() => Int, { nullable: true })
+    quantity?: number;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
     @Field(() => Float, { nullable: true })

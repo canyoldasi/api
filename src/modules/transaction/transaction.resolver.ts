@@ -12,6 +12,7 @@ import { Account } from '../../entities/account.entity';
 import { User } from '../../entities/user.entity';
 import { TransactionStatus } from '../../entities/transaction-status.entity';
 import { TransactionProduct } from '../../entities/transaction-product.entity';
+import { TransactionType } from '../../entities/transaction-type.entity';
 
 const PaginatedTransaction = Paginated(Transaction);
 
@@ -35,6 +36,12 @@ export class TransactionResolver {
     @Query(() => [TransactionStatus])
     async getTransactionStatuses(): Promise<TransactionStatus[]> {
         return this.transactionService.getTransactionStatuses();
+    }
+
+    @Query(() => [TransactionType])
+    @Permissions(PERMISSIONS.TransactionRead)
+    async getTransactionTypesLookup(): Promise<TransactionType[]> {
+        return this.transactionService.getTransactionTypesLookup();
     }
 
     @Mutation(() => Transaction)
@@ -71,7 +78,7 @@ export class TransactionResolver {
         return null;
     }
 
-    @ResolveField('status', () => TransactionStatus)
+    @ResolveField('status', () => TransactionStatus, { nullable: true })
     async getStatusOfTransaction(@Parent() transaction: Transaction) {
         if (transaction.status) {
             return transaction.status;

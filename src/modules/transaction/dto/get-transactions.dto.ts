@@ -1,6 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { PaginationBaseDTO } from 'src/providers/pagination-base.dto';
-import { TransactionType } from '../../../constants';
 
 @InputType()
 export class GetTransactionsDTO extends PaginationBaseDTO {
@@ -8,7 +7,7 @@ export class GetTransactionsDTO extends PaginationBaseDTO {
     text?: string;
 
     @Field(() => String, { nullable: true })
-    type?: TransactionType;
+    typeId?: string;
 
     @Field(() => String, { nullable: true })
     statusId?: string;

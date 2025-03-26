@@ -1,16 +1,16 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { TransactionType } from '../../../constants';
+import { CreateUpdateTransactionProductDTO } from './create-update-transaction-product.dto';
 
 @InputType()
 export class CreateUpdateTransactionDTO {
     @Field({ nullable: true })
     id?: string;
 
-    @Field(() => String)
-    type: TransactionType;
+    @Field(() => String, { nullable: true })
+    typeId?: string;
 
-    @Field()
-    statusId: string;
+    @Field(() => String, { nullable: true })
+    statusId?: string;
 
     @Field({ nullable: true })
     accountId?: string;
@@ -18,14 +18,14 @@ export class CreateUpdateTransactionDTO {
     @Field({ nullable: true })
     assignedUserId?: string;
 
-    @Field()
-    amount: number;
+    @Field({ nullable: true })
+    amount?: number;
 
     @Field({ nullable: true })
     details?: string;
 
     @Field({ nullable: true })
-    referenceNumber?: string;
+    no?: string;
 
     @Field({ nullable: true })
     closedDate?: Date;
@@ -39,12 +39,6 @@ export class CreateUpdateTransactionDTO {
     @Field({ nullable: true })
     note?: string;
 
-    @Field({ nullable: true })
-    campaignId?: string;
-
-    @Field({ nullable: true })
-    routeId?: string;
-
-    @Field({ nullable: true })
-    passengerCount?: number;
+    @Field(() => [CreateUpdateTransactionProductDTO], { nullable: true })
+    products?: CreateUpdateTransactionProductDTO[];
 }

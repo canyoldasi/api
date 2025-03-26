@@ -349,15 +349,15 @@ export class EmailService implements OnModuleInit {
 
         // Anahtar kelime içeriyorsa transaction oluştur
         try {
-            const transactionType = this.determineTransactionType(subject, text);
+            //const transactionType = this.determineTransactionType(subject, text);
             const amount = this.extractAmount(text) || 0;
 
             const transaction = new Transaction();
-            transaction.type = transactionType;
+            //transaction.type = transactionType;
             transaction.amount = amount;
             transaction.details = `E-posta konu: ${subject}\nGönderen: ${from}`;
             transaction.note = `E-postadan otomatik oluşturuldu. İçerik:\n${text.substring(0, 500)}${text.length > 500 ? '...' : ''}`;
-            transaction.referenceNumber = `EMAIL-${Date.now()}`;
+            transaction.no = `EMAIL-${Date.now()}`;
 
             // İlgili durum ID'sini al ve TransactionStatus nesnesini oluştur
             const statusId = await this.getInitialStatusId();

@@ -18,11 +18,15 @@ export class Product extends BaseEntity {
     @Field(() => [TransactionProduct], { nullable: true })
     transactionProducts?: TransactionProduct[];
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
-    @Field(() => Float)
-    price: number;
+    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+    @Field(() => Float, { nullable: true })
+    price?: number;
 
     @Column({ default: true })
     @Field()
     isActive: boolean;
+
+    @Column({ type: 'int', default: 0, nullable: true })
+    @Field({ nullable: true, defaultValue: 0 })
+    sequence: number;
 }

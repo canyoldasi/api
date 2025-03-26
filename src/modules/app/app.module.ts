@@ -38,11 +38,13 @@ import { AccountAccountType } from 'src/entities/account-account-type.entity';
 import { Transaction } from 'src/entities/transaction.entity';
 import { TransactionStatus } from 'src/entities/transaction-status.entity';
 import { TransactionProduct } from 'src/entities/transaction-product.entity';
+import { TransactionType } from 'src/entities/transaction-type.entity';
 import { AppResolver } from './app.resolver';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
 import { TransactionModule } from '../transaction/transaction.module';
 import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
+import { ProductModule } from '../product/product.module';
 
 @Module({
     imports: [
@@ -82,6 +84,7 @@ import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
                 Transaction,
                 TransactionStatus,
                 TransactionProduct,
+                TransactionType,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),
@@ -95,8 +98,8 @@ import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
                 introspection: true,
                 context: (context) => {
                     return {
-                        req: context,
-                        user: context?.raw?.user,
+                        requestId: context.req?.requestId,
+                        user: context.req?.user,
                     };
                 },
                 plugins: [graphQLLoggerPlugin],
@@ -111,6 +114,7 @@ import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
         AccountModule,
         EmailModule,
         TransactionModule,
+        ProductModule,
     ],
     controllers: [],
     providers: [
