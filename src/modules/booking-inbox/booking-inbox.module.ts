@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
-import { EmailService } from './email.service';
+import { BookingInboxService } from './booking-inbox.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Transaction } from '../../entities/transaction.entity';
-import { EmailController } from './email.controller';
+import { BookingInboxResolver } from './booking-inbox.resolver';
 
 @Module({
     imports: [ConfigModule, TypeOrmModule.forFeature([Transaction])],
-    controllers: [EmailController],
-    providers: [EmailService],
-    exports: [EmailService],
+    providers: [BookingInboxService, BookingInboxResolver],
+    exports: [BookingInboxService],
 })
-export class EmailModule {}
+export class BookingInboxModule {}

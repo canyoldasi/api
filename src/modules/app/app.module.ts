@@ -41,7 +41,7 @@ import { TransactionProduct } from 'src/entities/transaction-product.entity';
 import { TransactionType } from 'src/entities/transaction-type.entity';
 import { AppResolver } from './app.resolver';
 import { ConfigModule } from '@nestjs/config';
-import { EmailModule } from '../email/email.module';
+import { BookingInboxModule } from '../booking-inbox/booking-inbox.module';
 import { TransactionModule } from '../transaction/transaction.module';
 import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
 import { ProductModule } from '../product/product.module';
@@ -112,7 +112,7 @@ import { ProductModule } from '../product/product.module';
         LogModule.forRoot(),
         LocationModule,
         AccountModule,
-        EmailModule,
+        BookingInboxModule,
         TransactionModule,
         ProductModule,
     ],

@@ -38,6 +38,10 @@ export class Transaction extends BaseEntity {
     @Field({ nullable: true })
     amount?: number;
 
+    @Column({ type: 'timestamp', nullable: true })
+    @Field({ nullable: true })
+    transactionDate?: Date;
+
     @ManyToOne(() => Country)
     @Field(() => Country, { nullable: true })
     country?: Country;
