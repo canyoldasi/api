@@ -1,0 +1,477 @@
+Return-Path: <bodrumluxurytravelist@gmail.com>
+Delivered-To: 6@11828332
+Received: from imap-director-4.dovecot.shared.ham.xion.oxcs.net ([10.91.19.4])
+	by imap-backend-19.dovecot.shared.ham.xion.oxcs.net with LMTP
+	id ODdSICAL0GfVMw0AAYztDA
+	(envelope-from <bodrumluxurytravelist@gmail.com>)
+	for <6@11828332>; Tue, 11 Mar 2025 10:06:24 +0000
+Received: from mx.godaddy.xion.oxcs.net ([10.91.2.8])
+	by imap-director-4.dovecot.shared.ham.xion.oxcs.net with LMTP
+	id UClNLw0L0GdFGisAgS0Vbg:T25
+	(envelope-from <bodrumluxurytravelist@gmail.com>)
+	for <esref.atak@agiletechlondon.com>; Tue, 11 Mar 2025 10:06:24 +0000
+X-original-to: esref.atak@agiletechlondon.com
+Received: from osplibsmtp03-09.prod.phx3.secureserver.net (osplibsmtp03-09.prod.phx3.secureserver.net [68.178.181.212])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mx.godaddy.xion.oxcs.net (Postfix) with ESMTPS id 4ZBqD00Y1gz1Z1Nm
+	for <esref.atak@agiletechlondon.com>; Tue, 11 Mar 2025 10:06:23 +0000 (UTC)
+Received: from mail-ot1-f49.google.com ([209.85.210.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 256/256 bits)
+	(Client did not present a certificate)
+	by CMGW with ESMTPS
+	id rwVCtKBEnX4aZrwVDtGg7s; Tue, 11 Mar 2025 10:06:23 +0000
+X-CMAE-Analysis: v=2.4 cv=N6XTF39B c=1 sm=1 tr=0 ts=67d00b1f cx=a_idp_e
+ a=u1zZYpuUelIS9p+xogvCHw==:117 a=micXuVJiAAAA:8 a=Vs1iUdzkB0EA:10
+ a=x7bEGLp0ZPQA:10 a=snn5_FJQ4wYA:10 a=95EFz5htlIgA:10 a=A-Ay9Xv3AAAA:8
+ a=pGLkceISAAAA:8 a=dNnP1rSDAAAA:8 a=Cm3et2k-nS6B-AryxhEA:9 a=QEXdDO2ut3YA:10
+ a=tws96oaGerUA:10 a=Tm9k5YB0DH0A:10 a=RVmHIydaz68A:10 a=O0g__Jv8AAAA:8
+ a=WU5OMWDcQ22VjyjU9bUA:9 a=6lkCq_J0K8tGOEVp:21 a=lqcHg5cX4UMA:10
+ a=3ZgzWKCBzoYGizIsvSij:22 a=GX_X9ifSKiGXQsLx90J-:22
+Authentication-Results: osplibsmtp03-09.prod.phx3.secureserver.net;
+	dkim=pass header.d=gmail.com header.b=C5mfRVpJ;
+	dmarc=pass header.from=gmail.com
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-72b8986de41so485375a34.2
+        for <esref.atak@agiletechlondon.com>; Tue, 11 Mar 2025 03:06:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1741687581; x=1742292381; darn=agiletechlondon.com;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=L+CzEXD+eSf3OpdmA6DlUbq5FTvasgcIJ+wrNdEyAVU=;
+        b=C5mfRVpJzhbjslZGCObGVmFED9m5Txe0d+CQTIOLS+dBUzFa6To0y62Hhgj67BfTDW
+         ktnp7h0NYtAFyFSdJMfRg9w07CSguFoidcOfvzMGELDx2JA+NRL+T2NGyrrosiAh1Gd5
+         49JNdXM/1surjobKIXT4Cgxk4+ij9zaioVPqYrtnXpanhi0FCGV80FPPU161STLylYsM
+         JaEF0XIPWQEB96lAcy24rSVEseVkT880dtIloyy9hZiWxgBcP/w5qQRiJXLvzDOwWp+I
+         xr3KqPJe9yRn4npXVi51wG08q8aZmSw7axyTSrxbtKoudHz0QLurTDKZXCKLvWalFvoX
+         c9CA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741687581; x=1742292381;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=L+CzEXD+eSf3OpdmA6DlUbq5FTvasgcIJ+wrNdEyAVU=;
+        b=jGhAMTvVfUWB2NC32n4yNnDcTVl3HSx4H4+z9m2+s9eEP9C50duofB6NEXVYpHDNV3
+         aWglBX3cvTdX6sbXWlOWuZ3C8U5gQOm2y/Gtfstyj8fDM8Z9LHpKHDp/7Z19dP+wGYom
+         C6oGAEUqpRAQPxbNLN8iBBzUN8/j5/zsymTvA/tksP+Y03nvij1dnncaZAjtOPdUKQ70
+         RRL05ONuovgAylMRVQde+NtBa/JF2fE2cU0m9AKdKCn9NTVN9nMAqppN0Ca7zKBn2j6e
+         aCWJsMX7pgQYLIL6JEpO17hXzgLcRR66Y7/b9PlAQulYmE5FvZ+x4KB16JPisGTUF7Dy
+         CEAQ==
+X-Gm-Message-State: AOJu0YyPTvVxp/v2fhq5qc3AEv+Y+LElB9qzLg8Q3G6uXCX5xvgc976V
+	0gB3PaqUCuEVqLrWU/AQG1gFUhKHKkZgl4sUcUFuJp/LST13j8atmcBDO/5H1h6rVJjlgQvOdKk
+	/p7sbK7oWJN0RqA32grJFZq+GJeSEsw==
+X-Gm-Gg: ASbGncvkYuySogfXwFesojSTfMEHn1uafSqYKrBQf2bF0MvZ1nYd8qS0OYdQ/N1D3Uz
+	adihDjLHLD8V2qHcpKwZhgSQcuGQupffPh/vl3LPq9hxWUc4JDm1DfoWSIykDvAQdV0je53aMrr
+	o82QUXR2nS5I1jtZrP72VDKiwbdA8xRSNPxtBgMCF7esG1VWksKzl4EVA21R50BWDHpgorCQ==
+X-Google-Smtp-Source: AGHT+IFvvyERakUxZIcxlWb1HamaafZ0neK1MNxT3VT3FsHXxfWQ11oiD6wDQmrj2pgdSc/wOvp21TjQy1xbeJxW9YE=
+X-Received: by 2002:a05:6808:398b:b0:3f6:6e6d:1f53 with SMTP id
+ 5614622812f47-3f697b7490bmr9161445b6e.17.1741687581547; Tue, 11 Mar 2025
+ 03:06:21 -0700 (PDT)
+MIME-Version: 1.0
+References: <vhDH4H1OSfy5T03dGlQiVg@geopod-ismtpd-7>
+In-Reply-To: <vhDH4H1OSfy5T03dGlQiVg@geopod-ismtpd-7>
+From: Bodrum Luxury Travel <bodrumluxurytravelist@gmail.com>
+Date: Tue, 11 Mar 2025 13:06:10 +0300
+X-Gm-Features: AQ5f1JpImfqq5a0u7vqUwtgatZsos1TFLeg1yp-xxW-HbC9rn_gIGVEJvkt13Fs
+Message-ID: <CAMSKAHcdz5g2Z-1oZLu=oSZi0PgcSNxf-5gX=xeapioUUYW9tA@mail.gmail.com>
+Subject: Fwd: Booking.com booking NEW confirmation ID #91473686.
+To: esref.atak@agiletechlondon.com
+Content-Type: multipart/alternative; boundary="0000000000009ba46706300e3df4"
+X-CMAE-Envelope: MS4xfAC7FkDwlFYCEyHRjBYewr+o9uIIL/vLHbYcnZs5BeGM6ZkNXzKuk/wZ5JhIJIdHZX+pAr2hDNw9f98x+5Fq/V4VKaH4b1bRS6zNlZ9FJTOb5uW6qtTR
+ nBxPXMx4ofH2HbIP+tK6RcNc8iuMZ19uWuAJHZ7jkuP+P0SaKw6PzGBnyF9H5iJYfq9DF9oGT9vbnUTm/x0FbRTdeNbCwHogUMEROSYsMurz1FhCEDPv4kJx
+
+--0000000000009ba46706300e3df4
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+---------- Forwarded message ---------
+G=C3=B6nderen: Booking.com <noreply.taxi@booking.com>
+Date: 11 Mar 2025 Sal, 12:49
+Subject: Booking.com booking NEW confirmation ID #91473686.
+To: <bodrumluxurytravelist@gmail.com>
+
+
+[image: https://taxi.booking.com] <#m_5172584327991746609_>
+You have a new booking
+Click below to log in and see all of your bookings that need accepting.
+
+View all new bookings
+<https://portal.taxi.booking.com/bookings/rides?statuses=3DPENDING_ACKNOWLE=
+DGEMENT&period=3DPERIOD_ALL>
+
+Trip Details
+Booking ID: 91473686
+Category: *Large People Carrier*
+Number of Passengers: *1*
+Pick-up location: Monnas Suite, Cihangir, Bakra=C3=A7 Sk. No:11 D:1, 34433
+Beyo=C4=9Flu/=C4=B0stanbul, T=C3=BCrkiye
+Drop-off location: Istanbul Airport (IST), Tayakad=C4=B1n, Terminal Caddesi
+No:1, 34283 Arnavutk=C3=B6y/=C4=B0stanbul, T=C3=BCrkiye
+Pick-up date: Thursday, 13 March 2025
+Pick-up time: 11:00
+Distance: 44.6 km/27.7 miles
+Passenger
+Name: Clyde Pinto
+Mobile number: +14163024036
+Information for driver:
+Payment
+Journey charge: EUR 33.35
+Help <https://taxisuppliers-support.booking.com/hc/en-us>
+
+The Booking.com team.
+
+Terms and Conditions
+<https://www.booking.com/content/terms.en-us.html> | Privacy
+Policy <https://taxi.booking.com/information/privacy> | Help
+<https://ridewayz.zendesk.com>
+
+* About Booking.com Rides <https://taxi.booking.com/>*
+Booking.com Rides <https://taxi.booking.com/> is a trading name of
+Booking.com Transport Ltd which is a limited company registered in England
+and Wales (Number: 05179829) whose registered address is at 6 Goods Yard
+Street, Manchester, M3 3BG, United Kingdom.
+Booking.com Rides <https://taxi.booking.com/> is part of Rentalcars.com
+which is a part of Booking Holdings Inc. (Nasdaq:BKNG).
+
+Copyright =C2=A9 2024 Booking.com Transport Ltd trading as Booking.com Ride=
+s
+<https://taxi.booking.com/>. All rights reserved
+
+--0000000000009ba46706300e3df4
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><br><br><div class=3D"gmail_quote gmail_quote_container"><=
+div dir=3D"ltr" class=3D"gmail_attr">---------- Forwarded message ---------=
+<br>G=C3=B6nderen: <strong class=3D"gmail_sendername" dir=3D"auto">Booking.=
+com</strong> <span dir=3D"auto">&lt;<a href=3D"mailto:noreply.taxi@booking.=
+com">noreply.taxi@booking.com</a>&gt;</span><br>Date: 11 Mar 2025 Sal, 12:4=
+9<br>Subject: Booking.com booking NEW confirmation ID #91473686.<br>To:  &l=
+t;<a href=3D"mailto:bodrumluxurytravelist@gmail.com">bodrumluxurytravelist@=
+gmail.com</a>&gt;<br></div><br><br><div class=3D"msg5172584327991746609">
+<u></u>
+
+
+ =20
+ =20
+ =20
+ =20
+
+<div style=3D"line-height:1.4;margin:0;padding:0">
+<table width=3D"100%" cellpadding=3D"0" bgcolor=3D"#EEEEEE" cellspacing=3D"=
+0" border=3D"0" align=3D"center" style=3D"width:100%!important;margin:0;pad=
+ding:0;background:#eeeeee">
+  <tbody><tr bgcolor=3D"#EEEEEE">
+    <td align=3D"center">
+      <table width=3D"600" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"=
+ align=3D"center" style=3D"width:600px">
+        <tbody><tr>
+          <td>
+            <table width=3D"100%" style=3D"background-color:#fff;border-top=
+:7px solid #4984b6;padding-left:20px">
+              <tbody><tr>
+                <td height=3D"10"></td>
+              </tr>
+              <tr>
+                <td><a style=3D"color:#4e9ede" href=3D"#m_51725843279917466=
+09_">
+                  <img src=3D"https://images-cdn.rideways.com/affiliates/bo=
+oking/booking-logo.png" border=3D"0" alt=3D"https://taxi.booking.com"></a>
+                </td>
+              </tr>
+              <tr>
+                <td height=3D"15"></td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+        <tr bgcolor=3D"#ffffff">
+          <td>
+            <table width=3D"600" style=3D"border-collapse:collapse;border-s=
+pacing:0">
+              <tbody><tr>
+                <td height=3D"20" colspan=3D"3">
+                </td>
+              </tr>
+              <tr>
+                <td width=3D"20"></td>
+                <td>
+                 =20
+
+
+<h1 style=3D"font-family:Helvetica,Arial,sans-serif">You have a new booking=
+</h1>
+<br>
+Click below to log in and see all of your bookings that need accepting.
+<br><br>
+
+<table align=3D"center" width=3D"100%" border=3D"0" cellspacing=3D"0" cellp=
+adding=3D"0">
+    <tbody><tr>
+        <td align=3D"center">
+            <table align=3D"center" border=3D"0" cellspacing=3D"0" cellpadd=
+ing=3D"0">
+                <tbody><tr>
+                    <td align=3D"center">
+                        <a href=3D"https://portal.taxi.booking.com/bookings=
+/rides?statuses=3DPENDING_ACKNOWLEDGEMENT&amp;period=3DPERIOD_ALL" style=3D=
+"font-size:16px;font-family:Helvetica,Arial,sans-serif;color:#ffffff;text-d=
+ecoration:none;border-radius:3px;background-color:#4984b6;border-top:12px s=
+olid #4984b6;border-bottom:12px solid #4984b6;border-right:25px solid #4984=
+b6;border-left:25px solid #4984b6;display:inline-block" target=3D"_blank">
+                            View all new bookings
+                        </a>
+                    </td>
+                </tr>
+
+      </tbody></table>
+    </td>
+  </tr>
+</tbody></table>
+
+<br><br>
+
+<table width=3D"560" style=3D"margin-bottom:10px">
+
+
+    <thead>
+    <tr><th colspan=3D"2" style=3D"background-color:#4984b6;color:#fff;text=
+-align:left;padding:5px">Trip Details</th>
+    </tr></thead>
+    <tbody><tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Booking ID:</td>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px">91473686</td>
+   </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Category:</td>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px"><strong>Large People Carrier</strong></td>
+    </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Number of Passeng=
+ers:</td>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px"><strong>1</strong></td>
+    </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Pick-up location:=
+</td>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px">
+            Monnas Suite, Cihangir, Bakra=C3=A7 Sk. No:11 D:1, 34433 Beyo=
+=C4=9Flu/=C4=B0stanbul, T=C3=BCrkiye
+        </td>
+    </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Drop-off location=
+:</td>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px">
+            Istanbul Airport (IST), Tayakad=C4=B1n, Terminal Caddesi No:1, =
+34283 Arnavutk=C3=B6y/=C4=B0stanbul, T=C3=BCrkiye
+        </td>
+    </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Pick-up date:</td=
+>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px">Thursday, 13 March 2025</td>
+    </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Pick-up time:</td=
+>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px">11:00</td>
+    </tr>
+    <tr>
+        <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border=
+-bottom:1px solid #4984b6;vertical-align:top;padding:5px">Distance:</td>
+        <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;v=
+ertical-align:top;padding:5px">44.6 km/27.7 miles</td>
+    </tr>
+</tbody></table>
+
+
+<table width=3D"560" style=3D"margin-bottom:10px">
+  <thead>
+  <tr><th colspan=3D"2" style=3D"background-color:#4984b6;color:#fff;text-a=
+lign:left;padding:5px">Passenger</th>
+  </tr></thead>
+
+  <tbody><tr>
+    <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border-bot=
+tom:1px solid #4984b6;vertical-align:top;padding:5px">Name:</td>
+    <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;verti=
+cal-align:top;padding:5px">Clyde=C2=A0Pinto</td>
+  </tr>
+  <tr>
+    <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border-bot=
+tom:1px solid #4984b6;vertical-align:top;padding:5px">Mobile number:</td>
+    <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;verti=
+cal-align:top;padding:5px">
+      +14163024036
+    </td>
+  </tr>
+
+  <tr>
+    <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border-bot=
+tom:1px solid #4984b6;vertical-align:top;padding:5px">Information for drive=
+r:</td>
+    <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;verti=
+cal-align:top;padding:5px"></td>
+  </tr>
+
+</tbody></table>
+
+
+<table width=3D"560" style=3D"margin-bottom:10px">
+  <thead>
+  <tr><th colspan=3D"2" style=3D"background-color:#4984b6;color:#fff;text-a=
+lign:left;padding:5px">Payment</th>
+  </tr></thead>
+  <tbody><tr>
+    <td style=3D"font-weight:bold;width:40%;border-width:0 0 1px;border-bot=
+tom:1px solid #4984b6;vertical-align:top;padding:5px">Journey charge:</td>
+    <td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;verti=
+cal-align:top;padding:5px">EUR=C2=A033.35</td>
+  </tr>
+</tbody></table>
+
+
+<table align=3D"center" width=3D"100%" border=3D"0" cellspacing=3D"0" cellp=
+adding=3D"0">
+    <tbody><tr>
+        <td align=3D"center">
+            <table align=3D"center" border=3D"0" cellspacing=3D"0" cellpadd=
+ing=3D"0">
+                <tbody><tr>
+                    <td align=3D"center">
+                        <a href=3D"https://taxisuppliers-support.booking.co=
+m/hc/en-us" style=3D"text-align:center;font-size:16px;font-family:Helvetica=
+,Arial,sans-serif;text-decoration:none;display:inline-block;background-colo=
+r:#4984b6;color:white;border-radius:3px;border-top:12px solid #4984b6;borde=
+r-bottom:12px solid #4984b6;border-right:25px solid #4984b6;border-left:25p=
+x solid #4984b6" target=3D"_blank">
+                            Help
+                        </a>
+                    </td>
+                </tr>
+
+            </tbody></table>
+        </td>
+    </tr>
+</tbody></table>
+
+
+
+
+
+<br><br>
+The Booking.com team.<br><br>
+</td>
+<td width=3D"20">
+</td>
+</tr>
+<tr>
+  <td colspan=3D"3" height=3D"20">
+  </td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+<tr>
+  <td>
+    <table width=3D"100%" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
+      <tbody><tr>
+        <td>
+          <table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0" bgcolor=3D"#4984B6">
+            <tbody><tr>
+              <td colspan=3D"2" height=3D"10"></td>
+            </tr>
+            <tr>
+              <td width=3D"10">
+              </td>
+              <td style=3D"font-size:10px;font-family:Helvetica,Arial,sans-=
+serif">
+                <a href=3D"https://www.booking.com/content/terms.en-us.html=
+" style=3D"color:#ffffff;text-decoration:none" target=3D"_blank">Terms and =
+Conditions</a>
+                <span style=3D"color:#ffffff">|</span>
+                <a href=3D"https://taxi.booking.com/information/privacy" st=
+yle=3D"color:#ffffff;text-decoration:none" target=3D"_blank">Privacy Policy=
+</a>
+                <span style=3D"color:#ffffff">|</span>
+                <a href=3D"https://ridewayz.zendesk.com" style=3D"color:#ff=
+ffff;text-decoration:none" target=3D"_blank">Help</a>
+              </td>
+            </tr>
+            <tr>
+              <td colspan=3D"2" height=3D"10"></td>
+            </tr>
+          </tbody></table>
+          <table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0">
+            <tbody><tr>
+              <td height=3D"20">
+              </td>
+            </tr>
+            <tr>
+              <td valign=3D"top" style=3D"font-size:11px">
+                <p style=3D"margin-top:0;margin-bottom:0.5em;font-family:He=
+lvetica,Arial,sans-serif;font-size:11px">
+                  <strong> About <a href=3D"https://taxi.booking.com/" targ=
+et=3D"_blank">Booking.com Rides</a></strong><br>
+                  <a href=3D"https://taxi.booking.com/" target=3D"_blank">B=
+ooking.com Rides</a> is a trading name of Booking.com Transport Ltd which i=
+s a limited company registered in England and Wales (Number: 05179829) whos=
+e registered address is at 6 Goods Yard Street, Manchester, M3 3BG, United =
+Kingdom. <br>
+                  <a href=3D"https://taxi.booking.com/" target=3D"_blank">B=
+ooking.com Rides</a> is part of Rentalcars.com which is a part of Booking H=
+oldings Inc. (Nasdaq:BKNG).
+                </p>
+                <p style=3D"margin-top:0;margin-bottom:0.5em;font-family:He=
+lvetica,Arial,sans-serif;font-size:11px">
+                  Copyright =C2=A9 2024 Booking.com Transport Ltd trading a=
+s <a href=3D"https://taxi.booking.com/" target=3D"_blank">Booking.com Rides=
+</a>. All rights reserved
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td height=3D"20">
+              </td>
+            </tr>
+          </tbody></table>
+        </td>
+      </tr>
+    </tbody></table>
+  </td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody></table>
+<img src=3D"https://taxi.sg.booking.com/wf/open?upn=3Du001.fMEGEYr2WFAvTXPE=
+Jfa4h7xp-2FpfVNLVU5bYeQQNwpTbQZx3V-2B7TS1XsTrQv-2BsaGnmxcmA8REd-2BdDdHVRwyv=
+7-2BAs5CryQOCKZthC5mI-2BkoWQWoMgZwUOsML27sc6KOg84DI1Y-2Bxdj-2BUOrnJ1QdsPgZx=
+kBos9qYOnaVSGK7XF9odVll3x6I5TpnqMsZPrmfYGTyLRfXTmPXnYnzrim2sEW2qoQc3g8JIVSE=
+Y1785nN4k443XVdvZL-2BnlR4M8mR7jHPVrqhWEHnK1ItrHnqaL0zM7mLpELYAJNEWFOjyBwtY1=
+SSeabR10-2BqTW383s77Myyv" alt=3D"" width=3D"1" height=3D"1" border=3D"0" st=
+yle=3D"height:1px!important;width:1px!important;border-width:0!important;ma=
+rgin-top:0!important;margin-bottom:0!important;margin-right:0!important;mar=
+gin-left:0!important;padding-top:0!important;padding-bottom:0!important;pad=
+ding-right:0!important;padding-left:0!important"></div>
+
+
+
+</div></div></div>
+
+--0000000000009ba46706300e3df4--

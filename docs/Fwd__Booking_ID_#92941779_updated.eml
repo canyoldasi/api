@@ -1,0 +1,306 @@
+Return-Path: <bodrumluxurytravelist@gmail.com>
+Delivered-To: 6@11828332
+Received: from imap-director-6.dovecot.shared.ham.xion.oxcs.net ([10.91.19.6])
+	by imap-backend-19.dovecot.shared.ham.xion.oxcs.net with LMTP
+	id EH5XODYL0Gf5EQ0AAYztDA
+	(envelope-from <bodrumluxurytravelist@gmail.com>)
+	for <6@11828332>; Tue, 11 Mar 2025 10:06:46 +0000
+Received: from mx.godaddy.xion.oxcs.net ([10.91.2.7])
+	by imap-director-6.dovecot.shared.ham.xion.oxcs.net with LMTP
+	id aFW4B84K0GejBysAq4+NiA:T189
+	(envelope-from <bodrumluxurytravelist@gmail.com>)
+	for <esref.atak@agiletechlondon.com>; Tue, 11 Mar 2025 10:06:46 +0000
+X-original-to: esref.atak@agiletechlondon.com
+Received: from osplibsmtp02-15.prod.phx3.secureserver.net (osplibsmtp02-15.prod.phx3.secureserver.net [68.178.181.166])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mx.godaddy.xion.oxcs.net (Postfix) with ESMTPS id 4ZBqDQ3Tkkz1c09M
+	for <esref.atak@agiletechlondon.com>; Tue, 11 Mar 2025 10:06:46 +0000 (UTC)
+Received: from mail-oi1-f170.google.com ([209.85.167.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 256/256 bits)
+	(Client did not present a certificate)
+	by CMGW with ESMTPS
+	id rwVZtqqpO4VAHrwVatX3K2; Tue, 11 Mar 2025 10:06:46 +0000
+X-CMAE-Analysis: v=2.4 cv=dvYhC0g4 c=1 sm=1 tr=0 ts=67d00b36 cx=a_idp_e
+ a=psbzS7B9AiVUV1oHe3Ds2g==:117 a=Vs1iUdzkB0EA:10 a=x7bEGLp0ZPQA:10
+ a=snn5_FJQ4wYA:10 a=95EFz5htlIgA:10 a=micXuVJiAAAA:8 a=A-Ay9Xv3AAAA:8
+ a=pGLkceISAAAA:8 a=dNnP1rSDAAAA:8 a=dHctch_AZlVECYKbTm8A:9 a=QEXdDO2ut3YA:10
+ a=hzZOW3fNjTwA:10 a=oLtMPymZGIcA:10 a=RVmHIydaz68A:10 a=O0g__Jv8AAAA:8
+ a=XXMMUrZEiPnZb0TdHywA:9 a=2sHkMGi0ZxZf-gaI:21 a=lqcHg5cX4UMA:10
+ a=3ZgzWKCBzoYGizIsvSij:22 a=GX_X9ifSKiGXQsLx90J-:22
+Authentication-Results: osplibsmtp02-15.prod.phx3.secureserver.net;
+	dkim=pass header.d=gmail.com header.b=L08qwfPU;
+	dmarc=pass header.from=gmail.com
+Received: by mail-oi1-f170.google.com with SMTP id 5614622812f47-3f3da35555eso2629989b6e.1
+        for <esref.atak@agiletechlondon.com>; Tue, 11 Mar 2025 03:06:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1741687605; x=1742292405; darn=agiletechlondon.com;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=yyzjF+egEreGGT/SXa4aKAvZJXMefqlqUVnJwj/3Zkg=;
+        b=L08qwfPUkfo9k6UhG+94IPmcZd2NNfKA5oHoOx28pGyFaC0ZfMX59nwrrq2+PFPcgn
+         MZ49veUrq75R9U/bK4kk1vhk+l8S3iK3eHP0tHeD4mliHgu41HS/HV/7fVGBen80EYkZ
+         TOE1LVh6heoKBMFlIK8+HCt5/dAevnrTaLJOeAX21JqZlx2EHWxhr2P5Mk4FPDkvqSD4
+         wGSgVQeI5w30atzg9wrdCJomVUF5K/aXThKrhqj1N8q4W7FGN6ylHmBS7C5hMyArK9nA
+         m5mjim1F6TctvbrBBf2McQfS70UBG8YnTiyhVl4W/DwAI1ybrhJOckKzOszhGZZ8dHiL
+         Vn1g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741687605; x=1742292405;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=yyzjF+egEreGGT/SXa4aKAvZJXMefqlqUVnJwj/3Zkg=;
+        b=mtKzxBhXX+UDdYRr73H8sQvrkhO9GBs/7JbdyU+r65oOjGlenr2oWlTB2ylxBe6Ts6
+         JfpTttfZeY7o7pi8mJtJb7Z6sSsxI3RseUMh9pDst/M1IcYpgTX1vuJ8mmkc+EGeuenP
+         7lEI7t/g9ZymZOtjJ4Gphp2CqGMhHO8ESuQ+TMGRNSuc3jJ3JmoDyX3N3PzDWn8WEaHW
+         HWgRtzzGbRjEdEIObHVbvtYkE4dHTy05AaTUoxPLffcTcnZtzx6YMEUZKvpDghV78itK
+         54kkCHcHNVg92wZo/I24KghSNJc/6rNU8s3qAFaakEsEvu6A2N4x34sWMxcoFxOhZsmY
+         iOrw==
+X-Gm-Message-State: AOJu0YyhgKC8EunDTc/d3dCWWESMCBeI02tcPrg6a8vy2SvXz8NWJzaB
+	EMdqcoINgYrHStFooEa4z/d6Ev90D4CqJbN4ZEj+zwzcSFs4muISphYw7Lo6A1YL0t37BWgc4Gw
+	p3HIQrX1xZePMZYumIkb7Ffd8mK2Iuw==
+X-Gm-Gg: ASbGnctE9tPZ4kx310nyyI9KX1yE6S8R9P7MKdV711SXNwUjz4DBqhi/GyRLnDio9bL
+	dT7/QOUjdROhr3MwpEOGB3X6CPuKYTGOb6Z+mdZm/I3jus5Ap7jxmsiL5D9hWvmMqpMGugkCU97
+	tPTR1v7CuYCOQZBN2V2ArDqzSidkP/R21f6ickQ3Hz44OtTDNDZSyndHiA35k=
+X-Google-Smtp-Source: AGHT+IGqedgx6KUuqdAq61ercSMyTgveF9DSNVipvSpe1UTbpvhehO2LTTnQTpqnaHcck9y1cTevn6B6RY23LTL2XpU=
+X-Received: by 2002:a05:6808:148f:b0:3f6:65fe:2672 with SMTP id
+ 5614622812f47-3fa2a754ed4mr1590185b6e.2.1741687605169; Tue, 11 Mar 2025
+ 03:06:45 -0700 (PDT)
+MIME-Version: 1.0
+References: <N2335s_3TECUVZuXXhEkRw@geopod-ismtpd-3>
+In-Reply-To: <N2335s_3TECUVZuXXhEkRw@geopod-ismtpd-3>
+From: Bodrum Luxury Travel <bodrumluxurytravelist@gmail.com>
+Date: Tue, 11 Mar 2025 13:06:34 +0300
+X-Gm-Features: AQ5f1JouM4CunbDG0gzHuhCihhdVuGCqtavDhb0pEXyz7jXYr5b8oA6iNChdmmg
+Message-ID: <CAMSKAHfCBAqTRO6GJu9K8D6DCMoTokPSZr6d_8kJd_eRhqrs1w@mail.gmail.com>
+Subject: Fwd: Booking ID #92941779 updated
+To: esref.atak@agiletechlondon.com
+Content-Type: multipart/alternative; boundary="00000000000004149706300e3f04"
+X-CMAE-Envelope: MS4xfHOhAw4mKfkqnz+9s+47pymxK11+dg3w19mgA+UUedFl3v0Lz8jPa+5J0SBTBEpErLgG3REMS5j87Fxk0JMDQnmhB0W92vTGPN8J0XYrYwHmbzq5m6F7
+ Ae9Nd27qArY2kBHF1tg4ddjkYx8bSECQd1SwwPbAHtty6HQtRdYdSwSe/dlh8rBPqfF+70Nb2XqRR/A/gjPk1W6a9xB8OcnVo/OyfDTKSK+WA9FgLOdGfVZC
+
+--00000000000004149706300e3f04
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+---------- Forwarded message ---------
+G=C3=B6nderen: Booking.com <noreply.taxi@booking.com>
+Date: 11 Mar 2025 Sal, 12:01
+Subject: Booking ID #92941779 updated
+To: <bodrumluxurytravelist@gmail.com>
+
+
+[image: https://taxi.booking.com] <#m_-8838796425564735113_>
+Dear partner
+
+Our mutual customer has updated their booking with the following details:
+
+Updated
+*Comments* *Tieni un cartello con il nome Gatto Diego *
+
+The Booking.com team.
+
+Terms and Conditions
+<https://www.booking.com/content/terms.it-it.html> | Privacy
+Policy <https://taxi.booking.com/information/privacy> | Help
+<https://ridewayz.zendesk.com>
+
+* About Booking.com Rides <https://taxi.booking.com/>*
+Booking.com Rides <https://taxi.booking.com/> is a trading name of
+Booking.com Transport Ltd which is a limited company registered in England
+and Wales (Number: 05179829) whose registered address is at 6 Goods Yard
+Street, Manchester, M3 3BG, United Kingdom.
+Booking.com Rides <https://taxi.booking.com/> is part of Rentalcars.com
+which is a part of Booking Holdings Inc. (Nasdaq:BKNG).
+
+Copyright =C2=A9 2024 Booking.com Transport Ltd trading as Booking.com Ride=
+s
+<https://taxi.booking.com/>. All rights reserved
+
+--00000000000004149706300e3f04
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><br><br><div class=3D"gmail_quote gmail_quote_container"><=
+div dir=3D"ltr" class=3D"gmail_attr">---------- Forwarded message ---------=
+<br>G=C3=B6nderen: <strong class=3D"gmail_sendername" dir=3D"auto">Booking.=
+com</strong> <span dir=3D"auto">&lt;<a href=3D"mailto:noreply.taxi@booking.=
+com">noreply.taxi@booking.com</a>&gt;</span><br>Date: 11 Mar 2025 Sal, 12:0=
+1<br>Subject: Booking ID #92941779 updated<br>To:  &lt;<a href=3D"mailto:bo=
+drumluxurytravelist@gmail.com">bodrumluxurytravelist@gmail.com</a>&gt;<br><=
+/div><br><br><div class=3D"msg-8838796425564735113">
+<u></u>
+
+
+ =20
+ =20
+ =20
+ =20
+
+<div style=3D"line-height:1.4;margin:0;padding:0">
+<table width=3D"100%" cellpadding=3D"0" bgcolor=3D"#EEEEEE" cellspacing=3D"=
+0" border=3D"0" align=3D"center" style=3D"width:100%!important;margin:0;pad=
+ding:0;background:#eeeeee">
+  <tbody><tr bgcolor=3D"#EEEEEE">
+    <td align=3D"center">
+      <table width=3D"600" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"=
+ align=3D"center" style=3D"width:600px">
+        <tbody><tr>
+          <td>
+            <table width=3D"100%" style=3D"background-color:#fff;border-top=
+:7px solid #4984b6;padding-left:20px">
+              <tbody><tr>
+                <td height=3D"10"></td>
+              </tr>
+              <tr>
+                <td><a style=3D"color:#4e9ede" href=3D"#m_-8838796425564735=
+113_">
+                  <img src=3D"https://images-cdn.rideways.com/affiliates/bo=
+oking/booking-logo.png" border=3D"0" alt=3D"https://taxi.booking.com"></a>
+                </td>
+              </tr>
+              <tr>
+                <td height=3D"15"></td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+        <tr bgcolor=3D"#ffffff">
+          <td>
+            <table width=3D"600" style=3D"border-collapse:collapse;border-s=
+pacing:0">
+              <tbody><tr>
+                <td height=3D"20" colspan=3D"3">
+                </td>
+              </tr>
+              <tr>
+                <td width=3D"20"></td>
+                <td>
+                 =20
+
+
+Dear partner
+<br><br>
+
+Our mutual customer has updated their booking with the following details:
+<br><br>
+
+
+<table width=3D"600" style=3D"margin-bottom:5px">
+	<thead>
+	<tr><th style=3D"background-color:#4984b6;color:#fff;text-align:left;paddi=
+ng:5px"></th>
+	<th style=3D"background-color:#4984b6;color:#fff;text-align:left;padding:5=
+px">Updated</th>
+	</tr></thead>
+	<tbody><tr>
+		<td style=3D"width:20%;border-width:0 0 1px;border-bottom:1px solid #4984=
+b6;vertical-align:top;padding:5px"><strong>Comments</strong></td>
+		<td style=3D"border-width:0 0 1px;border-bottom:1px solid #4984b6;vertica=
+l-align:top;padding:5px"><strong>Tieni un cartello con il nome Gatto Diego =
+</strong></td>
+	</tr>
+</tbody></table>
+
+
+<br><br>
+The Booking.com team.<br><br>
+</td>
+<td width=3D"20">
+</td>
+</tr>
+<tr>
+  <td colspan=3D"3" height=3D"20">
+  </td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+<tr>
+  <td>
+    <table width=3D"100%" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
+      <tbody><tr>
+        <td>
+          <table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0" bgcolor=3D"#4984B6">
+            <tbody><tr>
+              <td colspan=3D"2" height=3D"10"></td>
+            </tr>
+            <tr>
+              <td width=3D"10">
+              </td>
+              <td style=3D"font-size:10px;font-family:Helvetica,Arial,sans-=
+serif">
+                <a href=3D"https://www.booking.com/content/terms.it-it.html=
+" style=3D"color:#ffffff;text-decoration:none" target=3D"_blank">Terms and =
+Conditions</a>
+                <span style=3D"color:#ffffff">|</span>
+                <a href=3D"https://taxi.booking.com/information/privacy" st=
+yle=3D"color:#ffffff;text-decoration:none" target=3D"_blank">Privacy Policy=
+</a>
+                <span style=3D"color:#ffffff">|</span>
+                <a href=3D"https://ridewayz.zendesk.com" style=3D"color:#ff=
+ffff;text-decoration:none" target=3D"_blank">Help</a>
+              </td>
+            </tr>
+            <tr>
+              <td colspan=3D"2" height=3D"10"></td>
+            </tr>
+          </tbody></table>
+          <table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0">
+            <tbody><tr>
+              <td height=3D"20">
+              </td>
+            </tr>
+            <tr>
+              <td valign=3D"top" style=3D"font-size:11px">
+                <p style=3D"margin-top:0;margin-bottom:0.5em;font-family:He=
+lvetica,Arial,sans-serif;font-size:11px">
+                  <strong> About <a href=3D"https://taxi.booking.com/" targ=
+et=3D"_blank">Booking.com Rides</a></strong><br>
+                  <a href=3D"https://taxi.booking.com/" target=3D"_blank">B=
+ooking.com Rides</a> is a trading name of Booking.com Transport Ltd which i=
+s a limited company registered in England and Wales (Number: 05179829) whos=
+e registered address is at 6 Goods Yard Street, Manchester, M3 3BG, United =
+Kingdom. <br>
+                  <a href=3D"https://taxi.booking.com/" target=3D"_blank">B=
+ooking.com Rides</a> is part of Rentalcars.com which is a part of Booking H=
+oldings Inc. (Nasdaq:BKNG).
+                </p>
+                <p style=3D"margin-top:0;margin-bottom:0.5em;font-family:He=
+lvetica,Arial,sans-serif;font-size:11px">
+                  Copyright =C2=A9 2024 Booking.com Transport Ltd trading a=
+s <a href=3D"https://taxi.booking.com/" target=3D"_blank">Booking.com Rides=
+</a>. All rights reserved
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td height=3D"20">
+              </td>
+            </tr>
+          </tbody></table>
+        </td>
+      </tr>
+    </tbody></table>
+  </td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody></table>
+<img src=3D"https://taxi.sg.booking.com/wf/open?upn=3Du001.fMEGEYr2WFAvTXPE=
+Jfa4h7xp-2FpfVNLVU5bYeQQNwpTbQZx3V-2B7TS1XsTrQv-2BsaGnTy7TELrgRfOFWV375VnNP=
+3UUGCPk6v2YJNRrFPyA9wAD4cdq-2BHfX8FF1NBhn-2FACMHD-2BBPMHYo-2FJaQwH1xRXc1Xgh=
+ZBqdW0uxJV4ls7dftUOkJ-2FZtRUUkiI7kCALRsoKxoGvu53nGPgVs3fhgSZfbGsdpHVg4ZIg2B=
+kWa028K7r3sqrrRs72iW7RHADw4I7iHXzrIaD6aeVZ0QcdZIbdwmKg2Qw09QD6yke0cYutcIZsU=
+k6Fz9kp1eX6Pcwuw3HMl" alt=3D"" width=3D"1" height=3D"1" border=3D"0" style=
+=3D"height:1px!important;width:1px!important;border-width:0!important;margi=
+n-top:0!important;margin-bottom:0!important;margin-right:0!important;margin=
+-left:0!important;padding-top:0!important;padding-bottom:0!important;paddin=
+g-right:0!important;padding-left:0!important"></div>
+
+
+</div></div></div>
+
+--00000000000004149706300e3f04--

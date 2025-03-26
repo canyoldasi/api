@@ -1,4 +1,4 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, Float } from '@nestjs/graphql';
 import { CreateUpdateTransactionProductDTO } from './create-update-transaction-product.dto';
 
 @InputType()
@@ -12,8 +12,8 @@ export class CreateUpdateTransactionDTO {
     @Field(() => String, { nullable: true })
     statusId?: string;
 
-    @Field(() => String, { nullable: true })
-    channelId?: string;
+    @Field(() => String)
+    channelId: string;
 
     @Field(() => String, { nullable: true })
     externalId?: string;
@@ -24,8 +24,8 @@ export class CreateUpdateTransactionDTO {
     @Field({ nullable: true })
     assignedUserId?: string;
 
-    @Field({ nullable: true })
-    amount?: number;
+    @Field(() => Float)
+    amount: number;
 
     @Field({ nullable: true })
     countryId?: string;
@@ -60,11 +60,14 @@ export class CreateUpdateTransactionDTO {
     @Field({ nullable: true })
     successNote?: string;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     note?: string;
 
     @Field(() => Date, { nullable: true })
     transactionDate?: Date;
+
+    @Field(() => String)
+    status: string;
 
     @Field(() => [CreateUpdateTransactionProductDTO], { nullable: true })
     products?: CreateUpdateTransactionProductDTO[];
