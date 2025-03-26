@@ -16,6 +16,7 @@ import { Country } from '../../entities/country.entity';
 import { City } from '../../entities/city.entity';
 import { County } from '../../entities/county.entity';
 import { District } from '../../entities/district.entity';
+import { Channel } from '../../entities/channel.entity';
 
 @Injectable()
 export class AccountService {
@@ -33,6 +34,7 @@ export class AccountService {
             toSave = {
                 ...dto,
                 assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
+                channel: dto.channelId ? { id: dto.channelId } : null,
                 country: dto.countryId ? { id: dto.countryId } : null,
                 city: dto.cityId ? { id: dto.cityId } : null,
                 county: dto.countyId ? { id: dto.countyId } : null,
@@ -88,6 +90,10 @@ export class AccountService {
             // Her alan için kontrol et ve sadece gönderilen alanları güncelle
             if (dto.personType !== undefined) {
                 updateData.personType = dto.personType;
+            }
+
+            if (dto.channelId !== undefined) {
+                updateData.channel = dto.channelId ? ({ id: dto.channelId } as DeepPartial<Channel>) : null;
             }
 
             if (dto.name !== undefined) {
@@ -278,7 +284,8 @@ export class AccountService {
             .leftJoinAndSelect('locations.country', 'locationCountry')
             .leftJoinAndSelect('locations.city', 'locationCity')
             .leftJoinAndSelect('locations.county', 'locationCounty')
-            .leftJoinAndSelect('locations.district', 'locationDistrict');
+            .leftJoinAndSelect('locations.district', 'locationDistrict')
+            .leftJoinAndSelect('account.channel', 'channel');
 
         queryBuilder.where('account.deletedAt IS NULL');
 
@@ -297,6 +304,10 @@ export class AccountService {
             queryBuilder.andWhere('account.gender = :gender', { gender: filters.gender });
         }
 
+        if (filters.channelIds?.length > 0) {
+            queryBuilder.andWhere('channel.id IN (:...channelIds)', { channelIds: filters.channelIds });
+        }
+
         if (filters.assignedUserId) {
             queryBuilder.andWhere('assignedUser.id = :assignedUserId', {
                 assignedUserId: filters.assignedUserId,
@@ -307,16 +318,8 @@ export class AccountService {
             queryBuilder.andWhere('country.id = :countryId', { countryId: filters.countryId });
         }
 
-        if (filters.cityId) {
-            queryBuilder.andWhere('city.id = :cityId', { cityId: filters.cityId });
-        }
-
-        if (filters.countyId) {
-            queryBuilder.andWhere('county.id = :countyId', { countyId: filters.countyId });
-        }
-
-        if (filters.districtId) {
-            queryBuilder.andWhere('district.id = :districtId', { districtId: filters.districtId });
+        if (filters.cityIds?.length > 0) {
+            queryBuilder.andWhere('city.id IN (:...cityIds)', { cityIds: filters.cityIds });
         }
 
         if (filters.accountTypeIds?.length > 0) {

@@ -13,6 +13,7 @@ import { User } from '../../entities/user.entity';
 import { TransactionStatus } from '../../entities/transaction-status.entity';
 import { TransactionProduct } from '../../entities/transaction-product.entity';
 import { TransactionType } from '../../entities/transaction-type.entity';
+import { Channel } from '../../entities/channel.entity';
 
 const PaginatedTransaction = Paginated(Transaction);
 
@@ -42,6 +43,12 @@ export class TransactionResolver {
     @Permissions(PERMISSIONS.TransactionRead)
     async getTransactionTypesLookup(): Promise<TransactionType[]> {
         return this.transactionService.getTransactionTypesLookup();
+    }
+
+    @Query(() => [Channel])
+    @Permissions(PERMISSIONS.TransactionRead)
+    async getChannelsLookup(): Promise<Channel[]> {
+        return this.transactionService.getChannelsLookup();
     }
 
     @Mutation(() => Transaction)

@@ -13,6 +13,9 @@ export class CreateUpdateAccountDTO {
     @Field(() => [String], { nullable: true })
     accountTypeIds?: string[];
 
+    @Field(() => String, { nullable: true })
+    channelId?: string;
+
     @Field({ nullable: true })
     name?: string;
 

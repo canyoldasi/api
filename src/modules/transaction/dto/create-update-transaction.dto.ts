@@ -12,6 +12,9 @@ export class CreateUpdateTransactionDTO {
     @Field(() => String, { nullable: true })
     statusId?: string;
 
+    @Field(() => String, { nullable: true })
+    channelId?: string;
+
     @Field({ nullable: true })
     accountId?: string;
 

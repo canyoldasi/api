@@ -13,20 +13,17 @@ export class GetAccountsDTO extends PaginationBaseDTO {
     @Field(() => String, { nullable: true })
     gender?: Gender;
 
+    @Field(() => [String], { nullable: true })
+    channelIds?: string[];
+
     @Field(() => String, { nullable: true })
     assignedUserId?: string;
 
     @Field(() => String, { nullable: true })
     countryId?: string;
 
-    @Field(() => String, { nullable: true })
-    cityId?: string;
-
-    @Field(() => String, { nullable: true })
-    countyId?: string;
-
-    @Field(() => String, { nullable: true })
-    districtId?: string;
+    @Field(() => [String], { nullable: true })
+    cityIds?: string[];
 
     @Field(() => [String], { nullable: true })
     accountTypeIds?: string[];

@@ -4,7 +4,26 @@ import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
 import { Transaction } from '../../entities/transaction.entity';
 import { LogService } from '../log/log.service';
-import { LOG_LEVEL, LogLevel } from '../../constants';
+import { LOG_LEVEL, LogLevel, CHANNEL_CODE } from '../../constants';
+import { TransactionService } from '../transaction/transaction.service';
+
+interface BookingDetails {
+    bookingId?: string;
+    category?: string;
+    passengerCount?: number;
+    pickupLocation?: string;
+    dropoffLocation?: string;
+    pickupDate?: Date;
+    pickupTime?: string;
+    distance?: string;
+    passengerName?: string;
+    mobileNumber?: string;
+    driverSign?: string;
+    driverInfo?: string;
+    journeyCharge?: number;
+    meetGreetCharge?: number;
+    status?: 'CANCELLED' | 'UPDATED' | 'NEW';
+}
 
 // Email servis log action sabitleri
 export enum BOOKING_INBOX_ACTION {
@@ -31,7 +50,8 @@ export class BookingInboxService implements OnModuleInit {
 
     constructor(
         private entityManager: EntityManager,
-        private logService: LogService
+        private logService: LogService,
+        private transactionService: TransactionService
     ) {
         // E-posta kontrol aralığını process.env'den al (dakika cinsinden)
         this.emailCheckInterval = parseInt(
@@ -255,6 +275,80 @@ export class BookingInboxService implements OnModuleInit {
     }
 
     /**
+     * Booking.com mail içeriğini parse et
+     */
+    private parseBookingEmail(content: string): BookingDetails | null {
+        try {
+            const details: BookingDetails = {};
+
+            // Booking ID'yi bul
+            const bookingIdMatch = content.match(/Booking ID:[\s\n]*([0-9]+)/);
+            if (bookingIdMatch) details.bookingId = bookingIdMatch[1];
+
+            // Kategoriyi bul
+            const categoryMatch = content.match(/Category:[\s\n]*([^\n]+)/);
+            if (categoryMatch) details.category = categoryMatch[1].trim();
+
+            // Yolcu sayısını bul
+            const passengerMatch = content.match(/Number of Passengers:[\s\n]*([0-9]+)/);
+            if (passengerMatch) details.passengerCount = parseInt(passengerMatch[1]);
+
+            // Lokasyonları bul
+            const pickupMatch = content.match(/Pick-up location:[\s\n]*([^\n]+)/);
+            if (pickupMatch) details.pickupLocation = pickupMatch[1].trim();
+
+            const dropoffMatch = content.match(/Drop-off location:[\s\n]*([^\n]+)/);
+            if (dropoffMatch) details.dropoffLocation = dropoffMatch[1].trim();
+
+            // Tarih ve saati bul
+            const dateMatch = content.match(/Pick-up date:[\s\n]*([^\n]+)/);
+            if (dateMatch) details.pickupDate = new Date(dateMatch[1].trim());
+
+            const timeMatch = content.match(/Pick-up time:[\s\n]*([0-9:]+)/);
+            if (timeMatch) details.pickupTime = timeMatch[1];
+
+            // Mesafeyi bul
+            const distanceMatch = content.match(/Distance:[\s\n]*([^\n]+)/);
+            if (distanceMatch) details.distance = distanceMatch[1].trim();
+
+            // Yolcu bilgilerini bul
+            const nameMatch = content.match(/Name:[\s\n]*([^\n]+)/);
+            if (nameMatch) details.passengerName = nameMatch[1].trim();
+
+            const mobileMatch = content.match(/Mobile number:[\s\n]*([^\n]+)/);
+            if (mobileMatch) details.mobileNumber = mobileMatch[1].trim();
+
+            // Sürücü bilgilerini bul
+            const driverSignMatch = content.match(/Driver's sign will read:[\s\n]*([^\n]+)/);
+            if (driverSignMatch) details.driverSign = driverSignMatch[1].trim();
+
+            const driverInfoMatch = content.match(/Information for driver:[\s\n]*([^\n]+)/);
+            if (driverInfoMatch) details.driverInfo = driverInfoMatch[1].trim();
+
+            // Ücret bilgilerini bul
+            const journeyMatch = content.match(/Journey charge:[\s\n]*EUR ([0-9.]+)/);
+            if (journeyMatch) details.journeyCharge = parseFloat(journeyMatch[1]);
+
+            const meetGreetMatch = content.match(/Meet & greet charge:[\s\n]*EUR ([0-9.]+)/);
+            if (meetGreetMatch) details.meetGreetCharge = parseFloat(meetGreetMatch[1]);
+
+            // İptal durumunu kontrol et
+            if (content.includes('cancelled their booking')) {
+                details.status = 'CANCELLED';
+            } else if (content.includes('updated their')) {
+                details.status = 'UPDATED';
+            } else {
+                details.status = 'NEW';
+            }
+
+            return details;
+        } catch (error) {
+            console.error('Error parsing booking email:', error);
+            return null;
+        }
+    }
+
+    /**
      * E-posta içeriğini işle ve gerekirse transaction oluştur
      */
     private async processEmail(mail: any): Promise<void> {
@@ -274,33 +368,48 @@ export class BookingInboxService implements OnModuleInit {
             return;
         }
 
-        // Anahtar kelimeleri kontrol et
-        const hasKeyword = this.emailKeywords.some((keyword) => content.toLowerCase().includes(keyword.toLowerCase()));
+        // Booking.com'dan gelen mail mi kontrol et
+        if (!mail.from?.text?.toLowerCase().includes('booking.com')) {
+            await this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.SKIP, 'Booking.com maili değil, işlem atlanıyor.', {
+                subject: mail.subject,
+                from: mail.from?.text,
+            });
+            return;
+        }
 
-        if (!hasKeyword) {
-            await this.log(
-                LOG_LEVEL.INFO,
-                BOOKING_INBOX_ACTION.SKIP,
-                'E-posta içeriğinde anahtar kelime bulunamadı, işlem atlanıyor.',
-                {
-                    subject: mail.subject,
-                    from: mail.from?.text,
-                    keywords: this.emailKeywords,
-                }
-            );
+        // Mail içeriğini parse et
+        const bookingDetails = this.parseBookingEmail(content);
+        if (!bookingDetails) {
+            await this.log(LOG_LEVEL.ERROR, BOOKING_INBOX_ACTION.PARSE, 'Mail içeriği parse edilemedi', {
+                subject: mail.subject,
+                from: mail.from?.text,
+            });
+            return;
+        }
+
+        // Booking.com kanalını bul
+        const channels = await this.transactionService.getChannelsLookup();
+        const bookingChannel = channels.find((channel) => channel.code === CHANNEL_CODE.BOOKING);
+        if (!bookingChannel) {
+            await this.log(LOG_LEVEL.ERROR, BOOKING_INBOX_ACTION.PROCESS, 'Booking.com kanalı bulunamadı', {
+                subject: mail.subject,
+                from: mail.from?.text,
+            });
             return;
         }
 
         // Transaction oluştur
         const transaction = new Transaction();
+        transaction.externalReferenceId = bookingDetails.bookingId;
+        transaction.channel = bookingChannel;
         transaction.note = JSON.stringify({
             subject: mail.subject,
             from: mail.from?.text,
             to: mail.to?.text,
-            content: content,
+            bookingDetails: bookingDetails,
         });
-        transaction.amount = 0; // E-posta içeriğinden meblağ çıkarılabilir
-        transaction.transactionDate = mail.date;
+        transaction.amount = (bookingDetails.journeyCharge || 0) + (bookingDetails.meetGreetCharge || 0);
+        transaction.transactionDate = bookingDetails.pickupDate || mail.date;
 
         await this.entityManager.save(transaction);
 
@@ -310,8 +419,11 @@ export class BookingInboxService implements OnModuleInit {
             'E-posta başarıyla işlendi ve transaction oluşturuldu.',
             {
                 transactionId: transaction.id,
+                externalReferenceId: transaction.externalReferenceId,
+                channelId: bookingChannel.id,
                 subject: mail.subject,
                 from: mail.from?.text,
+                status: bookingDetails.status,
             }
         );
     }

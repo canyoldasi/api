@@ -14,13 +14,22 @@ import { Country } from '../../entities/country.entity';
 import { City } from '../../entities/city.entity';
 import { County } from '../../entities/county.entity';
 import { District } from '../../entities/district.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Channel } from '../../entities/channel.entity';
 
 @Injectable()
 export class TransactionService {
+    private channelsLookup: { [key: string]: Channel } | null = null;
+
     constructor(
         @Inject(EntityManager) private entityManager: EntityManager,
         @Inject(WINSTON_MODULE_NEST_PROVIDER)
-        private readonly logger: WinstonLogger
+        private readonly logger: WinstonLogger,
+        @InjectRepository(Transaction)
+        private transactionRepository: Repository<Transaction>,
+        @InjectRepository(Channel)
+        private channelRepository: Repository<Channel>
     ) {}
 
     async create(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
@@ -33,6 +42,7 @@ export class TransactionService {
                 account: dto.accountId ? ({ id: dto.accountId } as DeepPartial<Account>) : null,
                 status: dto.statusId ? ({ id: dto.statusId } as DeepPartial<TransactionStatus>) : null,
                 type: dto.typeId ? ({ id: dto.typeId } as DeepPartial<TransactionType>) : null,
+                channel: dto.channelId ? ({ id: dto.channelId } as DeepPartial<Channel>) : null,
                 assignedUser: dto.assignedUserId ? ({ id: dto.assignedUserId } as DeepPartial<User>) : null,
                 country: dto.countryId ? { id: dto.countryId } : null,
                 city: dto.cityId ? { id: dto.cityId } : null,
@@ -74,6 +84,10 @@ export class TransactionService {
 
             if (dto.statusId !== undefined) {
                 updateData.status = { id: dto.statusId } as DeepPartial<TransactionStatus>;
+            }
+
+            if (dto.channelId !== undefined) {
+                updateData.channel = dto.channelId ? ({ id: dto.channelId } as DeepPartial<Channel>) : null;
             }
 
             if (dto.accountId !== undefined) {
@@ -206,6 +220,7 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.city', 'city')
             .leftJoinAndSelect('transaction.county', 'county')
             .leftJoinAndSelect('transaction.district', 'district')
+            .leftJoinAndSelect('transaction.channel', 'channel')
             .where('transaction.deletedAt IS NULL');
 
         // Filtreleri uygula
@@ -216,24 +231,40 @@ export class TransactionService {
             );
         }
 
-        if (filters.typeId) {
-            queryBuilder.andWhere('type.id = :typeId', { typeId: filters.typeId });
+        if (filters.typeIds?.length > 0) {
+            queryBuilder.andWhere('type.id IN (:...typeIds)', { typeIds: filters.typeIds });
         }
 
-        if (filters.statusId) {
-            queryBuilder.andWhere('status.id = :statusId', { statusId: filters.statusId });
+        if (filters.statusIds?.length > 0) {
+            queryBuilder.andWhere('status.id IN (:...statusIds)', { statusIds: filters.statusIds });
+        }
+
+        if (filters.channelIds?.length > 0) {
+            queryBuilder.andWhere('channel.id IN (:...channelIds)', { channelIds: filters.channelIds });
         }
 
         if (filters.accountId) {
             queryBuilder.andWhere('account.id = :accountId', { accountId: filters.accountId });
         }
 
-        if (filters.assignedUserId) {
-            queryBuilder.andWhere('user.id = :assignedUserId', { assignedUserId: filters.assignedUserId });
+        if (filters.amountStart !== undefined) {
+            queryBuilder.andWhere('transaction.amount >= :amountStart', { amountStart: filters.amountStart });
+        }
+
+        if (filters.amountEnd !== undefined) {
+            queryBuilder.andWhere('transaction.amount <= :amountEnd', { amountEnd: filters.amountEnd });
+        }
+
+        if (filters.assignedUserIds?.length > 0) {
+            queryBuilder.andWhere('user.id IN (:...assignedUserIds)', { assignedUserIds: filters.assignedUserIds });
         }
 
         if (filters.countryId) {
             queryBuilder.andWhere('country.id = :countryId', { countryId: filters.countryId });
+        }
+
+        if (filters.cityIds?.length > 0) {
+            queryBuilder.andWhere('city.id IN (:...cityIds)', { cityIds: filters.cityIds });
         }
 
         if (filters.createdAtStart) {
@@ -308,5 +339,9 @@ export class TransactionService {
         return this.entityManager.find(TransactionType, {
             order: { sequence: 'ASC' },
         });
+    }
+
+    async getChannelsLookup(): Promise<Channel[]> {
+        return this.channelRepository.find();
     }
 }

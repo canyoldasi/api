@@ -45,7 +45,7 @@ import { BookingInboxModule } from '../booking-inbox/booking-inbox.module';
 import { TransactionModule } from '../transaction/transaction.module';
 import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
 import { ProductModule } from '../product/product.module';
-
+import { Channel } from 'src/entities/channel.entity';
 @Module({
     imports: [
         ConfigModule.forRoot(),
@@ -85,6 +85,7 @@ import { ProductModule } from '../product/product.module';
                 TransactionStatus,
                 TransactionProduct,
                 TransactionType,
+                Channel,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),

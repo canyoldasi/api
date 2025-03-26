@@ -53,3 +53,12 @@ export const ACCOUNT_TYPE_CODE = {
 } as const;
 
 export type AccountTypeCode = (typeof ACCOUNT_TYPE_CODE)[keyof typeof ACCOUNT_TYPE_CODE];
+
+export const CHANNEL_CODE = {
+    BOOKING: 'BOOKING',
+    GOOGLE: 'GOOGLE',
+    TRIVAGO: 'TRIVAGO',
+    DIRECT: 'DIRECT',
+} as const;
+
+export type ChannelCode = (typeof CHANNEL_CODE)[keyof typeof CHANNEL_CODE];

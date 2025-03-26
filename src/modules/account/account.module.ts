@@ -13,6 +13,7 @@ import { Contact } from '../../entities/contact.entity';
 import { AccountLocation } from '../../entities/account-location.entity';
 import { AccountResolver } from './account.resolver';
 import { UserService } from '../user/user.service';
+import { Channel } from '../../entities/channel.entity';
 
 @Module({
     controllers: [],
@@ -30,6 +31,7 @@ import { UserService } from '../user/user.service';
             District,
             Contact,
             AccountLocation,
+            Channel,
         ]),
     ],
 })

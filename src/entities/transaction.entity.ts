@@ -10,10 +10,19 @@ import { City } from './city.entity';
 import { Country } from './country.entity';
 import { County } from './county.entity';
 import { District } from './district.entity';
+import { Channel } from './channel.entity';
 
 @ObjectType()
 @Entity()
 export class Transaction extends BaseEntity {
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    externalReferenceId?: string;
+
+    @ManyToOne(() => Channel, (channel) => channel.transactions, { nullable: true })
+    @Field(() => Channel, { nullable: true })
+    channel?: Channel;
+
     @ManyToOne(() => Account, (account) => account.transactions, { nullable: true })
     @Field(() => Account, { nullable: true })
     account?: Account;

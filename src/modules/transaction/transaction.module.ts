@@ -8,9 +8,10 @@ import { TransactionProduct } from '../../entities/transaction-product.entity';
 import { User } from '../../entities/user.entity';
 import { Account } from '../../entities/account.entity';
 import { UserService } from '../user/user.service';
+import { Channel } from '../../entities/channel.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Transaction, TransactionStatus, TransactionProduct, User, Account])],
+    imports: [TypeOrmModule.forFeature([Transaction, TransactionStatus, TransactionProduct, User, Account, Channel])],
     providers: [TransactionService, TransactionResolver, UserService],
     exports: [TransactionService],
 })

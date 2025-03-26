@@ -12,6 +12,8 @@ import { User } from './user.entity';
 import { AccountSegment } from './account-segment.entity';
 import { AccountAccountType } from './account-account-type.entity';
 import { Transaction } from './transaction.entity';
+import { AccountType } from './account-type.entity';
+import { Channel } from './channel.entity';
 
 @Entity()
 @ObjectType()
@@ -104,7 +106,15 @@ export class Account extends BaseEntity {
     @Field(() => User, { nullable: true })
     assignedUser?: User;
 
-    @OneToMany(() => AccountLocation, (x) => x.account)
+    @ManyToOne(() => AccountType, (accountType) => accountType.accountAccountTypes, { nullable: true })
+    @Field(() => AccountType, { nullable: true })
+    accountType?: AccountType;
+
+    @ManyToOne(() => Channel, (channel) => channel.accounts, { nullable: true })
+    @Field(() => Channel, { nullable: true })
+    channel?: Channel;
+
+    @OneToMany(() => AccountLocation, (accountLocation) => accountLocation.account)
     @Field(() => [AccountLocation], { nullable: true })
     locations?: AccountLocation[];
 
