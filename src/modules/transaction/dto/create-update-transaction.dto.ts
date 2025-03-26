@@ -40,9 +40,6 @@ export class CreateUpdateTransactionDTO {
     postalCode?: string;
 
     @Field({ nullable: true })
-    details?: string;
-
-    @Field({ nullable: true })
     no?: string;
 
     @Field({ nullable: true })

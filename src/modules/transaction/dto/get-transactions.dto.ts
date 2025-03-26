@@ -19,6 +19,9 @@ export class GetTransactionsDTO extends PaginationBaseDTO {
     assignedUserId?: string;
 
     @Field(() => String, { nullable: true })
+    countryId?: string;
+
+    @Field(() => String, { nullable: true })
     createdAtStart?: string;
 
     @Field(() => String, { nullable: true })

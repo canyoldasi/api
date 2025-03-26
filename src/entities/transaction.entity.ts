@@ -38,22 +38,18 @@ export class Transaction extends BaseEntity {
     @Field({ nullable: true })
     amount?: number;
 
-    @Column({ nullable: true })
     @ManyToOne(() => Country)
     @Field(() => Country, { nullable: true })
     country?: Country;
 
-    @Column({ nullable: true })
     @ManyToOne(() => City)
     @Field(() => City, { nullable: true })
     city?: City;
 
-    @Column({ nullable: true })
     @ManyToOne(() => County)
     @Field(() => County, { nullable: true })
     county?: County;
 
-    @Column({ nullable: true })
     @ManyToOne(() => District)
     @Field(() => District, { nullable: true })
     district?: District;
@@ -65,10 +61,6 @@ export class Transaction extends BaseEntity {
     @Column({ nullable: true })
     @Field({ nullable: true })
     postalCode?: string;
-
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    details?: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })

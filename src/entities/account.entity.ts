@@ -64,22 +64,18 @@ export class Account extends BaseEntity {
     @Field({ nullable: true })
     nationalId?: string;
 
-    @Column({ nullable: true })
     @ManyToOne(() => Country)
     @Field(() => Country, { nullable: true })
     country?: Country;
 
-    @Column({ nullable: true })
     @ManyToOne(() => City)
     @Field(() => City, { nullable: true })
     city?: City;
 
-    @Column({ nullable: true })
     @ManyToOne(() => County)
     @Field(() => County, { nullable: true })
     county?: County;
 
-    @Column({ nullable: true })
     @ManyToOne(() => District)
     @Field(() => District, { nullable: true })
     district?: District;

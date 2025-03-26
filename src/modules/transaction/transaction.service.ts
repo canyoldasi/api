@@ -88,10 +88,6 @@ export class TransactionService {
                 updateData.amount = dto.amount;
             }
 
-            if (dto.details !== undefined) {
-                updateData.details = dto.details;
-            }
-
             if (dto.no !== undefined) {
                 updateData.no = dto.no;
             }
@@ -183,6 +179,10 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.assignedUser', 'user')
             .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
             .leftJoinAndSelect('transactionProducts.product', 'product')
+            .leftJoinAndSelect('transaction.country', 'country')
+            .leftJoinAndSelect('transaction.city', 'city')
+            .leftJoinAndSelect('transaction.county', 'county')
+            .leftJoinAndSelect('transaction.district', 'district')
             .where('transaction.id = :id', { id })
             .andWhere('transaction.deletedAt IS NULL')
             .getOne();
@@ -198,12 +198,16 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.assignedUser', 'user')
             .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
             .leftJoinAndSelect('transactionProducts.product', 'product')
+            .leftJoinAndSelect('transaction.country', 'country')
+            .leftJoinAndSelect('transaction.city', 'city')
+            .leftJoinAndSelect('transaction.county', 'county')
+            .leftJoinAndSelect('transaction.district', 'district')
             .where('transaction.deletedAt IS NULL');
 
         // Filtreleri uygula
         if (filters.text) {
             queryBuilder.andWhere(
-                '(transaction.referenceNumber LIKE :text OR transaction.details LIKE :text OR transaction.note LIKE :text)',
+                '(transaction.no LIKE :text OR transaction.note LIKE :text OR transaction.address LIKE :text)',
                 { text: `%${filters.text}%` }
             );
         }
@@ -222,6 +226,10 @@ export class TransactionService {
 
         if (filters.assignedUserId) {
             queryBuilder.andWhere('user.id = :assignedUserId', { assignedUserId: filters.assignedUserId });
+        }
+
+        if (filters.countryId) {
+            queryBuilder.andWhere('country.id = :countryId', { countryId: filters.countryId });
         }
 
         if (filters.createdAtStart) {

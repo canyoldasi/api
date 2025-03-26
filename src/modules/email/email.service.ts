@@ -355,8 +355,7 @@ export class EmailService implements OnModuleInit {
             const transaction = new Transaction();
             //transaction.type = transactionType;
             transaction.amount = amount;
-            transaction.details = `E-posta konu: ${subject}\nGönderen: ${from}`;
-            transaction.note = `E-postadan otomatik oluşturuldu. İçerik:\n${text.substring(0, 500)}${text.length > 500 ? '...' : ''}`;
+            transaction.note = `E-posta konu: ${subject}\nGönderen: ${from}. E-postadan otomatik oluşturuldu. İçerik:\n${text.substring(0, 500)}${text.length > 500 ? '...' : ''}`;
             transaction.no = `EMAIL-${Date.now()}`;
 
             // İlgili durum ID'sini al ve TransactionStatus nesnesini oluştur
