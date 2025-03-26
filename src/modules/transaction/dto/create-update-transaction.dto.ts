@@ -43,7 +43,10 @@ export class CreateUpdateTransactionDTO {
     no?: string;
 
     @Field({ nullable: true })
-    closedDate?: Date;
+    successDate?: Date;
+
+    @Field({ nullable: true })
+    cancelDate?: Date;
 
     @Field({ nullable: true })
     cancelNote?: string;

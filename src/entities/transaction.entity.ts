@@ -66,9 +66,13 @@ export class Transaction extends BaseEntity {
     @Field({ nullable: true })
     no?: string;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp', nullable: true })
     @Field({ nullable: true })
-    closedDate?: Date;
+    successDate?: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    @Field({ nullable: true })
+    cancelDate?: Date;
 
     @Column({ nullable: true })
     @Field({ nullable: true })

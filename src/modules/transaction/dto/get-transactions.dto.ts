@@ -28,8 +28,14 @@ export class GetTransactionsDTO extends PaginationBaseDTO {
     createdAtEnd?: string;
 
     @Field(() => String, { nullable: true })
-    closedDateStart?: string;
+    successDateStart?: string;
 
     @Field(() => String, { nullable: true })
-    closedDateEnd?: string;
+    successDateEnd?: string;
+
+    @Field(() => String, { nullable: true })
+    cancelDateStart?: string;
+
+    @Field(() => String, { nullable: true })
+    cancelDateEnd?: string;
 }

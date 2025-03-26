@@ -92,8 +92,12 @@ export class TransactionService {
                 updateData.no = dto.no;
             }
 
-            if (dto.closedDate !== undefined) {
-                updateData.closedDate = dto.closedDate;
+            if (dto.successDate !== undefined) {
+                updateData.successDate = dto.successDate;
+            }
+
+            if (dto.cancelDate !== undefined) {
+                updateData.cancelDate = dto.cancelDate;
             }
 
             if (dto.cancelNote !== undefined) {
@@ -244,15 +248,27 @@ export class TransactionService {
             });
         }
 
-        if (filters.closedDateStart) {
-            queryBuilder.andWhere('transaction.closedDate >= :closedDateStart', {
-                closedDateStart: new Date(filters.closedDateStart),
+        if (filters.successDateStart) {
+            queryBuilder.andWhere('transaction.successDate >= :successDateStart', {
+                successDateStart: new Date(filters.successDateStart),
             });
         }
 
-        if (filters.closedDateEnd) {
-            queryBuilder.andWhere('transaction.closedDate <= :closedDateEnd', {
-                closedDateEnd: new Date(filters.closedDateEnd),
+        if (filters.successDateEnd) {
+            queryBuilder.andWhere('transaction.successDate <= :successDateEnd', {
+                successDateEnd: new Date(filters.successDateEnd),
+            });
+        }
+
+        if (filters.cancelDateStart) {
+            queryBuilder.andWhere('transaction.cancelDate >= :cancelDateStart', {
+                cancelDateStart: new Date(filters.cancelDateStart),
+            });
+        }
+
+        if (filters.cancelDateEnd) {
+            queryBuilder.andWhere('transaction.cancelDate <= :cancelDateEnd', {
+                cancelDateEnd: new Date(filters.cancelDateEnd),
             });
         }
 
