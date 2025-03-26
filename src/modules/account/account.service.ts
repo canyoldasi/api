@@ -283,7 +283,7 @@ export class AccountService {
     /**
      * Tüm aktif AccountType kayıtlarını ada göre sıralı olarak döndürür
      */
-    async getAccountTypes(): Promise<AccountType[]> {
+    async getAccountTypesLookup(): Promise<AccountType[]> {
         return this.entityManager.find(AccountType, {
             where: {
                 deletedAt: null,
@@ -295,9 +295,10 @@ export class AccountService {
         });
     }
 
-    async getSegments(): Promise<Segment[]> {
+    async getSegmentsLookup(): Promise<Segment[]> {
         return this.entityManager.find(Segment, {
             where: {
+                isActive: true,
                 deletedAt: null,
             },
             order: {

@@ -22,6 +22,24 @@ export class CreateUpdateTransactionDTO {
     amount?: number;
 
     @Field({ nullable: true })
+    countryId?: string;
+
+    @Field({ nullable: true })
+    cityId?: string;
+
+    @Field({ nullable: true })
+    countyId?: string;
+
+    @Field({ nullable: true })
+    districtId?: string;
+
+    @Field({ nullable: true })
+    address?: string;
+
+    @Field({ nullable: true })
+    postalCode?: string;
+
+    @Field({ nullable: true })
     details?: string;
 
     @Field({ nullable: true })

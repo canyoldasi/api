@@ -33,13 +33,13 @@ export class AccountResolver {
     }
 
     @Query(() => [AccountType])
-    async getAccountTypes(): Promise<AccountType[]> {
-        return this.accountService.getAccountTypes();
+    async getAccountTypesLookup(): Promise<AccountType[]> {
+        return this.accountService.getAccountTypesLookup();
     }
 
     @Query(() => [Segment])
-    async getSegments(): Promise<Segment[]> {
-        return this.accountService.getSegments();
+    async getSegmentsLookup(): Promise<Segment[]> {
+        return this.accountService.getSegmentsLookup();
     }
 
     @Mutation(() => Account)

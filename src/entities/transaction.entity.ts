@@ -6,6 +6,10 @@ import { TransactionStatus } from './transaction-status.entity';
 import { TransactionProduct } from './transaction-product.entity';
 import { User } from './user.entity';
 import { TransactionType } from './transaction-type.entity';
+import { City } from './city.entity';
+import { Country } from './country.entity';
+import { County } from './county.entity';
+import { District } from './district.entity';
 
 @ObjectType()
 @Entity()
@@ -33,6 +37,34 @@ export class Transaction extends BaseEntity {
     @Column({ type: 'numeric', precision: 10, scale: 2, nullable: true })
     @Field({ nullable: true })
     amount?: number;
+
+    @Column({ nullable: true })
+    @ManyToOne(() => Country)
+    @Field(() => Country, { nullable: true })
+    country?: Country;
+
+    @Column({ nullable: true })
+    @ManyToOne(() => City)
+    @Field(() => City, { nullable: true })
+    city?: City;
+
+    @Column({ nullable: true })
+    @ManyToOne(() => County)
+    @Field(() => County, { nullable: true })
+    county?: County;
+
+    @Column({ nullable: true })
+    @ManyToOne(() => District)
+    @Field(() => District, { nullable: true })
+    district?: District;
+
+    @Column({ type: 'text', nullable: true })
+    @Field({ nullable: true })
+    address?: string;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    postalCode?: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })

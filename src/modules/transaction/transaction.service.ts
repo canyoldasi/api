@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Transaction } from '../../entities/transaction.entity';
-import { EntityManager } from 'typeorm';
+import { EntityManager, DeepPartial } from 'typeorm';
 import { CreateUpdateTransactionDTO } from './dto/create-update-transaction.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetTransactionsDTO } from './dto/get-transactions.dto';
@@ -8,6 +8,12 @@ import { PaginatedResult } from '../../types/paginated';
 import { TransactionStatus } from '../../entities/transaction-status.entity';
 import { TransactionProduct } from '../../entities/transaction-product.entity';
 import { TransactionType } from '../../entities/transaction-type.entity';
+import { Account } from '../../entities/account.entity';
+import { User } from '../../entities/user.entity';
+import { Country } from '../../entities/country.entity';
+import { City } from '../../entities/city.entity';
+import { County } from '../../entities/county.entity';
+import { District } from '../../entities/district.entity';
 
 @Injectable()
 export class TransactionService {
@@ -22,16 +28,20 @@ export class TransactionService {
 
         await this.entityManager.transaction(async (manager) => {
             // Temel transaction nesnesini kaydet
-            toSave = {
+            const createData: DeepPartial<Transaction> = {
                 ...dto,
-                account: dto.accountId ? { id: dto.accountId } : null,
-                status: { id: dto.statusId },
-                type: dto.typeId ? { id: dto.typeId } : null,
-                assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
+                account: dto.accountId ? ({ id: dto.accountId } as DeepPartial<Account>) : null,
+                status: dto.statusId ? ({ id: dto.statusId } as DeepPartial<TransactionStatus>) : null,
+                type: dto.typeId ? ({ id: dto.typeId } as DeepPartial<TransactionType>) : null,
+                assignedUser: dto.assignedUserId ? ({ id: dto.assignedUserId } as DeepPartial<User>) : null,
+                country: dto.countryId ? { id: dto.countryId } : null,
+                city: dto.cityId ? { id: dto.cityId } : null,
+                county: dto.countyId ? { id: dto.countyId } : null,
+                district: dto.districtId ? { id: dto.districtId } : null,
             };
 
-            const savedEntity = await manager.save(Transaction, toSave);
-            toSave.id = savedEntity.id;
+            const savedEntity = await manager.save(Transaction, createData);
+            toSave = savedEntity;
 
             // Transaction ürünlerini kaydet
             if (dto.products && dto.products.length > 0) {
@@ -49,38 +59,105 @@ export class TransactionService {
             }
         });
 
-        return toSave.id ? this.getOne(toSave.id) : null;
+        return toSave ? this.getOne(toSave.id) : null;
     }
 
     async update(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
         await this.entityManager.transaction(async (manager) => {
-            // Temel transaction nesnesini güncelle
-            const toUpdate = {
-                ...dto,
-                account: dto.accountId ? { id: dto.accountId } : null,
-                status: { id: dto.statusId },
-                type: dto.typeId ? { id: dto.typeId } : null,
-                assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
-            };
+            // Sadece gönderilen alanları içeren bir obje oluştur
+            const updateData: DeepPartial<Transaction> = {};
 
-            await manager.save(Transaction, toUpdate);
+            // Her alan için kontrol et ve sadece gönderilen alanları güncelle
+            if (dto.typeId !== undefined) {
+                updateData.type = { id: dto.typeId } as DeepPartial<TransactionType>;
+            }
 
-            // Mevcut transaction ürünlerini sil
-            await manager.delete(TransactionProduct, { transaction: { id: dto.id } });
+            if (dto.statusId !== undefined) {
+                updateData.status = { id: dto.statusId } as DeepPartial<TransactionStatus>;
+            }
 
-            // Yeni transaction ürünlerini kaydet
-            if (dto.products && dto.products.length > 0) {
-                const transactionProducts = dto.products.map((product) => ({
-                    transaction: { id: dto.id },
-                    product: { id: product.productId },
-                    quantity: product.quantity,
-                    unitPrice: product.unitPrice,
-                    totalPrice:
-                        product.totalPrice ||
-                        (product.quantity && product.unitPrice ? product.quantity * product.unitPrice : null),
-                }));
+            if (dto.accountId !== undefined) {
+                updateData.account = dto.accountId ? ({ id: dto.accountId } as DeepPartial<Account>) : null;
+            }
 
-                await manager.save(TransactionProduct, transactionProducts);
+            if (dto.assignedUserId !== undefined) {
+                updateData.assignedUser = dto.assignedUserId ? ({ id: dto.assignedUserId } as DeepPartial<User>) : null;
+            }
+
+            if (dto.amount !== undefined) {
+                updateData.amount = dto.amount;
+            }
+
+            if (dto.details !== undefined) {
+                updateData.details = dto.details;
+            }
+
+            if (dto.no !== undefined) {
+                updateData.no = dto.no;
+            }
+
+            if (dto.closedDate !== undefined) {
+                updateData.closedDate = dto.closedDate;
+            }
+
+            if (dto.cancelNote !== undefined) {
+                updateData.cancelNote = dto.cancelNote;
+            }
+
+            if (dto.successNote !== undefined) {
+                updateData.successNote = dto.successNote;
+            }
+
+            if (dto.note !== undefined) {
+                updateData.note = dto.note;
+            }
+
+            // Lokasyon alanları için kontroller
+            if (dto.countryId !== undefined) {
+                updateData.country = dto.countryId ? ({ id: dto.countryId } as DeepPartial<Country>) : null;
+            }
+
+            if (dto.cityId !== undefined) {
+                updateData.city = dto.cityId ? ({ id: dto.cityId } as DeepPartial<City>) : null;
+            }
+
+            if (dto.countyId !== undefined) {
+                updateData.county = dto.countyId ? ({ id: dto.countyId } as DeepPartial<County>) : null;
+            }
+
+            if (dto.districtId !== undefined) {
+                updateData.district = dto.districtId ? ({ id: dto.districtId } as DeepPartial<District>) : null;
+            }
+
+            if (dto.postalCode !== undefined) {
+                updateData.postalCode = dto.postalCode;
+            }
+
+            // Transaction'ı güncelle
+            await manager.save(Transaction, {
+                id: dto.id,
+                ...updateData,
+            });
+
+            // Products için özel kontrol
+            if (dto.products !== undefined) {
+                // Mevcut ürünleri sil
+                await manager.delete(TransactionProduct, { transaction: { id: dto.id } });
+
+                // Eğer products array'i boş değilse yeni ürünleri ekle
+                if (dto.products.length > 0) {
+                    const transactionProducts = dto.products.map((product) => ({
+                        transaction: { id: dto.id },
+                        product: { id: product.productId },
+                        quantity: product.quantity,
+                        unitPrice: product.unitPrice,
+                        totalPrice:
+                            product.totalPrice ||
+                            (product.quantity && product.unitPrice ? product.quantity * product.unitPrice : null),
+                    }));
+
+                    await manager.save(TransactionProduct, transactionProducts);
+                }
             }
 
             this.logger.log(`Transaction updated: ${dto.id}`);
