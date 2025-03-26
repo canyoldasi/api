@@ -17,7 +17,7 @@ import { Channel } from './channel.entity';
 export class Transaction extends BaseEntity {
     @Column({ nullable: true })
     @Field({ nullable: true })
-    externalReferenceId?: string;
+    externalId?: string;
 
     @ManyToOne(() => Channel, (channel) => channel.transactions, { nullable: true })
     @Field(() => Channel, { nullable: true })

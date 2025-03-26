@@ -341,6 +341,15 @@ export class TransactionService {
         });
     }
 
+    async getTransactionsByExternalId(externalId: string): Promise<Transaction[]> {
+        return this.entityManager
+            .createQueryBuilder(Transaction, 'transaction')
+            .select(['transaction.id', 'transaction.externalId'])
+            .where('transaction.externalId = :externalId', { externalId })
+            .andWhere('transaction.deletedAt IS NULL')
+            .getMany();
+    }
+
     async getChannelsLookup(): Promise<Channel[]> {
         return this.channelRepository.find();
     }

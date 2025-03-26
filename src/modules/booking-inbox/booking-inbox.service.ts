@@ -2,10 +2,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as IMAP from 'node-imap';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
-import { Transaction } from '../../entities/transaction.entity';
 import { LogService } from '../log/log.service';
 import { LOG_LEVEL, LogLevel, CHANNEL_CODE } from '../../constants';
 import { TransactionService } from '../transaction/transaction.service';
+import { CreateUpdateTransactionDTO } from '../transaction/dto/create-update-transaction.dto';
 
 interface BookingDetails {
     bookingId?: string;
@@ -369,11 +369,17 @@ export class BookingInboxService implements OnModuleInit {
         }
 
         // Booking.com'dan gelen mail mi kontrol et
-        if (!mail.from?.text?.toLowerCase().includes('booking.com')) {
-            await this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.SKIP, 'Booking.com maili değil, işlem atlanıyor.', {
-                subject: mail.subject,
-                from: mail.from?.text,
-            });
+        const bookingEmail = 'noreply.taxi@booking.com';
+        if (!mail.from?.text?.toLowerCase().includes(bookingEmail) && !content.toLowerCase().includes(bookingEmail)) {
+            await this.log(
+                LOG_LEVEL.INFO,
+                BOOKING_INBOX_ACTION.SKIP,
+                'Booking.com taxi maili değil, işlem atlanıyor.',
+                {
+                    subject: mail.subject,
+                    from: mail.from?.text,
+                }
+            );
             return;
         }
 
@@ -398,33 +404,49 @@ export class BookingInboxService implements OnModuleInit {
             return;
         }
 
-        // Transaction oluştur
-        const transaction = new Transaction();
-        transaction.externalReferenceId = bookingDetails.bookingId;
-        transaction.channel = bookingChannel;
-        transaction.note = JSON.stringify({
-            subject: mail.subject,
-            from: mail.from?.text,
-            to: mail.to?.text,
-            bookingDetails: bookingDetails,
-        });
-        transaction.amount = (bookingDetails.journeyCharge || 0) + (bookingDetails.meetGreetCharge || 0);
-        transaction.transactionDate = bookingDetails.pickupDate || mail.date;
+        // Mevcut transaction'ı kontrol et
+        const existingTransactions = await this.transactionService.getTransactionsByExternalId(
+            bookingDetails.bookingId
+        );
+        const existingTransaction = existingTransactions?.[0]; // İlk bulunanı al
 
-        await this.entityManager.save(transaction);
-
-        await this.log(
-            LOG_LEVEL.INFO,
-            BOOKING_INBOX_ACTION.PROCESSED,
-            'E-posta başarıyla işlendi ve transaction oluşturuldu.',
-            {
-                transactionId: transaction.id,
-                externalReferenceId: transaction.externalReferenceId,
-                channelId: bookingChannel.id,
+        // Transaction verilerini hazırla
+        const transactionData: CreateUpdateTransactionDTO = {
+            channelId: bookingChannel.id,
+            externalId: bookingDetails.bookingId,
+            amount: (bookingDetails.journeyCharge || 0) + (bookingDetails.meetGreetCharge || 0),
+            note: JSON.stringify({
                 subject: mail.subject,
                 from: mail.from?.text,
-                status: bookingDetails.status,
-            }
-        );
+                to: mail.to?.text,
+                bookingDetails: bookingDetails,
+            }),
+            transactionDate: bookingDetails.pickupDate || mail.date,
+        };
+
+        let transaction;
+        let logMessage;
+
+        if (existingTransaction) {
+            // Mevcut transaction'ı güncelle
+            transaction = await this.transactionService.update({
+                id: existingTransaction.id,
+                ...transactionData,
+            });
+            logMessage = 'E-posta başarıyla işlendi ve transaction güncellendi.';
+        } else {
+            // Yeni transaction oluştur
+            transaction = await this.transactionService.create(transactionData);
+            logMessage = 'E-posta başarıyla işlendi ve transaction oluşturuldu.';
+        }
+
+        await this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.PROCESS, logMessage, {
+            subject: mail.subject,
+            from: mail.from?.text,
+            transactionId: transaction.id,
+            externalId: transaction.externalId,
+            channelId: bookingChannel.id,
+            status: bookingDetails.status,
+        });
     }
 }
