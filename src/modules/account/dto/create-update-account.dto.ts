@@ -68,6 +68,9 @@ export class CreateUpdateAccountDTO {
     note?: string;
 
     @Field({ nullable: true })
+    externalId?: string;
+
+    @Field({ nullable: true })
     assignedUserId?: string;
 
     @Field(() => [String], { nullable: true })

@@ -98,6 +98,10 @@ export class Account extends BaseEntity {
     @Field({ nullable: true })
     no?: string;
 
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    externalId?: string;
+
     @OneToMany(() => Contact, (x) => x.account)
     @Field(() => [Contact], { nullable: true })
     contacts?: Contact[];

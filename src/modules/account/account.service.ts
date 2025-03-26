@@ -148,6 +148,10 @@ export class AccountService {
                 updateData.note = dto.note;
             }
 
+            if (dto.externalId !== undefined) {
+                updateData.externalId = dto.externalId;
+            }
+
             // İlişkili alanlar için kontroller
             if (dto.assignedUserId !== undefined) {
                 updateData.assignedUser = dto.assignedUserId ? ({ id: dto.assignedUserId } as DeepPartial<User>) : null;
