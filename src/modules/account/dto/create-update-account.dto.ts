@@ -7,29 +7,29 @@ export class CreateUpdateAccountDTO {
     @Field({ nullable: true })
     id?: string;
 
-    @Field(() => String)
-    personType: PersonType;
+    @Field(() => String, { nullable: true })
+    personType?: PersonType;
 
     @Field(() => [String], { nullable: true })
     accountTypeIds?: string[];
 
-    @Field()
-    name: string;
+    @Field({ nullable: true })
+    name?: string;
 
-    @Field()
-    firstName: string;
+    @Field({ nullable: true })
+    firstName?: string;
 
-    @Field()
-    lastName: string;
+    @Field({ nullable: true })
+    lastName?: string;
 
-    @Field()
-    email: string;
+    @Field({ nullable: true })
+    email?: string;
 
-    @Field()
-    phone: string;
+    @Field({ nullable: true })
+    phone?: string;
 
-    @Field()
-    phone2: string;
+    @Field({ nullable: true })
+    phone2?: string;
 
     @Field(() => String, { nullable: true })
     gender?: Gender;

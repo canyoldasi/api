@@ -10,6 +10,12 @@ import { AccountAccountType } from '../../entities/account-account-type.entity';
 import { PaginatedResult } from '../../types/paginated';
 import { AccountType } from '../../entities/account-type.entity';
 import { Segment } from '../../entities/segment.entity';
+import { DeepPartial } from 'typeorm';
+import { User } from '../../entities/user.entity';
+import { Country } from '../../entities/country.entity';
+import { City } from '../../entities/city.entity';
+import { County } from '../../entities/county.entity';
+import { District } from '../../entities/district.entity';
 
 @Injectable()
 export class AccountService {
@@ -76,63 +82,143 @@ export class AccountService {
         let accountId: string;
 
         await this.entityManager.transaction(async (manager) => {
-            // İlişkili tablolardaki mevcut kayıtları sil
-            if (dto.accountTypeIds) {
-                await manager.delete(AccountAccountType, { account: { id: dto.id } });
+            // Sadece gönderilen alanları içeren bir obje oluştur
+            const updateData: DeepPartial<Account> = {};
+
+            // Her alan için kontrol et ve sadece gönderilen alanları güncelle
+            if (dto.personType !== undefined) {
+                updateData.personType = dto.personType;
             }
 
-            if (dto.segmentIds) {
-                await manager.delete(AccountSegment, { account: { id: dto.id } });
+            if (dto.name !== undefined) {
+                updateData.name = dto.name;
             }
 
-            if (dto.locations) {
-                await manager.delete(AccountLocation, { account: { id: dto.id } });
+            if (dto.firstName !== undefined) {
+                updateData.firstName = dto.firstName;
+            }
+
+            if (dto.lastName !== undefined) {
+                updateData.lastName = dto.lastName;
+            }
+
+            if (dto.email !== undefined) {
+                updateData.email = dto.email;
+            }
+
+            if (dto.phone !== undefined) {
+                updateData.phone = dto.phone;
+            }
+
+            if (dto.phone2 !== undefined) {
+                updateData.phone2 = dto.phone2;
+            }
+
+            if (dto.gender !== undefined) {
+                updateData.gender = dto.gender;
+            }
+
+            if (dto.taxNumber !== undefined) {
+                updateData.taxNumber = dto.taxNumber;
+            }
+
+            if (dto.taxOffice !== undefined) {
+                updateData.taxOffice = dto.taxOffice;
+            }
+
+            if (dto.nationalId !== undefined) {
+                updateData.nationalId = dto.nationalId;
+            }
+
+            if (dto.address !== undefined) {
+                updateData.address = dto.address;
+            }
+
+            if (dto.postalCode !== undefined) {
+                updateData.postalCode = dto.postalCode;
+            }
+
+            if (dto.note !== undefined) {
+                updateData.note = dto.note;
+            }
+
+            // İlişkili alanlar için kontroller
+            if (dto.assignedUserId !== undefined) {
+                updateData.assignedUser = dto.assignedUserId ? ({ id: dto.assignedUserId } as DeepPartial<User>) : null;
+            }
+
+            if (dto.countryId !== undefined) {
+                updateData.country = dto.countryId ? ({ id: dto.countryId } as DeepPartial<Country>) : null;
+            }
+
+            if (dto.cityId !== undefined) {
+                updateData.city = dto.cityId ? ({ id: dto.cityId } as DeepPartial<City>) : null;
+            }
+
+            if (dto.countyId !== undefined) {
+                updateData.county = dto.countyId ? ({ id: dto.countyId } as DeepPartial<County>) : null;
+            }
+
+            if (dto.districtId !== undefined) {
+                updateData.district = dto.districtId ? ({ id: dto.districtId } as DeepPartial<District>) : null;
             }
 
             // Temel account nesnesini güncelle
-            const toUpdate = {
-                ...dto,
-                assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
-                country: dto.countryId ? { id: dto.countryId } : null,
-                city: dto.cityId ? { id: dto.cityId } : null,
-                county: dto.countyId ? { id: dto.countyId } : null,
-                district: dto.districtId ? { id: dto.districtId } : null,
-            };
-
-            const updatedAccount = await manager.save(Account, toUpdate);
+            const updatedAccount = await manager.save(Account, {
+                id: dto.id,
+                ...updateData,
+            });
             accountId = updatedAccount.id;
 
-            // AccountType ilişkilerini ekle
-            if (dto.accountTypeIds?.length) {
-                const accountAccountTypes = dto.accountTypeIds.map((id) => ({
-                    account: { id: accountId },
-                    accountType: { id },
-                }));
+            // AccountType ilişkileri için kontrol
+            if (dto.accountTypeIds !== undefined) {
+                // Mevcut ilişkileri sil
+                await manager.delete(AccountAccountType, { account: { id: accountId } });
 
-                await manager.save(AccountAccountType, accountAccountTypes);
+                // Yeni ilişkileri ekle
+                if (dto.accountTypeIds.length > 0) {
+                    const accountAccountTypes = dto.accountTypeIds.map((id) => ({
+                        account: { id: accountId },
+                        accountType: { id },
+                    }));
+
+                    await manager.save(AccountAccountType, accountAccountTypes);
+                }
             }
 
-            // Locations varsa ayrıca kaydet
-            if (dto.locations?.length) {
-                const accountLocations = dto.locations.map((location) => ({
-                    account: { id: accountId },
-                    country: { id: location.countryId },
-                    city: location.cityId ? { id: location.cityId } : null,
-                    county: location.countyId ? { id: location.countyId } : null,
-                    district: location.districtId ? { id: location.districtId } : null,
-                }));
+            // Locations için kontrol
+            if (dto.locations !== undefined) {
+                // Mevcut lokasyonları sil
+                await manager.delete(AccountLocation, { account: { id: accountId } });
 
-                await manager.save(AccountLocation, accountLocations);
+                // Yeni lokasyonları ekle
+                if (dto.locations.length > 0) {
+                    const accountLocations = dto.locations.map((location) => ({
+                        account: { id: accountId },
+                        country: { id: location.countryId },
+                        city: location.cityId ? { id: location.cityId } : null,
+                        county: location.countyId ? { id: location.countyId } : null,
+                        district: location.districtId ? { id: location.districtId } : null,
+                    }));
+
+                    await manager.save(AccountLocation, accountLocations);
+                }
             }
 
-            // Segments varsa ayrıca ekle
-            if (dto.segmentIds?.length) {
-                const accountSegments = dto.segmentIds.map((id) => ({
-                    account: { id: accountId },
-                    segment: { id },
-                }));
+            // Segments için kontrol
+            if (dto.segmentIds !== undefined) {
+                // Mevcut segment ilişkilerini sil
+                await manager.delete(AccountSegment, { account: { id: accountId } });
 
-                await manager.save(AccountSegment, accountSegments);
+                // Yeni segment ilişkilerini ekle
+                if (dto.segmentIds.length > 0) {
+                    const accountSegments = dto.segmentIds.map((id) => ({
+                        account: { id: accountId },
+                        segment: { id },
+                    }));
+
+                    await manager.save(AccountSegment, accountSegments);
+                }
             }
 
             this.logger.log(`Account updated: ${updatedAccount.id}`);

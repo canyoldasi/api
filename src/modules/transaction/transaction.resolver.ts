@@ -34,7 +34,7 @@ export class TransactionResolver {
     }
 
     @Query(() => [TransactionStatus])
-    async getTransactionStatuses(): Promise<TransactionStatus[]> {
+    async getTransactionStatusesLookup(): Promise<TransactionStatus[]> {
         return this.transactionService.getTransactionStatuses();
     }
 
