@@ -4,7 +4,7 @@ import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
 import { Transaction } from '../../entities/transaction.entity';
 import { LogService } from '../log/log.service';
-import { LOG_LEVEL } from '../../constants';
+import { LOG_LEVEL, LogLevel } from '../../constants';
 
 // Email servis log action sabitleri
 export enum BOOKING_INBOX_ACTION {
@@ -54,14 +54,28 @@ export class BookingInboxService implements OnModuleInit {
 
         // Hata olaylarını dinle
         this.imap.once('error', (err) => {
-            this.logService.log({
-                level: LOG_LEVEL.ERROR,
-                module: this.BOOKING_INBOX_MODULE_NAME,
-                action: BOOKING_INBOX_ACTION.CONNECT,
-                message: 'IMAP bağlantı hatası',
-                details: err,
-                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-            });
+            this.log(LOG_LEVEL.ERROR, BOOKING_INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
+        });
+    }
+
+    /**
+     * Log kaydı oluştur
+     */
+    private async log(
+        level: LogLevel,
+        action: BOOKING_INBOX_ACTION,
+        message: string,
+        details?: any,
+        stackTrace?: string
+    ): Promise<void> {
+        await this.logService.log({
+            level,
+            module: this.BOOKING_INBOX_MODULE_NAME,
+            action,
+            message,
+            details,
+            stackTrace,
+            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
         });
     }
 
@@ -69,27 +83,23 @@ export class BookingInboxService implements OnModuleInit {
      * Uygulama başladığında çalışır
      */
     async onModuleInit() {
-        await this.logService.log({
-            level: LOG_LEVEL.INFO,
-            module: this.BOOKING_INBOX_MODULE_NAME,
-            action: BOOKING_INBOX_ACTION.CHECK,
-            message: 'Uygulama başladı, ilk e-posta kontrolü yapılıyor...',
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-        });
+        await this.log(
+            LOG_LEVEL.INFO,
+            BOOKING_INBOX_ACTION.CHECK,
+            'Uygulama başladı, ilk e-posta kontrolü yapılıyor...'
+        );
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
             await this.fetchEmails();
         } catch (error) {
-            await this.logService.log({
-                level: LOG_LEVEL.ERROR,
-                module: this.BOOKING_INBOX_MODULE_NAME,
-                action: BOOKING_INBOX_ACTION.CHECK,
-                message: 'Başlangıç e-posta kontrolü sırasında hata oluştu',
-                details: error,
-                stackTrace: error.stack,
-                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-            });
+            await this.log(
+                LOG_LEVEL.ERROR,
+                BOOKING_INBOX_ACTION.CHECK,
+                'Başlangıç e-posta kontrolü sırasında hata oluştu',
+                error,
+                error.stack
+            );
         }
     }
 
@@ -97,26 +107,22 @@ export class BookingInboxService implements OnModuleInit {
      * .env dosyasında belirtilen aralıklarla e-postaları kontrol et
      */
     async checkEmails() {
-        await this.logService.log({
-            level: LOG_LEVEL.INFO,
-            module: this.BOOKING_INBOX_MODULE_NAME,
-            action: BOOKING_INBOX_ACTION.CHECK,
-            message: `E-postalar kontrol ediliyor (${this.emailCheckInterval} dakikada bir)...`,
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-        });
+        await this.log(
+            LOG_LEVEL.INFO,
+            BOOKING_INBOX_ACTION.CHECK,
+            `E-postalar kontrol ediliyor (${this.emailCheckInterval} dakikada bir)...`
+        );
 
         try {
             await this.fetchEmails();
         } catch (error) {
-            await this.logService.log({
-                level: LOG_LEVEL.ERROR,
-                module: this.BOOKING_INBOX_MODULE_NAME,
-                action: BOOKING_INBOX_ACTION.CHECK,
-                message: 'E-posta kontrol edilirken hata oluştu',
-                details: error,
-                stackTrace: error.stack,
-                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-            });
+            await this.log(
+                LOG_LEVEL.ERROR,
+                BOOKING_INBOX_ACTION.CHECK,
+                'E-posta kontrol edilirken hata oluştu',
+                error,
+                error.stack
+            );
         }
     }
 
@@ -124,27 +130,23 @@ export class BookingInboxService implements OnModuleInit {
      * Manuel olarak e-postaları kontrol et
      */
     async manualCheckEmails() {
-        await this.logService.log({
-            level: LOG_LEVEL.INFO,
-            module: this.BOOKING_INBOX_MODULE_NAME,
-            action: BOOKING_INBOX_ACTION.CHECK_MANUAL,
-            message: 'E-postalar manuel olarak kontrol ediliyor...',
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-        });
+        await this.log(
+            LOG_LEVEL.INFO,
+            BOOKING_INBOX_ACTION.CHECK_MANUAL,
+            'E-postalar manuel olarak kontrol ediliyor...'
+        );
 
         try {
             await this.fetchEmails();
             return { success: true, message: 'E-postalar başarıyla kontrol edildi.' };
         } catch (error) {
-            await this.logService.log({
-                level: LOG_LEVEL.ERROR,
-                module: this.BOOKING_INBOX_MODULE_NAME,
-                action: BOOKING_INBOX_ACTION.CHECK_MANUAL,
-                message: 'E-posta kontrol edilirken hata oluştu',
-                details: error,
-                stackTrace: error.stack,
-                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-            });
+            await this.log(
+                LOG_LEVEL.ERROR,
+                BOOKING_INBOX_ACTION.CHECK_MANUAL,
+                'E-posta kontrol edilirken hata oluştu',
+                error,
+                error.stack
+            );
             return { success: false, message: error.message };
         }
     }
@@ -176,26 +178,18 @@ export class BookingInboxService implements OnModuleInit {
                         }
 
                         if (!results || results.length === 0) {
-                            this.logService.log({
-                                level: LOG_LEVEL.INFO,
-                                module: this.BOOKING_INBOX_MODULE_NAME,
-                                action: BOOKING_INBOX_ACTION.FETCH,
-                                message: 'İşlenecek yeni e-posta yok.',
-                                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-                            });
+                            this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.FETCH, 'İşlenecek yeni e-posta yok.');
                             this.imap.end();
                             resolve();
                             return;
                         }
 
-                        this.logService.log({
-                            level: LOG_LEVEL.INFO,
-                            module: this.BOOKING_INBOX_MODULE_NAME,
-                            action: BOOKING_INBOX_ACTION.FETCH,
-                            message: `${results.length} adet yeni e-posta bulundu.`,
-                            details: { count: results.length },
-                            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-                        });
+                        this.log(
+                            LOG_LEVEL.INFO,
+                            BOOKING_INBOX_ACTION.FETCH,
+                            `${results.length} adet yeni e-posta bulundu.`,
+                            { count: results.length }
+                        );
 
                         const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
                         let processedCount = 0;
@@ -205,15 +199,13 @@ export class BookingInboxService implements OnModuleInit {
                                 // E-posta içeriğini ayrıştır
                                 simpleParser(stream, async (err, mail) => {
                                     if (err) {
-                                        this.logService.log({
-                                            level: LOG_LEVEL.ERROR,
-                                            module: this.BOOKING_INBOX_MODULE_NAME,
-                                            action: BOOKING_INBOX_ACTION.PARSE,
-                                            message: 'E-posta ayrıştırma hatası',
-                                            details: err,
-                                            stackTrace: err.stack,
-                                            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-                                        });
+                                        this.log(
+                                            LOG_LEVEL.ERROR,
+                                            BOOKING_INBOX_ACTION.PARSE,
+                                            'E-posta ayrıştırma hatası',
+                                            err,
+                                            err.stack
+                                        );
                                         processedCount++;
                                         if (processedCount === results.length) {
                                             this.imap.end();
@@ -226,15 +218,13 @@ export class BookingInboxService implements OnModuleInit {
                                         // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
                                         await this.processEmail(mail);
                                     } catch (e) {
-                                        this.logService.log({
-                                            level: LOG_LEVEL.ERROR,
-                                            module: this.BOOKING_INBOX_MODULE_NAME,
-                                            action: BOOKING_INBOX_ACTION.PROCESS,
-                                            message: 'E-posta işlenirken hata',
-                                            details: e,
-                                            stackTrace: e.stack,
-                                            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-                                        });
+                                        this.log(
+                                            LOG_LEVEL.ERROR,
+                                            BOOKING_INBOX_ACTION.PROCESS,
+                                            'E-posta işlenirken hata',
+                                            e,
+                                            e.stack
+                                        );
                                     }
                                     processedCount++;
                                     if (processedCount === results.length) {
@@ -246,15 +236,13 @@ export class BookingInboxService implements OnModuleInit {
                         });
 
                         fetch.once('error', (err) => {
-                            this.logService.log({
-                                level: LOG_LEVEL.ERROR,
-                                module: this.BOOKING_INBOX_MODULE_NAME,
-                                action: BOOKING_INBOX_ACTION.FETCH,
-                                message: 'E-posta getirme hatası',
-                                details: err,
-                                stackTrace: err.stack,
-                                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-                            });
+                            this.log(
+                                LOG_LEVEL.ERROR,
+                                BOOKING_INBOX_ACTION.FETCH,
+                                'E-posta getirme hatası',
+                                err,
+                                err.stack
+                            );
                             this.imap.end();
                             reject(err);
                         });
@@ -270,32 +258,18 @@ export class BookingInboxService implements OnModuleInit {
      * E-posta içeriğini işle ve gerekirse transaction oluştur
      */
     private async processEmail(mail: any): Promise<void> {
-        await this.logService.log({
-            level: LOG_LEVEL.INFO,
-            module: this.BOOKING_INBOX_MODULE_NAME,
-            action: BOOKING_INBOX_ACTION.PROCESS_START,
-            message: 'E-posta işleniyor...',
-            details: {
-                subject: mail.subject,
-                from: mail.from?.text,
-                date: mail.date,
-            },
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
+        await this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.PROCESS_START, 'E-posta işleniyor...', {
+            subject: mail.subject,
+            from: mail.from?.text,
+            date: mail.date,
         });
 
         // E-posta içeriğini kontrol et
         const content = mail.text || mail.html;
         if (!content) {
-            await this.logService.log({
-                level: LOG_LEVEL.INFO,
-                module: this.BOOKING_INBOX_MODULE_NAME,
-                action: BOOKING_INBOX_ACTION.SKIP,
-                message: 'E-posta içeriği boş, işlem atlanıyor.',
-                details: {
-                    subject: mail.subject,
-                    from: mail.from?.text,
-                },
-                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
+            await this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.SKIP, 'E-posta içeriği boş, işlem atlanıyor.', {
+                subject: mail.subject,
+                from: mail.from?.text,
             });
             return;
         }
@@ -304,18 +278,16 @@ export class BookingInboxService implements OnModuleInit {
         const hasKeyword = this.emailKeywords.some((keyword) => content.toLowerCase().includes(keyword.toLowerCase()));
 
         if (!hasKeyword) {
-            await this.logService.log({
-                level: LOG_LEVEL.INFO,
-                module: this.BOOKING_INBOX_MODULE_NAME,
-                action: BOOKING_INBOX_ACTION.SKIP,
-                message: 'E-posta içeriğinde anahtar kelime bulunamadı, işlem atlanıyor.',
-                details: {
+            await this.log(
+                LOG_LEVEL.INFO,
+                BOOKING_INBOX_ACTION.SKIP,
+                'E-posta içeriğinde anahtar kelime bulunamadı, işlem atlanıyor.',
+                {
                     subject: mail.subject,
                     from: mail.from?.text,
                     keywords: this.emailKeywords,
-                },
-                entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-            });
+                }
+            );
             return;
         }
 
@@ -332,17 +304,15 @@ export class BookingInboxService implements OnModuleInit {
 
         await this.entityManager.save(transaction);
 
-        await this.logService.log({
-            level: LOG_LEVEL.INFO,
-            module: this.BOOKING_INBOX_MODULE_NAME,
-            action: BOOKING_INBOX_ACTION.PROCESSED,
-            message: 'E-posta başarıyla işlendi ve transaction oluşturuldu.',
-            details: {
+        await this.log(
+            LOG_LEVEL.INFO,
+            BOOKING_INBOX_ACTION.PROCESSED,
+            'E-posta başarıyla işlendi ve transaction oluşturuldu.',
+            {
                 transactionId: transaction.id,
                 subject: mail.subject,
                 from: mail.from?.text,
-            },
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-        });
+            }
+        );
     }
 }
