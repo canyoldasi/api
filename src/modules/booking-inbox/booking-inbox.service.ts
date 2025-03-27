@@ -7,6 +7,7 @@ import { LOG_LEVEL, LogLevel } from '../../constants';
 import { TransactionService } from '../transaction/transaction.service';
 import { CreateUpdateTransactionDTO } from '../transaction/dto/create-update-transaction.dto';
 import { ParsedMail } from 'mailparser';
+import { TransactionStatus } from '../../entities/transaction-status.entity';
 
 enum BookingEmailType {
     NEW_CONFIRMATION = 'NEW_CONFIRMATION',
@@ -463,7 +464,7 @@ export class BookingInboxService implements OnModuleInit {
             // Check if email is from Booking.com
             const bookingEmail = 'noreply.taxi@booking.com';
             if (!mail.from?.text.includes(bookingEmail) && !mail.text.includes(bookingEmail)) {
-                console.log('Skipping non-Booking.com email:', mail.from?.text);
+                console.log('Skipping non-Booking.com email:', mail.from?.text, mail.subject, mail.text);
                 return;
             }
 
@@ -501,7 +502,7 @@ export class BookingInboxService implements OnModuleInit {
                     bookingDetails: bookingDetails,
                 }),
                 transactionDate: bookingDetails.pickupDate || new Date(),
-                status: this.getTransactionStatus(bookingDetails.type),
+                statusId: (await this.getTransactionStatus(bookingDetails.type)).id,
             };
 
             if (existingTransaction) {
@@ -529,18 +530,32 @@ export class BookingInboxService implements OnModuleInit {
         }
     }
 
-    private getTransactionStatus(emailType: BookingEmailType): string {
+    private async getTransactionStatus(emailType: BookingEmailType): Promise<TransactionStatus> {
+        const statuses = await this.transactionService.getTransactionStatuses();
+        let statusCode: string;
+
         switch (emailType) {
             case BookingEmailType.NEW_CONFIRMATION:
-                return 'NEW';
+                statusCode = 'NEW';
+                break;
             case BookingEmailType.UPDATED:
-                return 'UPDATED';
+                statusCode = 'UPDATED';
+                break;
             case BookingEmailType.FLIGHT_INFO_CHANGED:
-                return 'FLIGHT_UPDATED';
+                statusCode = 'FLIGHT_UPDATED';
+                break;
             case BookingEmailType.FREE_CANCELLATION:
-                return 'CANCELLED';
+                statusCode = 'CANCELLED';
+                break;
             default:
-                return 'NEW';
+                statusCode = 'NEW';
         }
+
+        const status = statuses.find((s) => s.code === statusCode);
+        if (!status) {
+            throw new Error(`Transaction status not found for code: ${statusCode}`);
+        }
+
+        return status;
     }
 }

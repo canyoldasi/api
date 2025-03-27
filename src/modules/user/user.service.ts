@@ -135,6 +135,7 @@ export class UserService {
         }
 
         const items = await queryBuilder.getMany();
+        console.log('getUsersByFilters SQL:', queryBuilder.getSql());
         return { items, itemCount, pageCount };
     }
 }

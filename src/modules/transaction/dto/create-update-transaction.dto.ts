@@ -12,8 +12,8 @@ export class CreateUpdateTransactionDTO {
     @Field(() => String, { nullable: true })
     statusId?: string;
 
-    @Field(() => String)
-    channelId: string;
+    @Field(() => String, { nullable: true })
+    channelId?: string;
 
     @Field(() => String, { nullable: true })
     externalId?: string;
@@ -65,9 +65,6 @@ export class CreateUpdateTransactionDTO {
 
     @Field(() => Date, { nullable: true })
     transactionDate?: Date;
-
-    @Field(() => String)
-    status: string;
 
     @Field(() => [CreateUpdateTransactionProductDTO], { nullable: true })
     products?: CreateUpdateTransactionProductDTO[];
