@@ -10,7 +10,7 @@ export class Product extends BaseEntity {
     @Field()
     name: string;
 
-    @Column()
+    @Column({ nullable: true })
     @Field({ nullable: true })
     code?: string;
 
