@@ -1,0 +1,75 @@
+{
+  "reservationId": "TRB-XXXXX",//transaction.no
+  "emailType": "NEW_RESERVATION | CANCELLATION | PASSENGER_UPDATE | COMPLAINT_INVESTIGATION",//bunu log entity'sine kaydet
+  "status": "ACTIVE | CANCELLED",//transaction.status
+  "createdAt": "2025-03-26T10:00:00Z",//transaction.createdAt
+  
+  "account": {
+    "fullName": "John Doe",//transaction.accountName alanı oluştur ve içine kaydet.
+    "phoneNumber": "+905551234567",//transaction.accountPhone alanı oluştur ve içine kaydet.
+    "passengerCount": 2//transaction.product.quantity içine kaydet
+  },
+    /*
+    passenger'ları transaction.product tablosuna kaydedelim. işte product tablosu içeriği:
+    products: [
+        {name: "Standard", code: "STD"},
+        {name: "Executive People", code: "EXECUTIVE"},
+        {name: "People Carrier", code: "PEOPLE"},
+        {name: "Large People Carrier", code: "LARGE"},
+        {name: "Minibus", code: "MINIBUS"}
+    ]
+    */
+  "transferDetails": {
+    "vehicleType": "STANDARD | EXECUTIVE | EXECUTIVE_PEOPLE_CARRIER | PEOPLE_CARRIER | LARGE_PEOPLE_CARRIER | MINIBUS",//bunları product.code alanından tespit ederek TransactionProduct entity'sine kaydet.
+    "pickupLocation": "Istanbul Airport (IST), Tayakadın, Terminal Caddesi No:1, 34283 Arnavutköy/İstanbul, Türkiye",//TransactionLocation diye bir entity oluştur. içeriği tıpkı AccountTransaction entitysi gibi olsun. ek olarak "address" diye bir string alan ekle. "type" diye ayrı bir alan ekle string türünde. iki tane tür olarak PICKUP ve DROP_OFF ekle. JSON modelindeki pickup ve dropoff adreslerini TransactionLocation entitysine kaydet..
+    "dropoffLocation": "Hotel Name, Street, City, Country", //TransactionLocation entitysinde "address" alanına kaydet. type olarak "DROP_OFF" olsun.
+    "scheduledTime": "2025-03-26T10:00:00Z",//TransactionLocation.scheduledTime alanı oluştur ona kaydet.
+    "price": {
+      "amount": 26.79,//transaction.amount alanına kaydet.
+      "currency": "EUR"//curency diye bir entity oluştur: id, name, code olsun. transaction.currency alanı oluştur ve currency entity'si ile ilişkilendir. TL, EUR, USD şeklinde kodlandır para birimlerini code'lardan eşleştirerek id ile kaydet.
+    }
+  },
+
+  "flightDetails": { //transaction.customFields diye bir alan oluştur içine JSON string olarak kaydet
+    "flightNumber": "TK1234",
+    "direction": "ARRIVAL | DEPARTURE"
+  },
+
+  "transferCompany": {//transaction.customFields alanının içine JSON string olarak kaydet.
+    "name": "PRIME CLASS TRAVEL TURIZM LIMITED SRKETI",
+    "email": "info@primefleettravel.com"
+  },
+
+  "specialRequests": { //transaction.customFields alanının içine JSON string olarak kaydet
+    "wheelchair": false,
+    "childSeat": {
+      "required": true,
+      "age": 4
+    },
+    "nameSign": {
+      "required": true,
+      "text": "JOHN DOE",
+      "language": "ENGLISH | TURKISH | RUSSIAN | ARABIC"
+    },
+    "meetingPoint": "RECEPTION | TERMINAL",
+    "notes": "Please wait at the reception"
+  },
+
+  "complaintDetails": {//transaction.note alanının içine JSON string olarak kaydet.
+    "hasComplaint": false,
+    "complaintId": "COMP-XXXXX",
+    "status": "PENDING | INVESTIGATING | RESOLVED | REJECTED",
+    "resolution": "Resolution details if any"
+  },
+
+  "cancellationDetails": {//transaction.cancelNote alanının içine JSON string olarak kaydet.
+    "isCancelled": false,
+    "cancelledAt": "2025-03-26T10:00:00Z"
+  },
+
+  "metadata": {//bunu ignore et
+    "emailSubject": "New Bodrum Luxury Travel Reservation TRB-XXXXX",
+    "emailFrom": "info@bodrumluxurytravel.com",
+    "emailTo": "info@primefleettravel.com"
+  }
+}

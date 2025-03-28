@@ -10,9 +10,13 @@ export class Segment extends BaseEntity {
     @Field()
     name: string;
 
+    @Column()
+    @Field({ nullable: true })
+    code?: string;
+
     @Column({ default: true })
     @Field({ nullable: true, defaultValue: true })
-    isActive: boolean;
+    isActive?: boolean;
 
     @Column({ nullable: true })
     @Field({ nullable: true })

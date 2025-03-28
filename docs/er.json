@@ -1,0 +1,161 @@
+{
+    "reservationId": "TRB-XXXXX", //transaction.no
+    "type": "TRANSFER | CONSTRUCTION | NGO_PROJECT", //transaction.type
+    "status": "ACTIVE | CANCELLED | COMPLETED | PENDING", //transaction.status
+    "createdAt": "2025-03-26T10:00:00Z", //transaction.createdAt
+    "updatedAt": "2025-03-26T10:00:00Z", //transaction.updatedAt
+    "account": {
+      "id": "ACC-XXXXX", //bunu ignore et. account tablosu ile bir bağlantı kurmanı istemiyorum bu mailleri ilişkisel veritabanına kaydederken.
+      "type": "CUSTOMER | SUPPLIER | PARTNER", //bunu ignore et. gereksiz.
+      "fullName": "John Doe", //ad ve soyad diye ne varsa transaction.accountName diye bir alan oluştur ona kaydet.
+      "firstName": "John", //transaction.accountName
+      "lastName": "Doe", //transaction.accountName
+      "phoneNumber": { //transaction.accountPhone isminde bir alan oluştur ona kaydet.
+        "countryCode": "+90",
+        "number": "5551234567",
+        "fullNumber": "+905551234567"
+      },
+      "email": "john.doe@example.com", //transaction.accountEmail isminte bir alan oluştur ona kaydet.
+      "preferredLanguage": "ENGLISH | TURKISH | RUSSIAN | ARABIC", //"language" isminde bir entity oluştur: id, name, code olsun. account.language'de bu entity'i kullan.
+      "preferredContactMethod": "WHATSAPP | PHONE | EMAIL", //transaction.customFields diye bir alan oluştur içerisine kaydet
+      "status": "ACTIVE | INACTIVE", //account-status diye bir entity oluştur: id, name, code olsun. account.status'da bu entity'i kullan.
+      "tags": ["VIP", "FREQUENT_CUSTOMER"], //segment isimli entity'i kullan. ona code property'sini ekle. o yolla id'sini bulup eşleştir.
+      "customFields": {
+        "companyName": "Example Corp", //transaction.customFields alanının içine kaydet.
+        "taxNumber": "1234567890", //transaction.customFields alanının içine kaydet.
+        "customerSegment": "PREMIUM" //transaction.customFields alanının içine kaydet.
+      }
+    },
+  
+    "serviceDetails": {
+      "category": "TRANSFER | CONSTRUCTION | NGO_PROJECT", //transaction.type ilişkimizi kullan. tansanction-type entity'sindeki code ile tespit et ve onun idsini kullan.
+      "subCategory": "AIRPORT_TRANSFER | HOTEL_TRANSFER | GROUP_TRANSFER", //bunu kaldır. subCategory'i kaldır. transaction.type'ı çeşitlendir.
+      "startLocation": {
+        "address": "Istanbul Airport (IST), Tayakadın, Terminal Caddesi No:1", //transaction.address
+        "type": "AIRPORT | HOTEL | OFFICE | SITE", //bunu ignore et.
+        "coordinates": {
+          "latitude": 41.2751, //maillerde koordinat bilgisi olursa transaction.address bilgisinin içine ekle.
+          "longitude": 28.7519 //maillerde koordinat bilgisi olursa transaction.address bilgisinin içine ekle.
+        }
+      },
+      "endLocation": {
+        "address": "Hotel Name, Street, City, Country", //transaction.address2 diye bir alan ekle oraya kaydet.
+        "type": "AIRPORT | HOTEL | OFFICE | SITE", //bunu ignore et.
+        "coordinates": {
+          "latitude": 41.0082, //maillerde koordinat bilgisi olursa transaction.address2 bilgisinin içine ekle.
+          "longitude": 28.9784 //maillerde koordinat bilgisi olursa transaction.address2 bilgisinin içine ekle.
+        }
+      },
+      "scheduledStartTime": "2025-03-26T10:00:00Z", //transaction.scheduledStartTime diye bir alan oluştur ona kaydet.
+      "scheduledEndTime": "2025-03-26T11:00:00Z", //transaction.scheduledEndTime diye bir alan oluştur ona kaydet.
+      "actualStartTime": "2025-03-26T10:15:00Z", //transaction.actualStartTime diye bir alan oluştur ona kaydet.
+      "actualEndTime": "2025-03-26T11:15:00Z", //transaction.actualEndTime diye bir alan oluştur ona kaydet.
+       /*
+       participant'ları transaction.product tablosuna kaydedelim. işte product tablosu içeriği:
+       products: [
+          {name: "Standard", code: "STD"},
+          {name: "Executive People", code: "EXECUTIVE"},
+          {name: "People Carrier", code: "PEOPLE"},
+          {name: "Large People Carrier", code: "LARGE"},
+          {name: "Minibus", code: "MINIBUS"}
+       ]
+       */
+      
+      "participants": [
+        {
+          "accountId": "ACC-XXXXX", //bunu ignore et.
+          "role": "PRIMARY | SECONDARY | GUEST", //bunu ignore et.
+          "count": 2 //transaction.product.quantity alanına kaydet.
+        }
+      ],
+      //specialRequirements'i transaction.customFields alanına kaydet.
+      "specialRequirements": [
+        {
+          "type": "WHEELCHAIR | CHILD_SEAT | NAME_SIGN",
+          "details": {
+            "count": 1,
+            "specifications": "4 years old child seat"
+          }
+        }
+      ]
+    },
+  
+    "financialDetails": {
+      "currency": "EUR",//curency diye bir entity oluştur: id, name, code olsun. transaction.currency oluştur ve currency entity'si ile ilişkilendir. TL, EUR, USD şeklinde kodlandır para birimlerini.
+      "basePrice": 26.79, //transaction.baseAmount diye bir alan.
+      "discounts": [
+        {
+          "type": "PROMOTION | LOYALTY | SPECIAL_OFFER", //transaction.discountName diye bir alan oluştur ona kaydet.
+          "amount": 5.00, //transaction.discountAmount diye bir alan oluştur ona kaydet.
+          "description": "Summer promotion" //transaction.discountName alanına kaydet.
+        }
+      ],
+      "additionalCharges": [
+        {
+          "type": "EXTRA_SERVICE | PENALTY | TAX", //transaction.additionalChargeName diye bir alan oluştur ona kaydet.
+          "amount": 2.00, //transaction.additionalChargeAmount diye bir alan oluştur ona kaydet.
+          "description": "Child seat charge" //transaction.additionalChargeName alanına kaydet.
+        }
+      ],
+      "totalAmount": 23.79, //transaction.amount alanına kaydet.
+      "paymentStatus": "PENDING | PARTIAL | COMPLETED | REFUNDED", //transaction.paymentStatus diye bir alan oluştur ona kaydet.
+      "paymentMethod": "CREDIT_CARD | BANK_TRANSFER | CASH", //transaction.paymentMethod diye bir alan oluştur ona kaydet.
+      "invoices": [ 
+        {
+          "invoiceNumber": "INV-XXXXX", //invoice bilgisini aktarma
+          "amount": 23.79, //invoice bilgisini aktarma
+          "status": "DRAFT | SENT | PAID | CANCELLED", //invoice bilgisini aktarma
+          "createdAt": "2025-03-26T10:00:00Z" //invoice bilgisini aktarma
+        }
+      ]
+    },
+  
+    "activities": [
+      {
+        "id": "ACT-XXXXX",
+        "type": "EMAIL | CALL | MEETING | NOTE | COMPLAINT | UPDATE",
+        "subject": "New Reservation Created",
+        "description": "Reservation details and special requests",
+        "status": "COMPLETED | PENDING | CANCELLED",
+        "priority": "HIGH | MEDIUM | LOW",
+        "createdAt": "2025-03-26T10:00:00Z",
+        "createdBy": {
+          "accountId": "ACC-XXXXX",
+          "name": "System User"
+        },
+        "assignedTo": {
+          "accountId": "ACC-XXXXX",
+          "name": "John Smith"
+        },
+        "attachments": [
+          {
+            "type": "EMAIL | DOCUMENT | IMAGE",
+            "url": "https://example.com/attachment.pdf",
+            "name": "Reservation Confirmation"
+          }
+        ],
+        "relatedEntities": [
+          {
+            "type": "RESERVATION | ACCOUNT | INVOICE",
+            "id": "TRB-XXXXX"
+          }
+        ]
+      }
+    ],
+  
+    "metadata": {
+      "source": "EMAIL | API | MANUAL | WEB",
+      "sourceDetails": {
+        "emailSubject": "New Bodrum Luxury Travel Reservation TRB-XXXXX",
+        "emailFrom": "info@bodrumluxurytravel.com",
+        "emailTo": "info@primefleettravel.com"
+      },
+      "processedAt": "2025-03-26T10:00:00Z",
+      "version": "1.0",
+      "customFields": {
+        "industry": "TRANSPORTATION",
+        "region": "EUROPE",
+        "season": "SUMMER"
+      }
+    }
+  }

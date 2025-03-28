@@ -10,6 +10,10 @@ export class Product extends BaseEntity {
     @Field()
     name: string;
 
+    @Column()
+    @Field({ nullable: true })
+    code?: string;
+
     @Column({ type: 'text', nullable: true })
     @Field({ nullable: true })
     note?: string;
@@ -23,8 +27,8 @@ export class Product extends BaseEntity {
     price?: number;
 
     @Column({ default: true })
-    @Field()
-    isActive: boolean;
+    @Field({ nullable: true })
+    isActive?: boolean;
 
     @Column({ type: 'int', default: 0, nullable: true })
     @Field({ nullable: true, defaultValue: 0 })
