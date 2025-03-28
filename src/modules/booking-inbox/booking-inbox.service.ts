@@ -442,7 +442,7 @@ export class BookingInboxService implements OnModuleInit {
                 /<td[^>]*><strong>([^<]+)<\/strong><\/td>\s*<td[^>]*><strong>([^<]+)<\/strong><\/td>/i
             );
             if (fieldMatch) {
-                const [_, fieldName, newValue] = fieldMatch;
+                const [, fieldName, newValue] = fieldMatch;
                 parsedDetails.updatedFields[fieldName.trim()] = newValue.trim();
             }
         }
