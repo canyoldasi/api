@@ -8,6 +8,8 @@ import { TransactionService } from '../transaction/transaction.service';
 import { CreateUpdateTransactionDTO } from '../transaction/dto/create-update-transaction.dto';
 import { ParsedMail } from 'mailparser';
 import { TransactionStatus } from '../../entities/transaction-status.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 
 enum BookingEmailType {
     NEW_CONFIRMATION = 'NEW_CONFIRMATION',
@@ -58,6 +60,7 @@ export class BookingInboxService implements OnModuleInit {
     private readonly emailKeywords: string[];
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
+    private readonly logFilePath: string;
 
     constructor(
         private entityManager: EntityManager,
@@ -87,6 +90,15 @@ export class BookingInboxService implements OnModuleInit {
         this.imap.once('error', (err) => {
             this.log(LOG_LEVEL.ERROR, BOOKING_INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
         });
+
+        // Log dosyası yolunu belirle
+        this.logFilePath = path.join(process.cwd(), 'logs', 'email-content.log');
+
+        // Logs klasörünü oluştur (yoksa)
+        const logsDir = path.join(process.cwd(), 'logs');
+        if (!fs.existsSync(logsDir)) {
+            fs.mkdirSync(logsDir);
+        }
     }
 
     /**
@@ -99,6 +111,7 @@ export class BookingInboxService implements OnModuleInit {
         details?: any,
         stackTrace?: string
     ): Promise<void> {
+        return;
         await this.logService.log({
             level,
             module: this.BOOKING_INBOX_MODULE_NAME,
@@ -119,11 +132,13 @@ export class BookingInboxService implements OnModuleInit {
             BOOKING_INBOX_ACTION.CHECK,
             'Uygulama başladı, ilk e-posta kontrolü yapılıyor...'
         );
-
+        console.log('Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
             await this.fetchEmails();
+            console.log('Başlangıç e-posta kontrolü başarıyla tamamlandı');
         } catch (error) {
+            console.error('Başlangıç e-posta kontrolü sırasında hata oluştu', error);
             await this.log(
                 LOG_LEVEL.ERROR,
                 BOOKING_INBOX_ACTION.CHECK,
@@ -137,7 +152,7 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * .env dosyasında belirtilen aralıklarla e-postaları kontrol et
      */
-    async checkEmails() {
+    async startScheduled() {
         await this.log(
             LOG_LEVEL.INFO,
             BOOKING_INBOX_ACTION.CHECK,
@@ -160,7 +175,7 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * Manuel olarak e-postaları kontrol et
      */
-    async manualCheckEmails() {
+    async startManuel() {
         await this.log(
             LOG_LEVEL.INFO,
             BOOKING_INBOX_ACTION.CHECK_MANUAL,
@@ -197,9 +212,9 @@ export class BookingInboxService implements OnModuleInit {
                         return;
                     }
 
-                    // Son 3 gün içindeki tüm e-postaları al (okunmuş ve okunmamış)
+                    // Belli süre içindeki tüm e-postaları al (okunmuş ve okunmamış)
                     const startDate = new Date();
-                    startDate.setDate(startDate.getDate() - 3);
+                    startDate.setDate(startDate.getDate() - 5);
 
                     this.imap.search([['SINCE', startDate]], (err, results) => {
                         if (err) {
@@ -248,6 +263,20 @@ export class BookingInboxService implements OnModuleInit {
                                     try {
                                         // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
                                         await this.processEmail(mail);
+
+                                        // E-posta içeriğini dosyaya yaz
+                                        const logContent = `\nEmail content: ${JSON.stringify(
+                                            {
+                                                from: mail.from?.text,
+                                                to: mail.to?.text,
+                                                subject: mail.subject,
+                                                text: mail.text,
+                                            },
+                                            null,
+                                            2
+                                        )}\n`;
+
+                                        fs.appendFileSync(this.logFilePath, logContent);
                                     } catch (e) {
                                         this.log(
                                             LOG_LEVEL.ERROR,
@@ -464,7 +493,12 @@ export class BookingInboxService implements OnModuleInit {
             // Check if email is from Booking.com
             const bookingEmail = 'noreply.taxi@booking.com';
             if (!mail.from?.text.includes(bookingEmail) && !mail.text.includes(bookingEmail)) {
-                console.log('Skipping non-Booking.com email:', mail.from?.text, mail.subject, mail.text);
+                /*console.log('Skipping non-Booking.com email:', {
+                    from: mail.from?.text,
+                    to: mail.to?.text,
+                    subject: mail.subject,
+                    text: mail.text,
+                });*/
                 return;
             }
 
@@ -473,7 +507,7 @@ export class BookingInboxService implements OnModuleInit {
             const bookingDetails = this.parseBookingEmail(mail);
 
             if (!bookingDetails.bookingId) {
-                console.log('No booking ID found in email');
+                //console.log('No booking ID found in email');
                 return;
             }
 
@@ -481,7 +515,7 @@ export class BookingInboxService implements OnModuleInit {
             const channels = await this.transactionService.getChannelsLookup();
             const bookingChannel = channels.find((channel) => channel.code === 'BOOKING');
             if (!bookingChannel) {
-                console.log('Booking channel not found');
+                //console.log('Booking channel not found');
                 return;
             }
 
@@ -511,22 +545,22 @@ export class BookingInboxService implements OnModuleInit {
                     id: existingTransaction.id,
                     ...transactionData,
                 });
-                console.log('Updated transaction:', {
+                /*console.log('Updated transaction:', {
                     id: existingTransaction.id,
                     externalId: bookingDetails.bookingId,
                     type: bookingDetails.type,
-                });
+                });*/
             } else {
                 // Create new transaction
                 const newTransaction = await this.transactionService.create(transactionData);
-                console.log('Created new transaction:', {
+                /*console.log('Created new transaction:', {
                     id: newTransaction.id,
                     externalId: bookingDetails.bookingId,
                     type: bookingDetails.type,
-                });
+                });*/
             }
         } catch (error) {
-            console.error('Error processing email:', error);
+            //console.error('Error processing email:', error);
         }
     }
 

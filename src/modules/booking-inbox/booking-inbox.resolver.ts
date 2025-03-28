@@ -17,6 +17,6 @@ export class BookingInboxResolver {
 
     @Mutation(() => BookingInboxResponse)
     async manualCheckEmails(): Promise<BookingInboxResponse> {
-        return this.bookingInboxService.manualCheckEmails();
+        return this.bookingInboxService.startManuel();
     }
 }
