@@ -18,9 +18,9 @@ import { Channel } from './channel.entity';
 @Entity()
 @ObjectType()
 export class Account extends BaseEntity {
-    @Column({ type: 'varchar' })
-    @Field(() => String)
-    personType: PersonType;
+    @Column({ type: 'varchar', nullable: true })
+    @Field(() => String, { nullable: true })
+    personType?: PersonType;
 
     @OneToMany(() => AccountAccountType, (accountAccountType) => accountAccountType.account)
     @Field(() => [AccountAccountType], { nullable: true })
@@ -30,13 +30,13 @@ export class Account extends BaseEntity {
     @Field()
     name: string;
 
-    @Column()
-    @Field()
-    firstName: string;
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    firstName?: string;
 
-    @Column()
-    @Field()
-    lastName: string;
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    lastName?: string;
 
     @Column({ unique: true })
     @Field()
@@ -46,9 +46,9 @@ export class Account extends BaseEntity {
     @Field()
     phone: string;
 
-    @Column()
-    @Field()
-    phone2: string;
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    phone2?: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
