@@ -530,7 +530,7 @@ export class BookingInboxService implements OnModuleInit {
                 )}\n,{"JSON model": ${JSON.stringify(bookingDetails, null, 2)}}\n`;
 
                 // Write to email-content-process.log
-                await fs.promises.appendFile('logs/email-content-process-8.log', logContent, 'utf8');
+                await fs.promises.appendFile('logs/email-content-process-9.log', logContent, 'utf8');
 
                 if (!bookingDetails.reservationId) {
                     return;
