@@ -7,10 +7,8 @@ import { LOG_LEVEL, LogLevel } from '../../constants';
 import { TransactionService } from '../transaction/transaction.service';
 import { CreateUpdateTransactionDTO } from '../transaction/dto/create-update-transaction.dto';
 import { ParsedMail } from 'mailparser';
-import { TransactionStatus } from '../../entities/transaction-status.entity';
-import * as fs from 'fs';
-import * as path from 'path';
 import { htmlToText } from 'html-to-text';
+import * as fs from 'fs';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -19,11 +17,9 @@ enum BookingEmailType {
     COMPLAINT = 'COMPLAINT',
 }
 
-interface BookingDetails {
+type BookingDetails = {
     reservationId: string;
     emailType: BookingEmailType;
-    status: 'ACTIVE' | 'CANCELLED';
-    createdAt: Date;
     account: {
         fullName: string;
         phoneNumber: string;
@@ -46,10 +42,7 @@ interface BookingDetails {
         };
         notes?: string;
     };
-    flightDetails: {
-        flightNumber: string;
-        direction: 'ARRIVAL' | 'DEPARTURE';
-    };
+    flightNumber: string;
     transferCompany: {
         name: string;
         email: string;
@@ -83,10 +76,10 @@ interface BookingDetails {
         emailFrom: string;
         emailTo: string;
     };
-}
+};
 
 // Email servis log action sabitleri
-export enum BOOKING_INBOX_ACTION {
+export enum INBOX_ACTION {
     CONNECT = 'CONNECT',
     CHECK = 'CHECK',
     CHECK_MANUAL = 'CHECK_MANUAL',
@@ -131,7 +124,7 @@ export class BookingInboxService implements OnModuleInit {
 
         // Hata olaylarını dinle
         this.imap.once('error', (err) => {
-            this.log(LOG_LEVEL.ERROR, BOOKING_INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
+            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
         });
     }
 
@@ -140,7 +133,7 @@ export class BookingInboxService implements OnModuleInit {
      */
     private async log(
         level: LogLevel,
-        action: BOOKING_INBOX_ACTION,
+        action: INBOX_ACTION,
         message: string,
         details?: any,
         stackTrace?: string
@@ -161,11 +154,7 @@ export class BookingInboxService implements OnModuleInit {
      * Uygulama başladığında çalışır
      */
     async onModuleInit() {
-        await this.log(
-            LOG_LEVEL.INFO,
-            BOOKING_INBOX_ACTION.CHECK,
-            'Uygulama başladı, ilk e-posta kontrolü yapılıyor...'
-        );
+        await this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
         console.log('Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
 
         // Get booking channel
@@ -184,7 +173,7 @@ export class BookingInboxService implements OnModuleInit {
             console.error('Başlangıç e-posta kontrolü sırasında hata oluştu', error);
             await this.log(
                 LOG_LEVEL.ERROR,
-                BOOKING_INBOX_ACTION.CHECK,
+                INBOX_ACTION.CHECK,
                 'Başlangıç e-posta kontrolü sırasında hata oluştu',
                 error,
                 error.stack
@@ -198,7 +187,7 @@ export class BookingInboxService implements OnModuleInit {
     async startScheduled() {
         await this.log(
             LOG_LEVEL.INFO,
-            BOOKING_INBOX_ACTION.CHECK,
+            INBOX_ACTION.CHECK,
             `E-postalar kontrol ediliyor (${this.emailCheckInterval} dakikada bir)...`
         );
 
@@ -207,7 +196,7 @@ export class BookingInboxService implements OnModuleInit {
         } catch (error) {
             await this.log(
                 LOG_LEVEL.ERROR,
-                BOOKING_INBOX_ACTION.CHECK,
+                INBOX_ACTION.CHECK,
                 'E-posta kontrol edilirken hata oluştu',
                 error,
                 error.stack
@@ -219,11 +208,7 @@ export class BookingInboxService implements OnModuleInit {
      * Manuel olarak e-postaları kontrol et
      */
     async startManuel() {
-        await this.log(
-            LOG_LEVEL.INFO,
-            BOOKING_INBOX_ACTION.CHECK_MANUAL,
-            'E-postalar manuel olarak kontrol ediliyor...'
-        );
+        await this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK_MANUAL, 'E-postalar manuel olarak kontrol ediliyor...');
 
         try {
             await this.fetchEmails();
@@ -231,7 +216,7 @@ export class BookingInboxService implements OnModuleInit {
         } catch (error) {
             await this.log(
                 LOG_LEVEL.ERROR,
-                BOOKING_INBOX_ACTION.CHECK_MANUAL,
+                INBOX_ACTION.CHECK_MANUAL,
                 'E-posta kontrol edilirken hata oluştu',
                 error,
                 error.stack
@@ -267,18 +252,15 @@ export class BookingInboxService implements OnModuleInit {
                         }
 
                         if (!results || results.length === 0) {
-                            this.log(LOG_LEVEL.INFO, BOOKING_INBOX_ACTION.FETCH, 'İşlenecek yeni e-posta yok.');
+                            this.log(LOG_LEVEL.INFO, INBOX_ACTION.FETCH, 'İşlenecek yeni e-posta yok.');
                             this.imap.end();
                             resolve();
                             return;
                         }
 
-                        this.log(
-                            LOG_LEVEL.INFO,
-                            BOOKING_INBOX_ACTION.FETCH,
-                            `${results.length} adet yeni e-posta bulundu.`,
-                            { count: results.length }
-                        );
+                        this.log(LOG_LEVEL.INFO, INBOX_ACTION.FETCH, `${results.length} adet yeni e-posta bulundu.`, {
+                            count: results.length,
+                        });
 
                         const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
                         let processedCount = 0;
@@ -290,7 +272,7 @@ export class BookingInboxService implements OnModuleInit {
                                     if (err) {
                                         this.log(
                                             LOG_LEVEL.ERROR,
-                                            BOOKING_INBOX_ACTION.PARSE,
+                                            INBOX_ACTION.PARSE,
                                             'E-posta ayrıştırma hatası',
                                             err,
                                             err.stack
@@ -309,7 +291,7 @@ export class BookingInboxService implements OnModuleInit {
                                     } catch (e) {
                                         this.log(
                                             LOG_LEVEL.ERROR,
-                                            BOOKING_INBOX_ACTION.PROCESS,
+                                            INBOX_ACTION.PROCESS,
                                             'E-posta işlenirken hata',
                                             e,
                                             e.stack
@@ -325,13 +307,7 @@ export class BookingInboxService implements OnModuleInit {
                         });
 
                         fetch.once('error', (err) => {
-                            this.log(
-                                LOG_LEVEL.ERROR,
-                                BOOKING_INBOX_ACTION.FETCH,
-                                'E-posta getirme hatası',
-                                err,
-                                err.stack
-                            );
+                            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.FETCH, 'E-posta getirme hatası', err, err.stack);
                             this.imap.end();
                             reject(err);
                         });
@@ -350,8 +326,6 @@ export class BookingInboxService implements OnModuleInit {
         const details: BookingDetails = {
             reservationId: '',
             emailType: BookingEmailType.NEW,
-            status: 'ACTIVE',
-            createdAt: new Date(),
             account: {
                 fullName: '',
                 phoneNumber: '',
@@ -367,10 +341,7 @@ export class BookingInboxService implements OnModuleInit {
                     currency: '',
                 },
             },
-            flightDetails: {
-                flightNumber: '',
-                direction: 'ARRIVAL',
-            },
+            flightNumber: '',
             transferCompany: {
                 name: '',
                 email: mail.to?.text || '',
@@ -467,7 +438,7 @@ export class BookingInboxService implements OnModuleInit {
         // Flight number
         const flightNumberMatch = textContent.match(/.*Flight\sNumber\s+(.*?)\s+Price\s+.*/s);
         if (flightNumberMatch) {
-            parsedDetails.flightDetails.flightNumber = flightNumberMatch[1].trim();
+            parsedDetails.flightNumber = flightNumberMatch[1].trim();
         }
 
         // Phone Number
@@ -567,12 +538,7 @@ export class BookingInboxService implements OnModuleInit {
                     await this.transactionService.create(transactionData);
                 }
             } else {
-                this.log(
-                    LOG_LEVEL.INFO,
-                    BOOKING_INBOX_ACTION.CONNECT,
-                    'Booking maili olmadığı için atlanıyor: ',
-                    mail.subject
-                );
+                this.log(LOG_LEVEL.INFO, INBOX_ACTION.CONNECT, 'Booking maili olmadığı için atlanıyor: ', mail.subject);
             }
         } catch (err) {
             console.error('Error processing email:', err);
