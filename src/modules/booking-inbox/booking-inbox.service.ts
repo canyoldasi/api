@@ -503,7 +503,7 @@ export class BookingInboxService implements OnModuleInit {
      */
     private async determineEmail(mail: ParsedMail): Promise<void> {
         try {
-            if (mail.from?.text === 'info@bodrumluxurytravel.com') {
+            if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
                 // Convert HTML to text with proper formatting
                 const content = mail.html
                     ? htmlToText(mail.html, {
@@ -518,7 +518,7 @@ export class BookingInboxService implements OnModuleInit {
                 const bookingDetails = this.processBookingEmail(mail, textContent);
 
                 // Log email content and parsed JSON model
-                const logContent = `\nEmail content: ${JSON.stringify(
+                const logContent = `\n{"Email content": ${JSON.stringify(
                     {
                         from: mail.from?.text,
                         to: mail.to?.text,
@@ -527,10 +527,10 @@ export class BookingInboxService implements OnModuleInit {
                     },
                     null,
                     2
-                )}\nJSON model: ${JSON.stringify(bookingDetails, null, 2)}\n`;
+                )}\n,{"JSON model": ${JSON.stringify(bookingDetails, null, 2)}}\n`;
 
                 // Write to email-content-process.log
-                await fs.promises.appendFile('logs/email-content-process-7.log', logContent, 'utf8');
+                await fs.promises.appendFile('logs/email-content-process-8.log', logContent, 'utf8');
 
                 if (!bookingDetails.reservationId) {
                     return;
@@ -570,49 +570,12 @@ export class BookingInboxService implements OnModuleInit {
                 this.log(
                     LOG_LEVEL.INFO,
                     BOOKING_INBOX_ACTION.CONNECT,
-                    'Booking mail olmadığı için atlanıyor: ',
+                    'Booking maili olmadığı için atlanıyor: ',
                     mail.subject
                 );
             }
         } catch (err) {
             console.error('Error processing email:', err);
         }
-    }
-
-    private async getTransactionStatus(emailType: BookingEmailType): Promise<TransactionStatus> {
-        const statuses = await this.transactionService.getTransactionStatuses();
-        let statusCode: string;
-
-        // Log available statuses for debugging
-        console.log(
-            'Available transaction statuses:',
-            statuses.map((s) => s.code)
-        );
-
-        switch (emailType) {
-            case BookingEmailType.NEW:
-                statusCode = 'PENDING'; // Changed from 'NEW' to 'PENDING'
-                break;
-            case BookingEmailType.CANCEL:
-                statusCode = 'CANCELLED';
-                break;
-            case BookingEmailType.UPDATE:
-                statusCode = 'UPDATED';
-                break;
-            case BookingEmailType.COMPLAINT:
-                statusCode = 'COMPLAINT';
-                break;
-            default:
-                statusCode = 'PENDING'; // Changed from 'NEW' to 'PENDING'
-        }
-
-        const status = statuses.find((s) => s.code === statusCode);
-        if (!status) {
-            throw new Error(
-                `Transaction status not found for code: ${statusCode}. Available statuses: ${statuses.map((s) => s.code).join(', ')}`
-            );
-        }
-
-        return status;
     }
 }
