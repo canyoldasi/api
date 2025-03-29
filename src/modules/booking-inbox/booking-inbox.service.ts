@@ -106,6 +106,7 @@ export class BookingInboxService implements OnModuleInit {
     private readonly emailCheckInterval: number;
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
+    private bookingChannelId: string;
 
     constructor(
         private entityManager: EntityManager,
@@ -166,6 +167,15 @@ export class BookingInboxService implements OnModuleInit {
             'Uygulama başladı, ilk e-posta kontrolü yapılıyor...'
         );
         console.log('Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
+
+        // Get booking channel
+        const channels = await this.transactionService.getChannelsLookup();
+        const bookingChannel = channels.find((channel) => channel.code === 'BOOKING');
+        if (!bookingChannel) {
+            throw new Error('Booking channel not found');
+        }
+        this.bookingChannelId = bookingChannel.id.toString();
+
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
             await this.fetchEmails();
@@ -295,7 +305,7 @@ export class BookingInboxService implements OnModuleInit {
 
                                     try {
                                         // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
-                                        await this.processEmail(mail);
+                                        await this.determineEmail(mail);
                                     } catch (e) {
                                         this.log(
                                             LOG_LEVEL.ERROR,
@@ -491,76 +501,78 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * E-posta içeriğini işle ve gerekirse transaction oluştur
      */
-    private async processEmail(mail: ParsedMail): Promise<void> {
+    private async determineEmail(mail: ParsedMail): Promise<void> {
         try {
-            // Convert HTML to text with proper formatting
-            const content = mail.html
-                ? htmlToText(mail.html, {
-                      wordwrap: 130,
-                      selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
-                  })
-                : mail.text || '';
+            if (mail.from?.text === 'info@bodrumluxurytravel.com') {
+                // Convert HTML to text with proper formatting
+                const content = mail.html
+                    ? htmlToText(mail.html, {
+                          wordwrap: 130,
+                          selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
+                      })
+                    : mail.text || '';
 
-            // Clean up extra newlines
-            const textContent = content.replace(/\n\s*\n/g, '\n').trim();
+                // Clean up extra newlines
+                const textContent = content.replace(/\n\s*\n/g, '\n').trim();
 
-            const bookingDetails = this.processBookingEmail(mail, textContent);
+                const bookingDetails = this.processBookingEmail(mail, textContent);
 
-            // Log email content and parsed JSON model
-            const logContent = `\nEmail content: ${JSON.stringify(
-                {
-                    from: mail.from?.text,
-                    to: mail.to?.text,
-                    subject: mail.subject,
-                    text: textContent,
-                },
-                null,
-                2
-            )}\nJSON model: ${JSON.stringify(bookingDetails, null, 2)}\n`;
+                // Log email content and parsed JSON model
+                const logContent = `\nEmail content: ${JSON.stringify(
+                    {
+                        from: mail.from?.text,
+                        to: mail.to?.text,
+                        subject: mail.subject,
+                        text: textContent,
+                    },
+                    null,
+                    2
+                )}\nJSON model: ${JSON.stringify(bookingDetails, null, 2)}\n`;
 
-            // Write to email-content-process.log
-            await fs.promises.appendFile('logs/email-content-process-7.log', logContent, 'utf8');
+                // Write to email-content-process.log
+                await fs.promises.appendFile('logs/email-content-process-7.log', logContent, 'utf8');
 
-            if (!bookingDetails.reservationId) {
-                return;
-            }
+                if (!bookingDetails.reservationId) {
+                    return;
+                }
 
-            // Get booking channel
-            const channels = await this.transactionService.getChannelsLookup();
-            const bookingChannel = channels.find((channel) => channel.code === 'BOOKING');
-            if (!bookingChannel) {
-                return;
-            }
+                // Check for existing transaction
+                const existingTransactions = await this.transactionService.getTransactionsByExternalId(
+                    bookingDetails.reservationId
+                );
+                const existingTransaction = existingTransactions[0];
 
-            // Check for existing transaction
-            const existingTransactions = await this.transactionService.getTransactionsByExternalId(
-                bookingDetails.reservationId
-            );
-            const existingTransaction = existingTransactions[0];
+                // Prepare transaction data
+                const transactionData: CreateUpdateTransactionDTO = {
+                    channelId: this.bookingChannelId,
+                    externalId: bookingDetails.reservationId,
+                    amount: bookingDetails.transferDetails.price.amount || 0,
+                    note: JSON.stringify({
+                        subject: mail.subject,
+                        content: textContent,
+                        bookingDetails: bookingDetails,
+                    }),
+                    //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
+                    //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
+                };
 
-            // Prepare transaction data
-            const transactionData: CreateUpdateTransactionDTO = {
-                channelId: bookingChannel.id,
-                externalId: bookingDetails.reservationId,
-                amount: bookingDetails.transferDetails.price.amount || 0,
-                note: JSON.stringify({
-                    subject: mail.subject,
-                    content: textContent,
-                    bookingDetails: bookingDetails,
-                }),
-                //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
-                //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
-            };
-
-            if (existingTransaction) {
-                // Update existing transaction
-                await this.transactionService.update({
-                    id: existingTransaction.id,
-                    ...transactionData,
-                });
+                if (existingTransaction) {
+                    // Update existing transaction
+                    await this.transactionService.update({
+                        id: existingTransaction.id,
+                        ...transactionData,
+                    });
+                } else {
+                    // Create new transaction
+                    await this.transactionService.create(transactionData);
+                }
             } else {
-                // Create new transaction
-                await this.transactionService.create(transactionData);
+                this.log(
+                    LOG_LEVEL.INFO,
+                    BOOKING_INBOX_ACTION.CONNECT,
+                    'Booking mail olmadığı için atlanıyor: ',
+                    mail.subject
+                );
             }
         } catch (err) {
             console.error('Error processing email:', err);
