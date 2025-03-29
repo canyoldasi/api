@@ -336,7 +336,7 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * Booking.com mail içeriğini parse et
      */
-    private parseBookingEmail(mail: ParsedMail, content: string): BookingDetails {
+    private processBookingEmail(mail: ParsedMail, textContent: string): BookingDetails {
         const details: BookingDetails = {
             reservationId: '',
             emailType: BookingEmailType.NEW,
@@ -403,26 +403,26 @@ export class BookingInboxService implements OnModuleInit {
             throw new Error('Email type not found');
         }
 
-        return this.parseEmailContent(content, details);
+        return this.parseEmailTextContent(textContent, details);
     }
 
-    private parseEmailContent(content: string, details: BookingDetails): BookingDetails {
+    private parseEmailTextContent(textContent: string, details: BookingDetails): BookingDetails {
         const parsedDetails = { ...details };
 
         // Transfer Company Name
-        const companyMatch = content.match(/Dear\s*([^,]+),/i);
+        const companyMatch = textContent.match(/Dear\s*([^,]+),/i);
         if (companyMatch) {
             parsedDetails.transferCompany.name = companyMatch[1].trim();
         }
 
         // Reservation ID
-        const reservationIdMatch = content.match(/Reservation Name\s*([^\n^\s]+)\s*/i);
+        const reservationIdMatch = textContent.match(/Reservation Name\s*([^\n^\s]+)\s*/i);
         if (reservationIdMatch) {
             parsedDetails.reservationId = reservationIdMatch[1].trim();
         }
 
         // Vehicle Type
-        const vehicleTypeMatch = content.match(/Vehicle Type\s*([^\n^\s]+)\s*/i);
+        const vehicleTypeMatch = textContent.match(/Vehicle Type\s*([^\n^\s]+)\s*/i);
         if (vehicleTypeMatch) {
             parsedDetails.transferDetails.vehicleType = vehicleTypeMatch[1]
                 .trim()
@@ -431,56 +431,56 @@ export class BookingInboxService implements OnModuleInit {
         }
 
         // Pickup Location
-        const pickupMatch = content.match(/.*From\s+(.*?)\s+To\s+.*/s);
+        const pickupMatch = textContent.match(/.*From\s+(.*?)\s+To\s+.*/s);
         if (pickupMatch) {
             parsedDetails.transferDetails.pickupLocation = pickupMatch[1].trim();
         }
 
         // Dropoff Location
-        const dropoffMatch = content.match(/.*To\s+(.*?)\s+Date\s+.*/s);
+        const dropoffMatch = textContent.match(/.*To\s+(.*?)\s+Date\s+.*/s);
         if (dropoffMatch) {
             parsedDetails.transferDetails.dropoffLocation = dropoffMatch[1].trim();
         }
 
         // Date and Time
-        const dateTimeMatch = content.match(/.*Date\s+(.*?)\s+Passenger\s+.*/s);
+        const dateTimeMatch = textContent.match(/.*Date\s+(.*?)\s+Passenger\s+.*/s);
         if (dateTimeMatch) {
             parsedDetails.transferDetails.scheduledTime = dateTimeMatch[1].trim();
         }
 
         // Passenger Name
-        const nameMatch = content.match(/.*Passenger\s+(.*?)\s+Phone\sNumber\s+.*/s);
+        const nameMatch = textContent.match(/.*Passenger\s+(.*?)\s+Phone\sNumber\s+.*/s);
         if (nameMatch) {
             parsedDetails.account.fullName = nameMatch[1].trim();
         }
 
         // Flight number
-        const flightNumberMatch = content.match(/.*Flight\sNumber\s+(.*?)\s+Price\s+.*/s);
+        const flightNumberMatch = textContent.match(/.*Flight\sNumber\s+(.*?)\s+Price\s+.*/s);
         if (flightNumberMatch) {
             parsedDetails.flightDetails.flightNumber = flightNumberMatch[1].trim();
         }
 
         // Phone Number
-        const phoneMatch = content.match(/.*Phone Number\s+(.*?)\s+Passenger Count\s+.*/);
+        const phoneMatch = textContent.match(/.*Phone Number\s+(.*?)\s+Passenger Count\s+.*/);
         if (phoneMatch) {
             parsedDetails.account.phoneNumber = phoneMatch[1].trim();
         }
 
         // Passenger Count
-        const passengerCountMatch = content.match(/.*Passenger\sCount\s+(.*?)\s+Flight\sNumber\s+.*/);
+        const passengerCountMatch = textContent.match(/.*Passenger\sCount\s+(.*?)\s+Flight\sNumber\s+.*/);
         if (passengerCountMatch) {
             parsedDetails.account.passengerCount = parseInt(passengerCountMatch[1].trim());
         }
 
         // Price
-        const priceMatch = content.match(/.*Price\s+(.*?)\s+Comments\s+.*/);
+        const priceMatch = textContent.match(/.*Price\s+(.*?)\s+Comments\s+.*/);
         if (priceMatch) {
             parsedDetails.transferDetails.price.amount = parseFloat(priceMatch[1].replace(',', '.'));
             parsedDetails.transferDetails.price.currency = 'EUR';
         }
 
         // Comments (Notes)
-        const commentsMatch = content.match(/.*Comments\s+(.*?)\s+This\sis\san.*/);
+        const commentsMatch = textContent.match(/.*Comments\s+(.*?)\s+This\sis\san.*/);
         if (commentsMatch) {
             parsedDetails.transferDetails.notes = commentsMatch[1].trim();
         }
@@ -500,11 +500,11 @@ export class BookingInboxService implements OnModuleInit {
                       selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
                   })
                 : mail.text || '';
-            
-            // Clean up extra newlines
-            const cleanedContent = content.replace(/\n\s*\n/g, '\n').trim();
 
-            const bookingDetails = this.parseBookingEmail(mail, cleanedContent);
+            // Clean up extra newlines
+            const textContent = content.replace(/\n\s*\n/g, '\n').trim();
+
+            const bookingDetails = this.processBookingEmail(mail, textContent);
 
             // Log email content and parsed JSON model
             const logContent = `\nEmail content: ${JSON.stringify(
@@ -512,7 +512,7 @@ export class BookingInboxService implements OnModuleInit {
                     from: mail.from?.text,
                     to: mail.to?.text,
                     subject: mail.subject,
-                    text: cleanedContent,
+                    text: textContent,
                 },
                 null,
                 2
@@ -545,7 +545,7 @@ export class BookingInboxService implements OnModuleInit {
                 amount: bookingDetails.transferDetails.price.amount || 0,
                 note: JSON.stringify({
                     subject: mail.subject,
-                    content: cleanedContent,
+                    content: textContent,
                     bookingDetails: bookingDetails,
                 }),
                 //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
