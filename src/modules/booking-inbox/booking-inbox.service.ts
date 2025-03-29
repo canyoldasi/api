@@ -10,32 +10,79 @@ import { ParsedMail } from 'mailparser';
 import { TransactionStatus } from '../../entities/transaction-status.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { htmlToText } from 'html-to-text';
 
 enum BookingEmailType {
-    NEW_CONFIRMATION = 'NEW_CONFIRMATION',
-    UPDATED = 'UPDATED',
-    FLIGHT_INFO_CHANGED = 'FLIGHT_INFO_CHANGED',
-    FREE_CANCELLATION = 'FREE_CANCELLATION',
+    NEW = 'NEW',
+    CANCEL = 'CANCEL',
+    UPDATE = 'UPDATE',
+    COMPLAINT = 'COMPLAINT',
 }
 
 interface BookingDetails {
-    bookingId: string;
-    type: BookingEmailType;
-    category?: string;
-    passengerCount?: number;
-    pickupLocation?: string;
-    dropoffLocation?: string;
-    pickupDate?: Date;
-    pickupTime?: string;
-    distance?: string;
-    passengerName?: string;
-    passengerPhone?: string;
-    driverNotes?: string;
-    amount?: number;
-    currency?: string;
-    flightNumber?: string;
-    originAirport?: string;
-    updatedFields?: Record<string, string>;
+    reservationId: string;
+    emailType: BookingEmailType;
+    status: 'ACTIVE' | 'CANCELLED';
+    createdAt: Date;
+    account: {
+        fullName: string;
+        phoneNumber: string;
+        passengerCount: number;
+    };
+    transferDetails: {
+        vehicleType:
+            | 'STANDARD'
+            | 'EXECUTIVE'
+            | 'EXECUTIVE_PEOPLE_CARRIER'
+            | 'PEOPLE_CARRIER'
+            | 'LARGE_PEOPLE_CARRIER'
+            | 'MINIBUS';
+        pickupLocation: string;
+        dropoffLocation: string;
+        scheduledTime: string;
+        price: {
+            amount: number;
+            currency: string;
+        };
+        notes?: string;
+    };
+    flightDetails: {
+        flightNumber: string;
+        direction: 'ARRIVAL' | 'DEPARTURE';
+    };
+    transferCompany: {
+        name: string;
+        email: string;
+    };
+    specialRequests: {
+        wheelchair: boolean;
+        childSeat: {
+            required: boolean;
+            age?: number;
+        };
+        nameSign: {
+            required: boolean;
+            text?: string;
+            language?: 'ENGLISH' | 'TURKISH' | 'RUSSIAN' | 'ARABIC';
+        };
+        meetingPoint?: 'RECEPTION' | 'TERMINAL';
+        notes?: string;
+    };
+    complaintDetails: {
+        hasComplaint: boolean;
+        complaintId?: string;
+        status?: 'PENDING' | 'INVESTIGATING' | 'RESOLVED' | 'REJECTED';
+        resolution?: string;
+    };
+    cancellationDetails: {
+        isCancelled: boolean;
+        cancelledAt?: Date;
+    };
+    metadata: {
+        emailSubject: string;
+        emailFrom: string;
+        emailTo: string;
+    };
 }
 
 // Email servis log action sabitleri
@@ -60,7 +107,6 @@ export class BookingInboxService implements OnModuleInit {
     private readonly emailKeywords: string[];
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
-    private readonly logFilePath: string;
 
     constructor(
         private entityManager: EntityManager,
@@ -90,15 +136,6 @@ export class BookingInboxService implements OnModuleInit {
         this.imap.once('error', (err) => {
             this.log(LOG_LEVEL.ERROR, BOOKING_INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
         });
-
-        // Log dosyası yolunu belirle
-        this.logFilePath = path.join(process.cwd(), 'logs', 'email-content.log');
-
-        // Logs klasörünü oluştur (yoksa)
-        const logsDir = path.join(process.cwd(), 'logs');
-        if (!fs.existsSync(logsDir)) {
-            fs.mkdirSync(logsDir);
-        }
     }
 
     /**
@@ -214,7 +251,7 @@ export class BookingInboxService implements OnModuleInit {
 
                     // Belli süre içindeki tüm e-postaları al (okunmuş ve okunmamış)
                     const startDate = new Date();
-                    startDate.setDate(startDate.getDate() - 5);
+                    startDate.setDate(startDate.getDate() - 1);
 
                     this.imap.search([['SINCE', startDate]], (err, results) => {
                         if (err) {
@@ -263,20 +300,6 @@ export class BookingInboxService implements OnModuleInit {
                                     try {
                                         // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
                                         await this.processEmail(mail);
-
-                                        // E-posta içeriğini dosyaya yaz
-                                        const logContent = `\nEmail content: ${JSON.stringify(
-                                            {
-                                                from: mail.from?.text,
-                                                to: mail.to?.text,
-                                                subject: mail.subject,
-                                                text: mail.text,
-                                            },
-                                            null,
-                                            2
-                                        )}\n`;
-
-                                        fs.appendFileSync(this.logFilePath, logContent);
                                     } catch (e) {
                                         this.log(
                                             LOG_LEVEL.ERROR,
@@ -318,171 +341,157 @@ export class BookingInboxService implements OnModuleInit {
      * Booking.com mail içeriğini parse et
      */
     private parseBookingEmail(mail: ParsedMail): BookingDetails {
+        // Convert HTML to text with proper formatting
+        const content = mail.html
+            ? htmlToText(mail.html, {
+                  wordwrap: 130,
+                  selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
+              })
+            : mail.text || '';
+
         const details: BookingDetails = {
-            bookingId: '',
-            type: BookingEmailType.NEW_CONFIRMATION,
+            reservationId: '',
+            emailType: BookingEmailType.NEW,
+            status: 'ACTIVE',
+            createdAt: new Date(),
+            account: {
+                fullName: '',
+                phoneNumber: '',
+                passengerCount: 0,
+            },
+            transferDetails: {
+                vehicleType: 'STANDARD',
+                pickupLocation: '',
+                dropoffLocation: '',
+                scheduledTime: null,
+                price: {
+                    amount: 0,
+                    currency: '',
+                },
+            },
+            flightDetails: {
+                flightNumber: '',
+                direction: 'ARRIVAL',
+            },
+            transferCompany: {
+                name: '',
+                email: mail.to?.text || '',
+            },
+            specialRequests: {
+                wheelchair: false,
+                childSeat: {
+                    required: false,
+                },
+                nameSign: {
+                    required: false,
+                },
+            },
+            complaintDetails: {
+                hasComplaint: false,
+            },
+            cancellationDetails: {
+                isCancelled: false,
+            },
+            metadata: {
+                emailSubject: mail.subject || '',
+                emailFrom: mail.from?.text || '',
+                emailTo: mail.to?.text || '',
+            },
         };
 
         // Determine email type from subject
-        if (mail.subject.includes('booking NEW confirmation')) {
-            details.type = BookingEmailType.NEW_CONFIRMATION;
-        } else if (mail.subject.includes('Flight information has changed')) {
-            details.type = BookingEmailType.FLIGHT_INFO_CHANGED;
-        } else if (mail.subject.includes('free cancellation')) {
-            details.type = BookingEmailType.FREE_CANCELLATION;
-        } else if (mail.subject.includes('updated')) {
-            details.type = BookingEmailType.UPDATED;
+        if (mail.subject?.toLowerCase().includes('new') && mail.subject?.toLowerCase().includes('reservation')) {
+            details.emailType = BookingEmailType.NEW;
+        } else if (mail.subject?.toLowerCase().includes('cancel')) {
+            details.emailType = BookingEmailType.CANCEL;
+        } else if (mail.subject?.toLowerCase().includes('update')) {
+            details.emailType = BookingEmailType.UPDATE;
+        } else if (
+            mail.subject?.toLowerCase().includes('complaint') ||
+            mail.subject?.toLowerCase().includes('investigation')
+        ) {
+            details.emailType = BookingEmailType.COMPLAINT;
+        } else {
+            throw new Error('Email type not found');
         }
 
-        // Extract booking ID
-        const bookingIdMatch = mail.text.match(/Booking ID:?\s*#?(\d+)/i);
-        if (bookingIdMatch) {
-            details.bookingId = bookingIdMatch[1];
-        }
-
-        // Parse based on email type
-        switch (details.type) {
-            case BookingEmailType.NEW_CONFIRMATION:
-                return this.parseNewConfirmation(mail.text, details);
-            case BookingEmailType.FLIGHT_INFO_CHANGED:
-                return this.parseFlightInfoChanged(mail.text, details);
-            case BookingEmailType.UPDATED:
-                return this.parseUpdatedBooking(mail.text, details);
-            case BookingEmailType.FREE_CANCELLATION:
-                return this.parseFreeCancellation(mail.text, details);
-            default:
-                return details;
-        }
+        return this.parseEmailContent(content, details);
     }
 
-    private parseNewConfirmation(content: string, details: BookingDetails): BookingDetails {
+    private parseEmailContent(content: string, details: BookingDetails): BookingDetails {
         const parsedDetails = { ...details };
 
-        // Category
-        const categoryMatch = content.match(/Category:\s*\*([^*]+)\*/i);
-        if (categoryMatch) {
-            parsedDetails.category = categoryMatch[1];
+        // Transfer Company Name
+        const companyMatch = content.match(/Dear\s*([^,]+),/i);
+        if (companyMatch) {
+            parsedDetails.transferCompany.name = companyMatch[1].trim();
         }
 
-        // Passenger count
-        const passengerCountMatch = content.match(/Number of Passengers:\s*\*(\d+)\*/i);
-        if (passengerCountMatch) {
-            parsedDetails.passengerCount = parseInt(passengerCountMatch[1]);
+        // Reservation ID
+        const reservationIdMatch = content.match(/Reservation Name\s*([^\n^\s]+)\s*/i);
+        if (reservationIdMatch) {
+            parsedDetails.reservationId = reservationIdMatch[1].trim();
         }
 
-        // Locations
-        const pickupMatch = content.match(/Pick-up location:\s*([^\n]+)/i);
+        // Vehicle Type
+        const vehicleTypeMatch = content.match(/Vehicle Type\s*([^\n^\s]+)\s*/i);
+        if (vehicleTypeMatch) {
+            parsedDetails.transferDetails.vehicleType = vehicleTypeMatch[1]
+                .trim()
+                .toUpperCase()
+                .replace(/\s+/g, '_') as any;
+        }
+
+        // Pickup Location
+        const pickupMatch = content.match(/.*From\s+(.*?)\s+To\s+.*/s);
         if (pickupMatch) {
-            parsedDetails.pickupLocation = pickupMatch[1].trim();
+            parsedDetails.transferDetails.pickupLocation = pickupMatch[1].trim();
         }
 
-        const dropoffMatch = content.match(/Drop-off location:\s*([^\n]+)/i);
+        // Dropoff Location
+        const dropoffMatch = content.match(/.*To\s+(.*?)\s+Date\s+.*/s);
         if (dropoffMatch) {
-            parsedDetails.dropoffLocation = dropoffMatch[1].trim();
+            parsedDetails.transferDetails.dropoffLocation = dropoffMatch[1].trim();
         }
 
-        // Date and time
-        const dateMatch = content.match(/Pick-up date:\s*([^\n]+)/i);
-        if (dateMatch) {
-            parsedDetails.pickupDate = new Date(dateMatch[1].trim());
+        // Date and Time
+        const dateTimeMatch = content.match(/.*Date\s+(.*?)\s+Passenger\s+.*/s);
+        if (dateTimeMatch) {
+            parsedDetails.transferDetails.scheduledTime = dateTimeMatch[1].trim();
         }
 
-        const timeMatch = content.match(/Pick-up time:\s*([^\n]+)/i);
-        if (timeMatch) {
-            parsedDetails.pickupTime = timeMatch[1].trim();
-        }
-
-        // Distance
-        const distanceMatch = content.match(/Distance:\s*([^\n]+)/i);
-        if (distanceMatch) {
-            parsedDetails.distance = distanceMatch[1].trim();
-        }
-
-        // Passenger info
-        const nameMatch = content.match(/Name:\s*([^\n]+)/i);
+        // Passenger Name
+        const nameMatch = content.match(/.*Passenger\s+(.*?)\s+Phone\sNumber\s+.*/s);
         if (nameMatch) {
-            parsedDetails.passengerName = nameMatch[1].trim();
+            parsedDetails.account.fullName = nameMatch[1].trim();
         }
 
-        const phoneMatch = content.match(/Mobile number:\s*([^\n]+)/i);
+        // Phone Number
+        const phoneMatch = content.match(/.*Phone Number\s+(.*?)\s+Passenger Count\s+.*/);
         if (phoneMatch) {
-            parsedDetails.passengerPhone = phoneMatch[1].trim();
+            parsedDetails.account.phoneNumber = phoneMatch[1].trim();
         }
 
-        // Driver notes
-        const notesMatch = content.match(/Information for driver:\s*([^\n]+)/i);
-        if (notesMatch) {
-            parsedDetails.driverNotes = notesMatch[1].trim();
+        // Passenger Count
+        const passengerCountMatch = content.match(/.*Passenger\sCount\s+(.*?)\s+Flight\sNumber\s+.*/);
+        if (passengerCountMatch) {
+            parsedDetails.account.passengerCount = parseInt(passengerCountMatch[1].trim());
         }
 
-        // Amount
-        const amountMatch = content.match(/Journey charge:\s*([A-Z]{3})\s*([\d.]+)/i);
-        if (amountMatch) {
-            parsedDetails.currency = amountMatch[1];
-            parsedDetails.amount = parseFloat(amountMatch[2]);
+        // Price
+        const priceMatch = content.match(/.*Price\s+(.*?)\s+Comments\s+.*/);
+        if (priceMatch) {
+            parsedDetails.transferDetails.price.amount = parseFloat(priceMatch[1].replace(',', '.'));
+            parsedDetails.transferDetails.price.currency = 'EUR';
         }
 
-        return parsedDetails;
-    }
-
-    private parseFlightInfoChanged(content: string, details: BookingDetails): BookingDetails {
-        const parsedDetails = { ...details };
-
-        // Flight number and origin
-        const flightMatch = content.match(/Flight number:\s*([^\n]+)/i);
-        if (flightMatch) {
-            const flightInfo = flightMatch[1].trim();
-            const [number, origin] = flightInfo.split('Origin Airport');
-            parsedDetails.flightNumber = number.trim();
-            parsedDetails.originAirport = origin?.trim();
-        }
-
-        // Passenger name
-        const nameMatch = content.match(/Name:\s*([^\n]+)/i);
-        if (nameMatch) {
-            parsedDetails.passengerName = nameMatch[1].trim();
-        }
-
-        // Locations
-        const pickupMatch = content.match(/Pick-up location:\s*([^\n]+)/i);
-        if (pickupMatch) {
-            parsedDetails.pickupLocation = pickupMatch[1].trim();
-        }
-
-        const dropoffMatch = content.match(/Drop-off location:\s*([^\n]+)/i);
-        if (dropoffMatch) {
-            parsedDetails.dropoffLocation = dropoffMatch[1].trim();
+        // Comments (Notes)
+        const commentsMatch = content.match(/.*Comments\s+(.*?)\s+This\sis\san.*/);
+        if (commentsMatch) {
+            parsedDetails.transferDetails.notes = commentsMatch[1].trim();
         }
 
         return parsedDetails;
-    }
-
-    private parseUpdatedBooking(content: string, details: BookingDetails): BookingDetails {
-        const parsedDetails = { ...details };
-        parsedDetails.updatedFields = {};
-
-        // Find the table with updated information
-        const tableMatch = content.match(/<table[^>]*>[\s\S]*?<\/table>/i);
-        if (tableMatch) {
-            const tableContent = tableMatch[0];
-
-            // Extract field name and new value
-            const fieldMatch = tableContent.match(
-                /<td[^>]*><strong>([^<]+)<\/strong><\/td>\s*<td[^>]*><strong>([^<]+)<\/strong><\/td>/i
-            );
-            if (fieldMatch) {
-                const [, fieldName, newValue] = fieldMatch;
-                parsedDetails.updatedFields[fieldName.trim()] = newValue.trim();
-            }
-        }
-
-        return parsedDetails;
-    }
-
-    private parseFreeCancellation(content: string, details: BookingDetails): BookingDetails {
-        // Add specific parsing for free cancellation emails if needed
-        // Currently, we only need the booking ID which is already extracted
-        return details;
     }
 
     /**
@@ -490,24 +499,32 @@ export class BookingInboxService implements OnModuleInit {
      */
     private async processEmail(mail: ParsedMail): Promise<void> {
         try {
-            // Check if email is from Booking.com
-            const bookingEmail = 'noreply.taxi@booking.com';
-            if (!mail.from?.text.includes(bookingEmail) && !mail.text.includes(bookingEmail)) {
-                /*console.log('Skipping non-Booking.com email:', {
+            // Convert HTML to text with proper formatting
+            const content = mail.html
+                ? htmlToText(mail.html, {
+                      wordwrap: 130,
+                      selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
+                  })
+                : mail.text || '';
+
+            const bookingDetails = this.parseBookingEmail(mail);
+
+            // Log email content and parsed JSON model
+            const logContent = `\nEmail content: ${JSON.stringify(
+                {
                     from: mail.from?.text,
                     to: mail.to?.text,
                     subject: mail.subject,
-                    text: mail.text,
-                });*/
-                return;
-            }
+                    text: content,
+                },
+                null,
+                2
+            )}\nJSON model: ${JSON.stringify(bookingDetails, null, 2)}\n`;
 
-            // Parse email content
-            const content = mail.text || mail.html || '';
-            const bookingDetails = this.parseBookingEmail(mail);
+            // Write to email-content-process.log
+            await fs.promises.appendFile('logs/email-content-process-6.log', logContent, 'utf8');
 
-            if (!bookingDetails.bookingId) {
-                //console.log('No booking ID found in email');
+            if (!bookingDetails.reservationId) {
                 return;
             }
 
@@ -515,28 +532,27 @@ export class BookingInboxService implements OnModuleInit {
             const channels = await this.transactionService.getChannelsLookup();
             const bookingChannel = channels.find((channel) => channel.code === 'BOOKING');
             if (!bookingChannel) {
-                //console.log('Booking channel not found');
                 return;
             }
 
             // Check for existing transaction
             const existingTransactions = await this.transactionService.getTransactionsByExternalId(
-                bookingDetails.bookingId
+                bookingDetails.reservationId
             );
             const existingTransaction = existingTransactions[0];
 
             // Prepare transaction data
             const transactionData: CreateUpdateTransactionDTO = {
                 channelId: bookingChannel.id,
-                externalId: bookingDetails.bookingId,
-                amount: bookingDetails.amount || 0,
+                externalId: bookingDetails.reservationId,
+                amount: bookingDetails.transferDetails.price.amount || 0,
                 note: JSON.stringify({
                     subject: mail.subject,
                     content: content,
                     bookingDetails: bookingDetails,
                 }),
-                transactionDate: bookingDetails.pickupDate || new Date(),
-                statusId: (await this.getTransactionStatus(bookingDetails.type)).id,
+                //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
+                //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
             };
 
             if (existingTransaction) {
@@ -545,22 +561,12 @@ export class BookingInboxService implements OnModuleInit {
                     id: existingTransaction.id,
                     ...transactionData,
                 });
-                /*console.log('Updated transaction:', {
-                    id: existingTransaction.id,
-                    externalId: bookingDetails.bookingId,
-                    type: bookingDetails.type,
-                });*/
             } else {
                 // Create new transaction
-                const newTransaction = await this.transactionService.create(transactionData);
-                /*console.log('Created new transaction:', {
-                    id: newTransaction.id,
-                    externalId: bookingDetails.bookingId,
-                    type: bookingDetails.type,
-                });*/
+                await this.transactionService.create(transactionData);
             }
-        } catch (error) {
-            //console.error('Error processing email:', error);
+        } catch (err) {
+            console.error('Error processing email:', err);
         }
     }
 
@@ -568,26 +574,34 @@ export class BookingInboxService implements OnModuleInit {
         const statuses = await this.transactionService.getTransactionStatuses();
         let statusCode: string;
 
+        // Log available statuses for debugging
+        console.log(
+            'Available transaction statuses:',
+            statuses.map((s) => s.code)
+        );
+
         switch (emailType) {
-            case BookingEmailType.NEW_CONFIRMATION:
-                statusCode = 'NEW';
+            case BookingEmailType.NEW:
+                statusCode = 'PENDING'; // Changed from 'NEW' to 'PENDING'
                 break;
-            case BookingEmailType.UPDATED:
-                statusCode = 'UPDATED';
-                break;
-            case BookingEmailType.FLIGHT_INFO_CHANGED:
-                statusCode = 'FLIGHT_UPDATED';
-                break;
-            case BookingEmailType.FREE_CANCELLATION:
+            case BookingEmailType.CANCEL:
                 statusCode = 'CANCELLED';
                 break;
+            case BookingEmailType.UPDATE:
+                statusCode = 'UPDATED';
+                break;
+            case BookingEmailType.COMPLAINT:
+                statusCode = 'COMPLAINT';
+                break;
             default:
-                statusCode = 'NEW';
+                statusCode = 'PENDING'; // Changed from 'NEW' to 'PENDING'
         }
 
         const status = statuses.find((s) => s.code === statusCode);
         if (!status) {
-            throw new Error(`Transaction status not found for code: ${statusCode}`);
+            throw new Error(
+                `Transaction status not found for code: ${statusCode}. Available statuses: ${statuses.map((s) => s.code).join(', ')}`
+            );
         }
 
         return status;
