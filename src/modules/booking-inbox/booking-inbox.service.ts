@@ -104,7 +104,6 @@ export enum BOOKING_INBOX_ACTION {
 export class BookingInboxService implements OnModuleInit {
     private imap: IMAP;
     private readonly emailCheckInterval: number;
-    private readonly emailKeywords: string[];
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
 
@@ -118,9 +117,6 @@ export class BookingInboxService implements OnModuleInit {
             process.env.BL_EMAIL_CHECK_INTERVAL || '15', // Varsayılan 15 dakika
             10
         );
-
-        // İşlem oluşturmak için aranacak anahtar kelimeleri al
-        this.emailKeywords = (process.env.BL_EMAIL_KEYWORDS || 'sipariş,bağış,ödeme').split(',');
 
         this.imap = new IMAP({
             user: process.env.BL_EMAIL_USER,
@@ -340,15 +336,7 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * Booking.com mail içeriğini parse et
      */
-    private parseBookingEmail(mail: ParsedMail): BookingDetails {
-        // Convert HTML to text with proper formatting
-        const content = mail.html
-            ? htmlToText(mail.html, {
-                  wordwrap: 130,
-                  selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
-              })
-            : mail.text || '';
-
+    private parseBookingEmail(mail: ParsedMail, content: string): BookingDetails {
         const details: BookingDetails = {
             reservationId: '',
             emailType: BookingEmailType.NEW,
@@ -466,6 +454,12 @@ export class BookingInboxService implements OnModuleInit {
             parsedDetails.account.fullName = nameMatch[1].trim();
         }
 
+        // Flight number
+        const flightNumberMatch = content.match(/.*Flight\sNumber\s+(.*?)\s+Price\s+.*/s);
+        if (flightNumberMatch) {
+            parsedDetails.flightDetails.flightNumber = flightNumberMatch[1].trim();
+        }
+
         // Phone Number
         const phoneMatch = content.match(/.*Phone Number\s+(.*?)\s+Passenger Count\s+.*/);
         if (phoneMatch) {
@@ -506,8 +500,11 @@ export class BookingInboxService implements OnModuleInit {
                       selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
                   })
                 : mail.text || '';
+            
+            // Clean up extra newlines
+            const cleanedContent = content.replace(/\n\s*\n/g, '\n').trim();
 
-            const bookingDetails = this.parseBookingEmail(mail);
+            const bookingDetails = this.parseBookingEmail(mail, cleanedContent);
 
             // Log email content and parsed JSON model
             const logContent = `\nEmail content: ${JSON.stringify(
@@ -515,14 +512,14 @@ export class BookingInboxService implements OnModuleInit {
                     from: mail.from?.text,
                     to: mail.to?.text,
                     subject: mail.subject,
-                    text: content,
+                    text: cleanedContent,
                 },
                 null,
                 2
             )}\nJSON model: ${JSON.stringify(bookingDetails, null, 2)}\n`;
 
             // Write to email-content-process.log
-            await fs.promises.appendFile('logs/email-content-process-6.log', logContent, 'utf8');
+            await fs.promises.appendFile('logs/email-content-process-7.log', logContent, 'utf8');
 
             if (!bookingDetails.reservationId) {
                 return;
@@ -548,7 +545,7 @@ export class BookingInboxService implements OnModuleInit {
                 amount: bookingDetails.transferDetails.price.amount || 0,
                 note: JSON.stringify({
                     subject: mail.subject,
-                    content: content,
+                    content: cleanedContent,
                     bookingDetails: bookingDetails,
                 }),
                 //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
