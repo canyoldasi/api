@@ -167,7 +167,7 @@ export class BookingInboxService implements OnModuleInit {
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
-            await this.fetchEmails();
+            //await this.fetchEmails();
             console.log('Başlangıç e-posta kontrolü başarıyla tamamlandı');
         } catch (error) {
             console.error('Başlangıç e-posta kontrolü sırasında hata oluştu', error);
