@@ -303,6 +303,10 @@ export class TransactionService {
             });
         }
 
+        if (filters.productIds?.length > 0) {
+            queryBuilder.andWhere('product.id IN (:...productIds)', { productIds: filters.productIds });
+        }
+
         // Get total count before applying pagination
         const itemCount = await queryBuilder.getCount();
 

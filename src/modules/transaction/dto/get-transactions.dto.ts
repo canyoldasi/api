@@ -50,4 +50,7 @@ export class GetTransactionsDTO extends PaginationBaseDTO {
 
     @Field(() => String, { nullable: true })
     cancelDateEnd?: string;
+
+    @Field(() => [String], { nullable: true })
+    productIds?: string[];
 }
