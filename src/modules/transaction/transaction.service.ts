@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Channel } from '../../entities/channel.entity';
 import { TransactionLocation } from '../../entities/transaction-location.entity';
+import { Currency } from '../../entities/currency.entity';
 
 @Injectable()
 export class TransactionService {
@@ -26,7 +27,9 @@ export class TransactionService {
         @InjectRepository(Transaction)
         private transactionRepository: Repository<Transaction>,
         @InjectRepository(Channel)
-        private channelRepository: Repository<Channel>
+        private channelRepository: Repository<Channel>,
+        @InjectRepository(Currency)
+        private currencyRepository: Repository<Currency>
     ) {}
 
     async create(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
@@ -45,6 +48,7 @@ export class TransactionService {
                 city: dto.cityId ? { id: dto.cityId } : null,
                 county: dto.countyId ? { id: dto.countyId } : null,
                 district: dto.districtId ? { id: dto.districtId } : null,
+                currency: dto.currencyId ? ({ id: dto.currencyId } as DeepPartial<Currency>) : null,
             };
 
             const savedEntity = await manager.save(Transaction, createData);
@@ -175,6 +179,10 @@ export class TransactionService {
                 updateData.externalId = dto.externalId;
             }
 
+            if (dto.currencyId !== undefined) {
+                updateData.currency = dto.currencyId ? { id: dto.currencyId } : null;
+            }
+
             // Transaction'ı güncelle
             await manager.update(Transaction, dto.id, updateData);
 
@@ -251,6 +259,7 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.city', 'city')
             .leftJoinAndSelect('transaction.county', 'county')
             .leftJoinAndSelect('transaction.district', 'district')
+            .leftJoinAndSelect('transaction.currency', 'currency')
             .where('transaction.id = :id', { id })
             .andWhere('transaction.deletedAt IS NULL')
             .getOne();
@@ -271,6 +280,7 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.county', 'county')
             .leftJoinAndSelect('transaction.district', 'district')
             .leftJoinAndSelect('transaction.channel', 'channel')
+            .leftJoinAndSelect('transaction.currency', 'currency')
             .where('transaction.deletedAt IS NULL');
 
         // Filtreleri uygula

@@ -12,6 +12,7 @@ import { County } from './county.entity';
 import { District } from './district.entity';
 import { Channel } from './channel.entity';
 import { TransactionLocation } from './transaction-location.entity';
+import { Currency } from './currency.entity';
 
 @ObjectType()
 @Entity()
@@ -103,4 +104,8 @@ export class Transaction extends BaseEntity {
     @OneToMany(() => TransactionLocation, (location) => location.transaction)
     @Field(() => [TransactionLocation], { nullable: true })
     locations?: TransactionLocation[];
+
+    @ManyToOne(() => Currency, (currency) => currency.transactions, { nullable: true })
+    @Field(() => Currency, { nullable: true })
+    currency?: Currency;
 }

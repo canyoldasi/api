@@ -14,6 +14,7 @@ import { TransactionStatus } from '../../entities/transaction-status.entity';
 import { TransactionProduct } from '../../entities/transaction-product.entity';
 import { TransactionType } from '../../entities/transaction-type.entity';
 import { Channel } from '../../entities/channel.entity';
+import { Currency } from '../../entities/currency.entity';
 
 const PaginatedTransaction = Paginated(Transaction);
 
@@ -99,5 +100,13 @@ export class TransactionResolver {
             return transaction.transactionProducts;
         }
         return [];
+    }
+
+    @ResolveField('currency', () => Currency, { nullable: true })
+    async getCurrencyOfTransaction(@Parent() transaction: Transaction) {
+        if (transaction.currency) {
+            return transaction.currency;
+        }
+        return null;
     }
 }

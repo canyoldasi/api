@@ -29,6 +29,9 @@ export class CreateUpdateTransactionDTO {
     amount: number;
 
     @Field({ nullable: true })
+    currencyId?: string;
+
+    @Field({ nullable: true })
     countryId?: string;
 
     @Field({ nullable: true })
