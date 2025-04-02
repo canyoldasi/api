@@ -104,7 +104,8 @@ export class BookingInboxService implements OnModuleInit {
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
     private bookingChannelId: string;
     private bookingTransactionTypeId: string;
-    private bookingStatusId: string;
+    private bookingNewStatusId: string;
+    private bookingCancelStatusId: string;
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -181,13 +182,23 @@ export class BookingInboxService implements OnModuleInit {
 
         // Get booking status
         const transactionStatuses = await this.transactionService.getTransactionStatuses();
-        const bookingTransactionStatus = transactionStatuses.find(
+
+        const bookingTransactionNewStatus = transactionStatuses.find(
             (transactionStatus) => transactionStatus.code === 'N'
         );
-        if (!bookingTransactionStatus) {
+        if (!bookingTransactionNewStatus) {
             throw new Error('Booking transaction status not found');
         }
-        this.bookingStatusId = bookingTransactionStatus.id.toString();
+        this.bookingNewStatusId = bookingTransactionNewStatus.id.toString();
+
+        // Get booking status
+        const bookingTransactionCancelStatus = transactionStatuses.find(
+            (transactionStatus) => transactionStatus.code === 'A'
+        );
+        if (!bookingTransactionCancelStatus) {
+            throw new Error('Booking transaction status not found');
+        }
+        this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
@@ -572,7 +583,7 @@ export class BookingInboxService implements OnModuleInit {
                 const transactionData: CreateUpdateTransactionDTO = {
                     no: bookingDetails.reservationId,
                     typeId: this.bookingTransactionTypeId,
-                    statusId: existingTransaction ? existingTransaction.status?.id : this.bookingStatusId,
+                    statusId: existingTransaction ? existingTransaction.status?.id : this.bookingNewStatusId,
                     channelId: this.bookingChannelId,
                     externalId: bookingDetails.reservationId,
                     amount: bookingDetails.transferDetails.price.amount || 0,
@@ -583,6 +594,9 @@ export class BookingInboxService implements OnModuleInit {
                 };
 
                 if (existingTransaction) {
+                    if (bookingDetails.emailType === BookingEmailType.CANCEL) {
+                        transactionData.statusId = this.bookingCancelStatusId;
+                    }
                     // Update existing transaction
                     await this.transactionService.update({
                         id: existingTransaction.id,
