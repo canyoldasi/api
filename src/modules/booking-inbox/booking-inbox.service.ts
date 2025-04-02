@@ -167,7 +167,7 @@ export class BookingInboxService implements OnModuleInit {
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
-            //await this.fetchEmails();
+            await this.fetchEmails();
             console.log('Başlangıç e-posta kontrolü başarıyla tamamlandı');
         } catch (error) {
             console.error('Başlangıç e-posta kontrolü sırasında hata oluştu', error);
@@ -489,19 +489,22 @@ export class BookingInboxService implements OnModuleInit {
                 const bookingDetails = this.processBookingEmail(mail, textContent);
 
                 // Log email content and parsed JSON model
-                const logContent = `\n{"Email content": ${JSON.stringify(
+                const logContent = JSON.stringify(
                     {
-                        from: mail.from?.text,
-                        to: mail.to?.text,
-                        subject: mail.subject,
-                        text: textContent,
+                        email: {
+                            from: mail.from?.text,
+                            to: mail.to?.text,
+                            subject: mail.subject,
+                            text: textContent,
+                        },
+                        jsonModel: bookingDetails,
                     },
                     null,
                     2
-                )}\n,{"JSON model": ${JSON.stringify(bookingDetails, null, 2)}}\n`;
+                );
 
                 // Write to email-content-process.log
-                await fs.promises.appendFile('logs/email-content-process-9.log', logContent, 'utf8');
+                await fs.promises.appendFile('logs/email-content-process-01.log', logContent, 'utf8');
 
                 if (!bookingDetails.reservationId) {
                     return;
@@ -518,11 +521,7 @@ export class BookingInboxService implements OnModuleInit {
                     channelId: this.bookingChannelId,
                     externalId: bookingDetails.reservationId,
                     amount: bookingDetails.transferDetails.price.amount || 0,
-                    note: JSON.stringify({
-                        subject: mail.subject,
-                        content: textContent,
-                        bookingDetails: bookingDetails,
-                    }),
+                    note: logContent,
                     //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
                     //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
                 };
