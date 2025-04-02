@@ -10,26 +10,16 @@ import { TransactionProduct } from '../../entities/transaction-product.entity';
 import { TransactionType } from '../../entities/transaction-type.entity';
 import { Account } from '../../entities/account.entity';
 import { User } from '../../entities/user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Channel } from '../../entities/channel.entity';
 import { TransactionLocation } from '../../entities/transaction-location.entity';
 import { Currency } from '../../entities/currency.entity';
 
 @Injectable()
 export class TransactionService {
-    private channelsLookup: { [key: string]: Channel } | null = null;
-
     constructor(
         @Inject(EntityManager) private entityManager: EntityManager,
         @Inject(WINSTON_MODULE_NEST_PROVIDER)
-        private readonly logger: WinstonLogger,
-        @InjectRepository(Transaction)
-        private transactionRepository: Repository<Transaction>,
-        @InjectRepository(Channel)
-        private channelRepository: Repository<Channel>,
-        @InjectRepository(Currency)
-        private currencyRepository: Repository<Currency>
+        private readonly logger: WinstonLogger
     ) {}
 
     async create(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
@@ -415,17 +405,10 @@ export class TransactionService {
     }
 
     async getChannelsLookup(): Promise<Channel[]> {
-        if (!this.channelsLookup) {
-            const channels = await this.channelRepository.find();
-            this.channelsLookup = channels.reduce((acc, channel) => {
-                acc[channel.id] = channel;
-                return acc;
-            }, {});
-        }
-        return Object.values(this.channelsLookup);
+        return this.entityManager.find(Channel);
     }
 
     async getCurrenciesLookup(): Promise<Currency[]> {
-        return this.currencyRepository.find();
+        return this.entityManager.find(Currency);
     }
 }

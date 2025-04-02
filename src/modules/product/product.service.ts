@@ -44,4 +44,11 @@ export class ProductService {
 
         return { items, itemCount, pageCount };
     }
+
+    async getProductsLookup(): Promise<Product[]> {
+        const query = this.productRepository.createQueryBuilder('product');
+        query.where('deleted_at IS NULL');
+
+        return query.orderBy('product.name', 'ASC').getMany();
+    }
 }

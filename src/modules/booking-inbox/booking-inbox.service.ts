@@ -12,6 +12,8 @@ import * as fs from 'fs';
 import { AccountService } from '../account/account.service';
 import { GetAccountsDTO } from '../account/dto/get-accounts.dto';
 import { CreateUpdateAccountDTO } from '../account/dto/create-update-account.dto';
+import { ProductService } from '../product/product.service';
+import { Product } from 'src/entities/product.entity';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -106,12 +108,14 @@ export class BookingInboxService implements OnModuleInit {
     private bookingTransactionTypeId: string;
     private bookingNewStatusId: string;
     private bookingCancelStatusId: string;
+    private bookingProducts: Product[];
 
     constructor(
         private readonly entityManager: EntityManager,
         private readonly logService: LogService,
         private readonly transactionService: TransactionService,
-        private readonly accountService: AccountService
+        private readonly accountService: AccountService,
+        private readonly productService: ProductService
     ) {
         // E-posta kontrol aralığını process.env'den al (dakika cinsinden)
         this.emailCheckInterval = parseInt(
@@ -199,6 +203,9 @@ export class BookingInboxService implements OnModuleInit {
             throw new Error('Booking transaction status not found');
         }
         this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
+
+        // Get booking product
+        this.bookingProducts = await this.productService.getProductsLookup();
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
@@ -438,12 +445,9 @@ export class BookingInboxService implements OnModuleInit {
         }
 
         // Vehicle Type
-        const vehicleTypeMatch = textContent.match(/Vehicle Type\s*([^\n^\s]+)\s*/i);
+        const vehicleTypeMatch = textContent.match(/.*Vehicle Type\s+(.*?)\s+From\s+.*/s);
         if (vehicleTypeMatch) {
-            parsedDetails.transferDetails.vehicleType = vehicleTypeMatch[1]
-                .trim()
-                .toUpperCase()
-                .replace(/\s+/g, '_') as any;
+            parsedDetails.transferDetails.vehicleType = vehicleTypeMatch[1].trim() as any;
         }
 
         // Pickup Location
@@ -592,6 +596,18 @@ export class BookingInboxService implements OnModuleInit {
                     //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
                     //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
                 };
+
+                const bookingProduct = this.bookingProducts.find(
+                    (product) => product.code === bookingDetails.transferDetails.vehicleType
+                );
+                if (!bookingProduct) {
+                    throw new Error(
+                        `Booking product not found. Vehicle type: ${bookingDetails.transferDetails.vehicleType}`
+                    );
+                }
+                transactionData.products = [
+                    { productId: bookingProduct.id, quantity: 1, totalPrice: transactionData.amount },
+                ];
 
                 if (existingTransaction) {
                     if (bookingDetails.emailType === BookingEmailType.CANCEL) {
