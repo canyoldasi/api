@@ -13,7 +13,6 @@ import { AccountService } from '../account/account.service';
 import { GetAccountsDTO } from '../account/dto/get-accounts.dto';
 import { CreateUpdateAccountDTO } from '../account/dto/create-update-account.dto';
 import { ProductService } from '../product/product.service';
-import { Product } from 'src/entities/product.entity';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -108,7 +107,6 @@ export class BookingInboxService implements OnModuleInit {
     private bookingTransactionTypeId: string;
     private bookingNewStatusId: string;
     private bookingCancelStatusId: string;
-    private bookingProducts: Product[];
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -203,9 +201,6 @@ export class BookingInboxService implements OnModuleInit {
             throw new Error('Booking transaction status not found');
         }
         this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
-
-        // Get booking product
-        this.bookingProducts = await this.productService.getProductsLookup();
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
@@ -593,20 +588,35 @@ export class BookingInboxService implements OnModuleInit {
                     amount: bookingDetails.transferDetails.price.amount || 0,
                     note: logContent,
                     accountId: accountId,
-                    //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
-                    //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
                 };
 
-                const bookingProduct = this.bookingProducts.find(
-                    (product) => product.code === bookingDetails.transferDetails.vehicleType
-                );
-                if (!bookingProduct) {
-                    throw new Error(
-                        `Booking product not found. Vehicle type: ${bookingDetails.transferDetails.vehicleType}`
-                    );
+                // Check if product exists by code
+                const productResult = await this.productService.getProductsByFilters({
+                    code: bookingDetails.transferDetails.vehicleType,
+                });
+
+                let productId: string;
+                if (productResult.items.length === 0) {
+                    // Create new product if it doesn't exist
+                    const newProduct = await this.productService.create({
+                        name: bookingDetails.transferDetails.vehicleType,
+                        code: bookingDetails.transferDetails.vehicleType,
+                        sequence: 1,
+                        isActive: true,
+                    });
+                    productId = newProduct.id;
+                } else {
+                    productId = productResult.items[0].id;
                 }
+
+                // Add product to transaction
                 transactionData.products = [
-                    { productId: bookingProduct.id, quantity: 1, totalPrice: transactionData.amount },
+                    {
+                        productId,
+                        quantity: bookingDetails.traveler.passengerCount,
+                        unitPrice: 0,
+                        totalPrice: transactionData.amount,
+                    },
                 ];
 
                 if (existingTransaction) {
@@ -625,8 +635,9 @@ export class BookingInboxService implements OnModuleInit {
             } else {
                 this.log(LOG_LEVEL.INFO, INBOX_ACTION.CONNECT, 'Booking maili olmadığı için atlanıyor: ', mail.subject);
             }
-        } catch (err) {
-            console.error('Error processing email:', err);
+        } catch (error) {
+            console.error('Error in determineEmail:', error);
+            throw error;
         }
     }
 }

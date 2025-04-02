@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../../entities/product.entity';
 import { PaginatedResult } from '../../types/paginated';
 import { GetProductsDTO } from './dto/get-products.dto';
+import { CreateUpdateProductDTO } from './dto/create-update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -21,6 +22,10 @@ export class ProductService {
 
         if (filters.text) {
             query.andWhere('LOWER(product.name) LIKE LOWER(:text)', { text: `%${filters.text}%` });
+        }
+
+        if (filters.code) {
+            query.andWhere('product.code = :code', { code: filters.code });
         }
 
         if (filters.isActive !== undefined) {
@@ -50,5 +55,10 @@ export class ProductService {
         query.where('deleted_at IS NULL');
 
         return query.orderBy('product.name', 'ASC').getMany();
+    }
+
+    async create(dto: CreateUpdateProductDTO): Promise<Product> {
+        const product = this.productRepository.create(dto);
+        return this.productRepository.save(product);
     }
 }

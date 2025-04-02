@@ -14,6 +14,11 @@ export class GetProductsDTO extends PaginationBaseDTO {
     @IsString()
     text?: string;
 
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    code?: string;
+
     @Field(() => Boolean, { nullable: true })
     @IsOptional()
     @IsBoolean()
