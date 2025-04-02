@@ -163,6 +163,7 @@ export class BookingInboxService implements OnModuleInit {
      * Uygulama başladığında çalışır
      */
     async onModuleInit() {
+        return;
         await this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
         console.log('Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
 
@@ -590,35 +591,6 @@ export class BookingInboxService implements OnModuleInit {
                     accountId: accountId,
                 };
 
-                // Check if product exists by code
-                const productResult = await this.productService.getProductsByFilters({
-                    code: bookingDetails.transferDetails.vehicleType,
-                });
-
-                let productId: string;
-                if (productResult.items.length === 0) {
-                    // Create new product if it doesn't exist
-                    const newProduct = await this.productService.create({
-                        name: bookingDetails.transferDetails.vehicleType,
-                        code: bookingDetails.transferDetails.vehicleType,
-                        sequence: 1,
-                        isActive: true,
-                    });
-                    productId = newProduct.id;
-                } else {
-                    productId = productResult.items[0].id;
-                }
-
-                // Add product to transaction
-                transactionData.products = [
-                    {
-                        productId,
-                        quantity: bookingDetails.traveler.passengerCount,
-                        unitPrice: 0,
-                        totalPrice: transactionData.amount,
-                    },
-                ];
-
                 if (existingTransaction) {
                     if (bookingDetails.emailType === BookingEmailType.CANCEL) {
                         transactionData.statusId = this.bookingCancelStatusId;
@@ -629,6 +601,45 @@ export class BookingInboxService implements OnModuleInit {
                         ...transactionData,
                     });
                 } else {
+                    // Check if product exists by code
+                    const productResult = await this.productService.getProductsByFilters({
+                        code: bookingDetails.transferDetails.vehicleType,
+                    });
+
+                    let productId: string;
+                    if (productResult.items.length === 0) {
+                        // Create new product if it doesn't exist
+                        const newProduct = await this.productService.create({
+                            name: bookingDetails.transferDetails.vehicleType,
+                            code: bookingDetails.transferDetails.vehicleType,
+                            sequence: 1,
+                            isActive: true,
+                        });
+                        productId = newProduct.id;
+                    } else {
+                        productId = productResult.items[0].id;
+                    }
+
+                    transactionData.products = [
+                        {
+                            productId,
+                            quantity: bookingDetails.traveler.passengerCount,
+                            unitPrice: 0,
+                            totalPrice: transactionData.amount,
+                        },
+                    ];
+
+                    transactionData.locations = [
+                        {
+                            code: 'FROM',
+                            address: bookingDetails.transferDetails.pickupLocation,
+                        },
+                        {
+                            code: 'TO',
+                            address: bookingDetails.transferDetails.dropoffLocation,
+                        },
+                    ];
+
                     // Create new transaction
                     await this.transactionService.create(transactionData);
                 }
