@@ -7,9 +7,10 @@ import { Channel } from '../../entities/channel.entity';
 import { BookingInboxResolver } from './booking-inbox.resolver';
 import { TransactionService } from '../transaction/transaction.service';
 import { AccountModule } from '../account/account.module';
+import { Currency } from '../../entities/currency.entity';
 
 @Module({
-    imports: [ConfigModule, TypeOrmModule.forFeature([Transaction, Channel]), AccountModule],
+    imports: [ConfigModule, TypeOrmModule.forFeature([Transaction, Channel, Currency]), AccountModule],
     providers: [BookingInboxService, BookingInboxResolver, TransactionService],
     exports: [BookingInboxService],
 })

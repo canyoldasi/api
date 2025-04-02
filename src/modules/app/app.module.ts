@@ -47,6 +47,7 @@ import { TransactionModule } from '../transaction/transaction.module';
 import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
 import { ProductModule } from '../product/product.module';
 import { Channel } from 'src/entities/channel.entity';
+import { Currency } from 'src/entities/currency.entity';
 @Module({
     imports: [
         ConfigModule.forRoot(),
@@ -88,6 +89,7 @@ import { Channel } from 'src/entities/channel.entity';
                 TransactionType,
                 TransactionLocation,
                 Channel,
+                Currency,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),

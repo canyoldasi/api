@@ -52,6 +52,12 @@ export class TransactionResolver {
         return this.transactionService.getChannelsLookup();
     }
 
+    @Query(() => [Currency])
+    @Permissions(PERMISSIONS.TransactionRead)
+    async getCurrenciesLookup(): Promise<Currency[]> {
+        return this.transactionService.getCurrenciesLookup();
+    }
+
     @Mutation(() => Transaction)
     @Permissions(PERMISSIONS.TransactionCreate)
     async createTransaction(@Args('input') input: CreateUpdateTransactionDTO): Promise<Transaction> {

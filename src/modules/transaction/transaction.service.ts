@@ -415,6 +415,17 @@ export class TransactionService {
     }
 
     async getChannelsLookup(): Promise<Channel[]> {
-        return this.channelRepository.find();
+        if (!this.channelsLookup) {
+            const channels = await this.channelRepository.find();
+            this.channelsLookup = channels.reduce((acc, channel) => {
+                acc[channel.id] = channel;
+                return acc;
+            }, {});
+        }
+        return Object.values(this.channelsLookup);
+    }
+
+    async getCurrenciesLookup(): Promise<Currency[]> {
+        return this.currencyRepository.find();
     }
 }

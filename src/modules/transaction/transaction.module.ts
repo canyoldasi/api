@@ -10,6 +10,7 @@ import { User } from '../../entities/user.entity';
 import { Account } from '../../entities/account.entity';
 import { UserService } from '../user/user.service';
 import { Channel } from '../../entities/channel.entity';
+import { Currency } from '../../entities/currency.entity';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { Channel } from '../../entities/channel.entity';
             User,
             Account,
             Channel,
+            Currency,
         ]),
     ],
     providers: [TransactionService, TransactionResolver, UserService],
