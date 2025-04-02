@@ -16,4 +16,19 @@ export class CreateUpdateAccountLocationDTO {
 
     @Field({ nullable: true })
     districtId?: string;
+
+    @Field({ nullable: true })
+    postalCode?: string;
+
+    @Field({ nullable: true })
+    address?: string;
+
+    @Field({ nullable: true })
+    latitude?: string;
+
+    @Field({ nullable: true })
+    longitude?: string;
+
+    @Field({ nullable: true })
+    note?: string;
 }

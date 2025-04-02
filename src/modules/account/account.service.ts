@@ -61,6 +61,11 @@ export class AccountService {
                     city: location.cityId ? { id: location.cityId } : null,
                     county: location.countyId ? { id: location.countyId } : null,
                     district: location.districtId ? { id: location.districtId } : null,
+                    postalCode: location.postalCode,
+                    address: location.address,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    note: location.note,
                 }));
 
                 await manager.save(AccountLocation, accountLocations);
@@ -209,6 +214,11 @@ export class AccountService {
                         city: location.cityId ? { id: location.cityId } : null,
                         county: location.countyId ? { id: location.countyId } : null,
                         district: location.districtId ? { id: location.districtId } : null,
+                        postalCode: location.postalCode,
+                        address: location.address,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        note: location.note,
                     }));
 
                     await manager.save(AccountLocation, accountLocations);
