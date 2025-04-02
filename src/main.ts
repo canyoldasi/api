@@ -21,7 +21,7 @@ async function bootstrap() {
 
     // CORS ayarları
     app.enableCors({
-        origin: process.env.NODE_ENV === 'development' ? '*' : 'https://app.agiletechlondon.com',
+        origin: process.env.NODE_ENV === 'development' ? '*' : process.env.CORS_ALLOWED_ORIGINS?.split(','),
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
