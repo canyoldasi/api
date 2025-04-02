@@ -10,13 +10,10 @@ import { TransactionProduct } from '../../entities/transaction-product.entity';
 import { TransactionType } from '../../entities/transaction-type.entity';
 import { Account } from '../../entities/account.entity';
 import { User } from '../../entities/user.entity';
-import { Country } from '../../entities/country.entity';
-import { City } from '../../entities/city.entity';
-import { County } from '../../entities/county.entity';
-import { District } from '../../entities/district.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Channel } from '../../entities/channel.entity';
+import { TransactionLocation } from '../../entities/transaction-location.entity';
 
 @Injectable()
 export class TransactionService {
@@ -66,6 +63,24 @@ export class TransactionService {
                 }));
 
                 await manager.save(TransactionProduct, transactionProducts);
+            }
+
+            // Transaction lokasyonlarını kaydet
+            if (dto.locations && dto.locations.length > 0) {
+                const transactionLocations = dto.locations.map((location) => ({
+                    transaction: { id: savedEntity.id },
+                    country: location.countryId ? { id: location.countryId } : null,
+                    city: location.cityId ? { id: location.cityId } : null,
+                    county: location.countyId ? { id: location.countyId } : null,
+                    district: location.districtId ? { id: location.districtId } : null,
+                    postalCode: location.postalCode,
+                    address: location.address,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    note: location.note,
+                }));
+
+                await manager.save(TransactionLocation, transactionLocations);
             }
         });
 
@@ -126,21 +141,28 @@ export class TransactionService {
                 updateData.note = dto.note;
             }
 
-            // Lokasyon alanları için kontroller
+            if (dto.transactionDate !== undefined) {
+                updateData.transactionDate = dto.transactionDate;
+            }
+
             if (dto.countryId !== undefined) {
-                updateData.country = dto.countryId ? ({ id: dto.countryId } as DeepPartial<Country>) : null;
+                updateData.country = dto.countryId ? { id: dto.countryId } : null;
             }
 
             if (dto.cityId !== undefined) {
-                updateData.city = dto.cityId ? ({ id: dto.cityId } as DeepPartial<City>) : null;
+                updateData.city = dto.cityId ? { id: dto.cityId } : null;
             }
 
             if (dto.countyId !== undefined) {
-                updateData.county = dto.countyId ? ({ id: dto.countyId } as DeepPartial<County>) : null;
+                updateData.county = dto.countyId ? { id: dto.countyId } : null;
             }
 
             if (dto.districtId !== undefined) {
-                updateData.district = dto.districtId ? ({ id: dto.districtId } as DeepPartial<District>) : null;
+                updateData.district = dto.districtId ? { id: dto.districtId } : null;
+            }
+
+            if (dto.address !== undefined) {
+                updateData.address = dto.address;
             }
 
             if (dto.postalCode !== undefined) {
@@ -148,17 +170,14 @@ export class TransactionService {
             }
 
             // Transaction'ı güncelle
-            await manager.save(Transaction, {
-                id: dto.id,
-                ...updateData,
-            });
+            await manager.update(Transaction, dto.id, updateData);
 
-            // Products için özel kontrol
+            // Transaction ürünlerini güncelle
             if (dto.products !== undefined) {
-                // Mevcut ürünleri sil
+                // Önce mevcut ürünleri sil
                 await manager.delete(TransactionProduct, { transaction: { id: dto.id } });
 
-                // Eğer products array'i boş değilse yeni ürünleri ekle
+                // Yeni ürünleri ekle
                 if (dto.products.length > 0) {
                     const transactionProducts = dto.products.map((product) => ({
                         transaction: { id: dto.id },
@@ -171,6 +190,30 @@ export class TransactionService {
                     }));
 
                     await manager.save(TransactionProduct, transactionProducts);
+                }
+            }
+
+            // Transaction lokasyonlarını güncelle
+            if (dto.locations !== undefined) {
+                // Önce mevcut lokasyonları sil
+                await manager.delete(TransactionLocation, { transaction: { id: dto.id } });
+
+                // Yeni lokasyonları ekle
+                if (dto.locations.length > 0) {
+                    const transactionLocations = dto.locations.map((location) => ({
+                        transaction: { id: dto.id },
+                        country: location.countryId ? { id: location.countryId } : null,
+                        city: location.cityId ? { id: location.cityId } : null,
+                        county: location.countyId ? { id: location.countyId } : null,
+                        district: location.districtId ? { id: location.districtId } : null,
+                        postalCode: location.postalCode,
+                        address: location.address,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        note: location.note,
+                    }));
+
+                    await manager.save(TransactionLocation, transactionLocations);
                 }
             }
 

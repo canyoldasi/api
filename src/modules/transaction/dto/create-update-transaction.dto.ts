@@ -1,5 +1,6 @@
 import { Field, InputType, Float } from '@nestjs/graphql';
 import { CreateUpdateTransactionProductDTO } from './create-update-transaction-product.dto';
+import { CreateUpdateTransactionLocationDTO } from './create-update-transaction-location.dto';
 
 @InputType()
 export class CreateUpdateTransactionDTO {
@@ -68,4 +69,7 @@ export class CreateUpdateTransactionDTO {
 
     @Field(() => [CreateUpdateTransactionProductDTO], { nullable: true })
     products?: CreateUpdateTransactionProductDTO[];
+
+    @Field(() => [CreateUpdateTransactionLocationDTO], { nullable: true })
+    locations?: CreateUpdateTransactionLocationDTO[];
 }
