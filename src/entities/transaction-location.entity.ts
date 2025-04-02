@@ -21,9 +21,9 @@ export class TransactionLocation {
     @Field(() => Transaction)
     transaction: Transaction;
 
-    @ManyToOne(() => Country, (country) => country.accountLocations)
-    @Field(() => Country)
-    country: Country;
+    @ManyToOne(() => Country, (country) => country.accountLocations, { nullable: true })
+    @Field(() => Country, { nullable: true })
+    country?: Country;
 
     @ManyToOne(() => City, (city) => city.accountLocations, { nullable: true })
     @Field(() => City, { nullable: true })
@@ -36,6 +36,14 @@ export class TransactionLocation {
     @ManyToOne(() => District, (x) => x.accountLocations, { nullable: true })
     @Field(() => District, { nullable: true })
     district?: District;
+
+    @Column({ type: 'timestamp', nullable: true })
+    @Field(() => Date, { nullable: true })
+    plannedDate?: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    @Field(() => Date, { nullable: true })
+    actualDate?: Date;
 
     @Column({ nullable: true })
     @Field({ nullable: true })

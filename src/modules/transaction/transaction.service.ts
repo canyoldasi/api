@@ -72,6 +72,9 @@ export class TransactionService {
                     latitude: location.latitude,
                     longitude: location.longitude,
                     note: location.note,
+                    code: location.code,
+                    plannedDate: location.plannedDate,
+                    actualDate: location.actualDate,
                 }));
 
                 await manager.save(TransactionLocation, transactionLocations);
@@ -215,6 +218,9 @@ export class TransactionService {
                         latitude: location.latitude,
                         longitude: location.longitude,
                         note: location.note,
+                        code: location.code,
+                        plannedDate: location.plannedDate,
+                        actualDate: location.actualDate,
                     }));
 
                     await manager.save(TransactionLocation, transactionLocations);
@@ -250,6 +256,11 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.county', 'county')
             .leftJoinAndSelect('transaction.district', 'district')
             .leftJoinAndSelect('transaction.currency', 'currency')
+            .leftJoinAndSelect('transaction.locations', 'locations')
+            .leftJoinAndSelect('locations.country', 'locationCountry')
+            .leftJoinAndSelect('locations.city', 'locationCity')
+            .leftJoinAndSelect('locations.county', 'locationCounty')
+            .leftJoinAndSelect('locations.district', 'locationDistrict')
             .where('transaction.id = :id', { id })
             .andWhere('transaction.deletedAt IS NULL')
             .getOne();

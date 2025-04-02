@@ -1,5 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 @InputType()
 export class CreateUpdateTransactionLocationDTO {
@@ -7,6 +8,11 @@ export class CreateUpdateTransactionLocationDTO {
     @IsOptional()
     @IsUUID()
     id?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    code?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -47,4 +53,16 @@ export class CreateUpdateTransactionLocationDTO {
     @Field({ nullable: true })
     @IsOptional()
     note?: string;
+
+    @Field(() => Date, { nullable: true })
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    plannedDate?: Date;
+
+    @Field(() => Date, { nullable: true })
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    actualDate?: Date;
 }
