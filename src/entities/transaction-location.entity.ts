@@ -17,7 +17,7 @@ export class TransactionLocation {
     @Field({ nullable: true })
     code?: string;
 
-    @ManyToOne(() => Transaction, (transaction) => transaction.location)
+    @ManyToOne(() => Transaction, (transaction) => transaction.locations)
     @Field(() => Transaction)
     transaction: Transaction;
 

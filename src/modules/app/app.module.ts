@@ -39,6 +39,7 @@ import { Transaction } from 'src/entities/transaction.entity';
 import { TransactionStatus } from 'src/entities/transaction-status.entity';
 import { TransactionProduct } from 'src/entities/transaction-product.entity';
 import { TransactionType } from 'src/entities/transaction-type.entity';
+import { TransactionLocation } from 'src/entities/transaction-location.entity';
 import { AppResolver } from './app.resolver';
 import { ConfigModule } from '@nestjs/config';
 import { BookingInboxModule } from '../booking-inbox/booking-inbox.module';
@@ -85,6 +86,7 @@ import { Channel } from 'src/entities/channel.entity';
                 TransactionStatus,
                 TransactionProduct,
                 TransactionType,
+                TransactionLocation,
                 Channel,
             ],
             namingStrategy: new SnakeNamingStrategy(),

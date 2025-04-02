@@ -38,13 +38,13 @@ export class Account extends BaseEntity {
     @Field({ nullable: true })
     lastName?: string;
 
-    @Column({ unique: true })
-    @Field()
-    email: string;
+    @Column({ unique: true, nullable: true })
+    @Field({ nullable: true })
+    email?: string;
 
-    @Column({ unique: true })
-    @Field()
-    phone: string;
+    @Column({ unique: true, nullable: true })
+    @Field({ nullable: true })
+    phone?: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })

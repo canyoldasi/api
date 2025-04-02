@@ -3,12 +3,15 @@ import * as IMAP from 'node-imap';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
 import { LogService } from '../log/log.service';
-import { LOG_LEVEL, LogLevel } from '../../constants';
+import { LOG_LEVEL, LogLevel, PERSON_TYPE } from '../../constants';
 import { TransactionService } from '../transaction/transaction.service';
 import { CreateUpdateTransactionDTO } from '../transaction/dto/create-update-transaction.dto';
 import { ParsedMail } from 'mailparser';
 import { htmlToText } from 'html-to-text';
 import * as fs from 'fs';
+import { AccountService } from '../account/account.service';
+import { GetAccountsDTO } from '../account/dto/get-accounts.dto';
+import { CreateUpdateAccountDTO } from '../account/dto/create-update-account.dto';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -20,7 +23,7 @@ enum BookingEmailType {
 type BookingDetails = {
     reservationId: string;
     emailType: BookingEmailType;
-    account: {
+    traveler: {
         fullName: string;
         phoneNumber: string;
         passengerCount: number;
@@ -100,11 +103,14 @@ export class BookingInboxService implements OnModuleInit {
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
     private bookingChannelId: string;
+    private bookingTransactionTypeId: string;
+    private bookingStatusId: string;
 
     constructor(
-        private entityManager: EntityManager,
-        private logService: LogService,
-        private transactionService: TransactionService
+        private readonly entityManager: EntityManager,
+        private readonly logService: LogService,
+        private readonly transactionService: TransactionService,
+        private readonly accountService: AccountService
     ) {
         // E-posta kontrol aralığını process.env'den al (dakika cinsinden)
         this.emailCheckInterval = parseInt(
@@ -164,6 +170,24 @@ export class BookingInboxService implements OnModuleInit {
             throw new Error('Booking channel not found');
         }
         this.bookingChannelId = bookingChannel.id.toString();
+
+        // Get booking rezervation type
+        const transactionTypes = await this.transactionService.getTransactionTypesLookup();
+        const bookingTransactionType = transactionTypes.find((transactionType) => transactionType.code === 'R');
+        if (!bookingTransactionType) {
+            throw new Error('Booking transaction type not found');
+        }
+        this.bookingTransactionTypeId = bookingTransactionType.id.toString();
+
+        // Get booking status
+        const transactionStatuses = await this.transactionService.getTransactionStatuses();
+        const bookingTransactionStatus = transactionStatuses.find(
+            (transactionStatus) => transactionStatus.code === 'N'
+        );
+        if (!bookingTransactionStatus) {
+            throw new Error('Booking transaction status not found');
+        }
+        this.bookingStatusId = bookingTransactionStatus.id.toString();
 
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
@@ -326,7 +350,7 @@ export class BookingInboxService implements OnModuleInit {
         const details: BookingDetails = {
             reservationId: '',
             emailType: BookingEmailType.NEW,
-            account: {
+            traveler: {
                 fullName: '',
                 phoneNumber: '',
                 passengerCount: 0,
@@ -432,7 +456,7 @@ export class BookingInboxService implements OnModuleInit {
         // Passenger Name
         const nameMatch = textContent.match(/.*Passenger\s+(.*?)\s+Phone\sNumber\s+.*/s);
         if (nameMatch) {
-            parsedDetails.account.fullName = nameMatch[1].trim();
+            parsedDetails.traveler.fullName = nameMatch[1].trim();
         }
 
         // Flight number
@@ -444,13 +468,13 @@ export class BookingInboxService implements OnModuleInit {
         // Phone Number
         const phoneMatch = textContent.match(/.*Phone Number\s+(.*?)\s+Passenger Count\s+.*/);
         if (phoneMatch) {
-            parsedDetails.account.phoneNumber = phoneMatch[1].trim();
+            parsedDetails.traveler.phoneNumber = phoneMatch[1].trim();
         }
 
         // Passenger Count
         const passengerCountMatch = textContent.match(/.*Passenger\sCount\s+(.*?)\s+Flight\sNumber\s+.*/);
         if (passengerCountMatch) {
-            parsedDetails.account.passengerCount = parseInt(passengerCountMatch[1].trim());
+            parsedDetails.traveler.passengerCount = parseInt(passengerCountMatch[1].trim());
         }
 
         // Price
@@ -510,6 +534,34 @@ export class BookingInboxService implements OnModuleInit {
                     return;
                 }
 
+                // Find or create account based on transfer company email
+                let accountId: string | undefined;
+
+                if (bookingDetails.transferCompany?.email) {
+                    // Search for existing account with this email
+                    const filters: GetAccountsDTO = {
+                        text: bookingDetails.transferCompany.email,
+                        pageSize: 1,
+                    };
+
+                    const accountsResult = await this.accountService.getAccountsByFilters(filters);
+
+                    if (accountsResult.items.length > 0) {
+                        // Use existing account
+                        accountId = accountsResult.items[0].id;
+                    } else {
+                        // Create new account
+                        const newAccountData: CreateUpdateAccountDTO = {
+                            name: bookingDetails.transferCompany.name || bookingDetails.transferCompany.email,
+                            email: bookingDetails.transferCompany.email,
+                            personType: PERSON_TYPE.CORPORATE,
+                        };
+
+                        const newAccount = await this.accountService.create(newAccountData);
+                        accountId = newAccount.id;
+                    }
+                }
+
                 // Check for existing transaction
                 const existingTransactions = await this.transactionService.getTransactionsByExternalId(
                     bookingDetails.reservationId
@@ -518,10 +570,14 @@ export class BookingInboxService implements OnModuleInit {
 
                 // Prepare transaction data
                 const transactionData: CreateUpdateTransactionDTO = {
+                    no: bookingDetails.reservationId,
+                    typeId: this.bookingTransactionTypeId,
+                    statusId: existingTransaction ? existingTransaction.status?.id : this.bookingStatusId,
                     channelId: this.bookingChannelId,
                     externalId: bookingDetails.reservationId,
                     amount: bookingDetails.transferDetails.price.amount || 0,
                     note: logContent,
+                    accountId: accountId,
                     //transactionDate: bookingDetails.transferDetails.scheduledTime || new Date(),
                     //statusId: (await this.getTransactionStatus(bookingDetails.emailType)).id,
                 };

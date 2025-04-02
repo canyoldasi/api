@@ -84,6 +84,8 @@ export class TransactionService {
             }
         });
 
+        this.logger.log(`Transaction created: ${dto.id}`);
+
         return toSave ? this.getOne(toSave.id) : null;
     }
 
@@ -169,6 +171,10 @@ export class TransactionService {
                 updateData.postalCode = dto.postalCode;
             }
 
+            if (dto.externalId !== undefined) {
+                updateData.externalId = dto.externalId;
+            }
+
             // Transaction'ı güncelle
             await manager.update(Transaction, dto.id, updateData);
 
@@ -216,9 +222,9 @@ export class TransactionService {
                     await manager.save(TransactionLocation, transactionLocations);
                 }
             }
-
-            this.logger.log(`Transaction updated: ${dto.id}`);
         });
+
+        this.logger.log(`Transaction updated: ${dto.id}`);
 
         return this.getOne(dto.id);
     }
@@ -237,6 +243,7 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.account', 'account')
             .leftJoinAndSelect('transaction.status', 'status')
             .leftJoinAndSelect('transaction.type', 'type')
+            .leftJoinAndSelect('transaction.channel', 'channel')
             .leftJoinAndSelect('transaction.assignedUser', 'user')
             .leftJoinAndSelect('transaction.transactionProducts', 'transactionProducts')
             .leftJoinAndSelect('transactionProducts.product', 'product')

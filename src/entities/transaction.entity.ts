@@ -102,5 +102,5 @@ export class Transaction extends BaseEntity {
 
     @OneToMany(() => TransactionLocation, (location) => location.transaction)
     @Field(() => [TransactionLocation], { nullable: true })
-    location?: TransactionLocation[];
+    locations?: TransactionLocation[];
 }
