@@ -1,14 +1,14 @@
 import { Entity, ManyToOne, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Account } from './account.entity';
 import { City } from './city.entity';
 import { County } from './county.entity';
 import { Country } from './country.entity';
 import { District } from './district.entity';
+import { Transaction } from './transaction.entity';
 
 @Entity()
 @ObjectType()
-export class AccountLocation {
+export class TransactionLocation {
     @PrimaryGeneratedColumn('uuid')
     @Field({ nullable: false })
     id: string;
@@ -17,9 +17,9 @@ export class AccountLocation {
     @Field({ nullable: true })
     code?: string;
 
-    @ManyToOne(() => Account, (account) => account.locations)
-    @Field(() => Account)
-    account: Account;
+    @ManyToOne(() => Transaction, (transaction) => transaction.location)
+    @Field(() => Transaction)
+    transaction: Transaction;
 
     @ManyToOne(() => Country, (country) => country.accountLocations)
     @Field(() => Country)
