@@ -11,12 +11,7 @@ import { Currency } from '../../entities/currency.entity';
 import { ProductModule } from '../product/product.module';
 
 @Module({
-    imports: [
-        ConfigModule,
-        TypeOrmModule.forFeature([Transaction, Channel, Currency]),
-        AccountModule,
-        ProductModule,
-    ],
+    imports: [ConfigModule, TypeOrmModule.forFeature([Transaction, Channel, Currency]), AccountModule, ProductModule],
     providers: [BookingInboxService, BookingInboxResolver, TransactionService],
     exports: [BookingInboxService],
 })
