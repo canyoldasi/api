@@ -1,9 +1,9 @@
-import { Query, Resolver } from '@nestjs/graphql';
-import { ConfigService } from '@nestjs/config';
+import { Resolver, Query } from '@nestjs/graphql';
 import { Field, ObjectType } from '@nestjs/graphql';
+import { SettingService } from '../setting/setting.service';
 
 @ObjectType()
-export class AppInfo {
+class AppInfo {
     @Field(() => String)
     name: string;
 
@@ -13,18 +13,16 @@ export class AppInfo {
 
 @Resolver()
 export class AppResolver {
-    constructor(private configService: ConfigService) {}
-
-    @Query(() => String)
-    getHello(): string {
-        return 'Merhaba!';
-    }
+    constructor(private readonly settingService: SettingService) {}
 
     @Query(() => AppInfo)
-    getApp(): AppInfo {
+    async appInfo(): Promise<AppInfo> {
+        const appNameSetting = await this.settingService.getSetting('APP_NAME');
+        const appLogoSetting = await this.settingService.getSetting('APP_LOGO');
+
         return {
-            name: process.env.APP_NAME || 'Kurum Adı',
-            logo: process.env.APP_LOGO || '',
+            name: appNameSetting?.value || 'Kurum Adı',
+            logo: appLogoSetting?.value || '',
         };
     }
 }

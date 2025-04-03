@@ -15,6 +15,9 @@ export const PERMISSIONS = {
     TransactionRead: 'TransactionRead',
     TransactionUpdate: 'TransactionUpdate',
     TransactionDelete: 'TransactionDelete',
+    SettingCreate: 'SettingCreate',
+    SettingRead: 'SettingRead',
+    SettingUpdate: 'SettingUpdate',
 } as const;
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 

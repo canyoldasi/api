@@ -48,6 +48,9 @@ import { GraphQLLoggerPlugin } from '../../providers/graphql-logger.plugin';
 import { ProductModule } from '../product/product.module';
 import { Channel } from 'src/entities/channel.entity';
 import { Currency } from 'src/entities/currency.entity';
+import { Setting } from 'src/entities/setting.entity';
+import { SettingModule } from '../setting/setting.module';
+
 @Module({
     imports: [
         ConfigModule.forRoot(),
@@ -90,6 +93,7 @@ import { Currency } from 'src/entities/currency.entity';
                 TransactionLocation,
                 Channel,
                 Currency,
+                Setting,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),
@@ -120,6 +124,7 @@ import { Currency } from 'src/entities/currency.entity';
         BookingInboxModule,
         TransactionModule,
         ProductModule,
+        SettingModule,
     ],
     controllers: [],
     providers: [
