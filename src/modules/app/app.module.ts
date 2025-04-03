@@ -50,6 +50,8 @@ import { Channel } from 'src/entities/channel.entity';
 import { Currency } from 'src/entities/currency.entity';
 import { Setting } from 'src/entities/setting.entity';
 import { SettingModule } from '../setting/setting.module';
+import { Language } from 'src/entities/language.entity';
+import { LanguageService } from './language.service';
 
 @Module({
     imports: [
@@ -94,6 +96,7 @@ import { SettingModule } from '../setting/setting.module';
                 Channel,
                 Currency,
                 Setting,
+                Language,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),
@@ -129,6 +132,7 @@ import { SettingModule } from '../setting/setting.module';
     controllers: [],
     providers: [
         AppResolver,
+        LanguageService,
         //TODO: JwtStrategy geliştirilecek ve request.user içine kullanıcı bilgileri eklenecek.
         //JwtStrategy,
         {
