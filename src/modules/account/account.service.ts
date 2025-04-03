@@ -310,21 +310,13 @@ export class AccountService {
             );
         }
 
-        if (filters.personType) {
-            queryBuilder.andWhere('account.personType = :personType', { personType: filters.personType });
-        }
-
-        if (filters.gender) {
-            queryBuilder.andWhere('account.gender = :gender', { gender: filters.gender });
-        }
-
         if (filters.channelIds?.length > 0) {
             queryBuilder.andWhere('channel.id IN (:...channelIds)', { channelIds: filters.channelIds });
         }
 
-        if (filters.assignedUserId) {
-            queryBuilder.andWhere('assignedUser.id = :assignedUserId', {
-                assignedUserId: filters.assignedUserId,
+        if (filters.assignedUserIds?.length > 0) {
+            queryBuilder.andWhere('assignedUser.id IN (:...assignedUserIds)', {
+                assignedUserIds: filters.assignedUserIds,
             });
         }
 

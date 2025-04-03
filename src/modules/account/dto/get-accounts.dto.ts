@@ -1,23 +1,16 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { PaginationBaseDTO } from 'src/providers/pagination-base.dto';
-import { Gender, PersonType } from '../../../constants';
 
 @InputType()
 export class GetAccountsDTO extends PaginationBaseDTO {
     @Field(() => String, { nullable: true })
     text?: string;
 
-    @Field(() => String, { nullable: true })
-    personType?: PersonType;
-
-    @Field(() => String, { nullable: true })
-    gender?: Gender;
-
     @Field(() => [String], { nullable: true })
     channelIds?: string[];
 
-    @Field(() => String, { nullable: true })
-    assignedUserId?: string;
+    @Field(() => [String], { nullable: true })
+    assignedUserIds?: string[];
 
     @Field(() => String, { nullable: true })
     countryId?: string;
