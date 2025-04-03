@@ -31,4 +31,7 @@ export class CreateUpdateAccountLocationDTO {
 
     @Field({ nullable: true })
     note?: string;
+
+    @Field({ nullable: true })
+    code?: string;
 }
