@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql';
+
 export const PERMISSIONS = {
     UserCreate: 'UserCreate',
     UserRead: 'UserRead',
@@ -20,6 +22,12 @@ export const PERMISSIONS = {
     SettingUpdate: 'SettingUpdate',
 } as const;
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+
+// Register the Permission type for GraphQL
+registerEnumType(PERMISSIONS, {
+    name: 'Permission',
+    description: 'Available permissions in the system',
+});
 
 export const PERMISSIONS_METADATA_NAME = 'permissions';
 
