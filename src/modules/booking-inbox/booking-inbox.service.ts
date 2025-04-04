@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import * as IMAP from 'node-imap';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
@@ -31,13 +31,7 @@ type BookingDetails = {
         passengerCount: number;
     };
     transferDetails: {
-        vehicleType:
-            | 'STANDARD'
-            | 'EXECUTIVE'
-            | 'EXECUTIVE_PEOPLE_CARRIER'
-            | 'PEOPLE_CARRIER'
-            | 'LARGE_PEOPLE_CARRIER'
-            | 'MINIBUS';
+        vehicleType: string;
         pickupLocation: string;
         dropoffLocation: string;
         scheduledTime: string;
@@ -75,7 +69,7 @@ export enum INBOX_ACTION {
 }
 
 @Injectable()
-export class BookingInboxService implements OnModuleInit {
+export class BookingInboxService implements OnApplicationBootstrap {
     private imap: IMAP;
     private emailCheckInterval: number;
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
@@ -94,82 +88,96 @@ export class BookingInboxService implements OnModuleInit {
         private readonly settingService: SettingService
     ) {}
 
-    async onModuleInit() {
-        const settings = await this.settingService.getSettings([
-            'bl_inbox_check_interval',
-            'bl_inbox_user',
-            'bl_inbox_password',
-            'bl_inbox_host',
-            'bl_inbox_port',
-            'bl_inbox_tls',
-        ]);
+    async onApplicationBootstrap() {
+        // Initialize settings and IMAP connection in the background
+        this.initializeInBackground();
+    }
 
-        this.emailCheckInterval = parseInt(
-            settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '15', // Varsayılan 15 dakika
-            10
-        );
+    private async initializeInBackground() {
+        try {
+            const settings = await this.settingService.getSettings([
+                'bl_inbox_check_interval',
+                'bl_inbox_user',
+                'bl_inbox_password',
+                'bl_inbox_host',
+                'bl_inbox_port',
+                'bl_inbox_tls',
+            ]);
 
-        this.imap = new IMAP({
-            user: settings.find((x) => x.key === 'bl_inbox_user')?.value,
-            password: settings.find((x) => x.key === 'bl_inbox_password')?.value,
-            host: settings.find((x) => x.key === 'bl_inbox_host')?.value,
-            port: parseInt(settings.find((x) => x.key === 'bl_inbox_port')?.value || '993'),
-            tls: settings.find((x) => x.key === 'bl_inbox_tls')?.value === 'true' ? true : false,
-            tlsOptions: { rejectUnauthorized: false },
-            authTimeout: 10000,
-        });
+            this.emailCheckInterval = parseInt(
+                settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '15', // Varsayılan 15 dakika
+                10
+            );
 
-        // Hata olaylarını dinle
-        this.imap.once('error', (err) => {
-            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
-        });
+            this.imap = new IMAP({
+                user: settings.find((x) => x.key === 'bl_inbox_user')?.value,
+                password: settings.find((x) => x.key === 'bl_inbox_password')?.value,
+                host: settings.find((x) => x.key === 'bl_inbox_host')?.value,
+                port: parseInt(settings.find((x) => x.key === 'bl_inbox_port')?.value || '993'),
+                tls: settings.find((x) => x.key === 'bl_inbox_tls')?.value === 'true' ? true : false,
+                tlsOptions: { rejectUnauthorized: false },
+                authTimeout: 10000,
+            });
 
-        // Get booking channel
-        const channels = await this.transactionService.getChannelsLookup();
-        const bookingChannel = channels.find((channel) => channel.code === 'BOOKING');
-        if (!bookingChannel) {
-            throw new Error('Booking channel not found');
+            // Hata olaylarını dinle
+            this.imap.once('error', (err) => {
+                this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
+            });
+
+            // Get booking channel
+            const channels = await this.transactionService.getChannelsLookup();
+            const bookingChannel = channels.find((channel) => channel.code === 'BOOKING');
+            if (!bookingChannel) {
+                throw new Error('Booking channel not found');
+            }
+            this.bookingChannelId = bookingChannel.id.toString();
+
+            // Get booking rezervation type
+            const transactionTypes = await this.transactionService.getTransactionTypesLookup();
+            const bookingTransactionType = transactionTypes.find((transactionType) => transactionType.code === 'R');
+            if (!bookingTransactionType) {
+                throw new Error('Booking transaction type not found');
+            }
+            this.bookingTransactionTypeId = bookingTransactionType.id.toString();
+
+            // Get booking status
+            const transactionStatuses = await this.transactionService.getTransactionStatuses();
+
+            const bookingTransactionNewStatus = transactionStatuses.find(
+                (transactionStatus) => transactionStatus.code === 'N'
+            );
+            if (!bookingTransactionNewStatus) {
+                throw new Error('Booking transaction status not found');
+            }
+            this.bookingNewStatusId = bookingTransactionNewStatus.id.toString();
+
+            // Get booking status
+            const bookingTransactionCancelStatus = transactionStatuses.find(
+                (transactionStatus) => transactionStatus.code === 'A'
+            );
+            if (!bookingTransactionCancelStatus) {
+                throw new Error('Booking transaction status not found');
+            }
+            this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
+
+            await this.startServerUp();
+        } catch (error) {
+            console.error('IMAP initialization error:', error);
+            await this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP initialization error', error, error.stack);
         }
-        this.bookingChannelId = bookingChannel.id.toString();
+    }
 
-        // Get booking rezervation type
-        const transactionTypes = await this.transactionService.getTransactionTypesLookup();
-        const bookingTransactionType = transactionTypes.find((transactionType) => transactionType.code === 'R');
-        if (!bookingTransactionType) {
-            throw new Error('Booking transaction type not found');
-        }
-        this.bookingTransactionTypeId = bookingTransactionType.id.toString();
-
-        // Get booking status
-        const transactionStatuses = await this.transactionService.getTransactionStatuses();
-
-        const bookingTransactionNewStatus = transactionStatuses.find(
-            (transactionStatus) => transactionStatus.code === 'N'
-        );
-        if (!bookingTransactionNewStatus) {
-            throw new Error('Booking transaction status not found');
-        }
-        this.bookingNewStatusId = bookingTransactionNewStatus.id.toString();
-
-        // Get booking status
-        const bookingTransactionCancelStatus = transactionStatuses.find(
-            (transactionStatus) => transactionStatus.code === 'A'
-        );
-        if (!bookingTransactionCancelStatus) {
-            throw new Error('Booking transaction status not found');
-        }
-        this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
-
+    async startServerUp() {
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
             await this.fetchEmails();
-            console.log('Başlangıç e-posta kontrolü başarıyla tamamlandı');
+            console.log('Server up e-posta kontrolü başarıyla tamamlandı');
         } catch (error) {
-            console.error('Başlangıç e-posta kontrolü sırasında hata oluştu', error);
+            console.error('Server up e-posta kontrolü sırasında hata oluştu', error);
             await this.log(
                 LOG_LEVEL.ERROR,
                 INBOX_ACTION.CHECK,
-                'Başlangıç e-posta kontrolü sırasında hata oluştu',
+                'Server up e-posta kontrolü sırasında hata oluştu',
                 error,
                 error.stack
             );
@@ -358,7 +366,7 @@ export class BookingInboxService implements OnModuleInit {
                 passengerCount: 0,
             },
             transferDetails: {
-                vehicleType: 'STANDARD',
+                vehicleType: '',
                 pickupLocation: '',
                 dropoffLocation: '',
                 scheduledTime: null,
