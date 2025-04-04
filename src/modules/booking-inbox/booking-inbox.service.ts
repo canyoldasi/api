@@ -304,7 +304,7 @@ export class BookingInboxService implements OnModuleInit {
                         });
 
                         const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
-                        let processedCount = 0;
+                        let fetchedEmailCount = 0;
 
                         fetch.on('message', (msg) => {
                             msg.on('body', (stream) => {
@@ -318,28 +318,37 @@ export class BookingInboxService implements OnModuleInit {
                                             err,
                                             err.stack
                                         );
-                                        processedCount++;
-                                        if (processedCount === results.length) {
+                                        fetchedEmailCount++;
+                                        if (fetchedEmailCount === results.length) {
                                             this.imap.end();
                                             resolve();
                                         }
                                         return;
                                     }
-
-                                    try {
-                                        // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
-                                        await this.determineEmail(mail);
-                                    } catch (e) {
+                                    if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
+                                        try {
+                                            // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
+                                            await this.processBookingEmail(mail);
+                                        } catch (e) {
+                                            this.log(
+                                                LOG_LEVEL.ERROR,
+                                                INBOX_ACTION.PROCESS,
+                                                'E-posta işlenirken hata',
+                                                e,
+                                                e.stack
+                                            );
+                                        }
+                                    } else {
                                         this.log(
-                                            LOG_LEVEL.ERROR,
-                                            INBOX_ACTION.PROCESS,
-                                            'E-posta işlenirken hata',
-                                            e,
-                                            e.stack
+                                            LOG_LEVEL.INFO,
+                                            INBOX_ACTION.CONNECT,
+                                            'Booking maili olmadığı için atlanıyor: ',
+                                            mail.subject
                                         );
                                     }
-                                    processedCount++;
-                                    if (processedCount === results.length) {
+
+                                    fetchedEmailCount++;
+                                    if (fetchedEmailCount === results.length) {
                                         this.imap.end();
                                         resolve();
                                     }
@@ -363,7 +372,7 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * Booking.com mail içeriğini parse et
      */
-    private processBookingEmail(mail: ParsedMail, textContent: string): BookingDetails {
+    private determineEmailType(mail: ParsedMail, textContent: string): BookingDetails {
         const details: BookingDetails = {
             reservationId: '',
             emailType: BookingEmailType.NEW,
@@ -510,144 +519,140 @@ export class BookingInboxService implements OnModuleInit {
     /**
      * E-posta içeriğini işle ve gerekirse transaction oluştur
      */
-    private async determineEmail(mail: ParsedMail): Promise<void> {
+    private async processBookingEmail(mail: ParsedMail): Promise<void> {
         try {
-            if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
-                // Convert HTML to text with proper formatting
-                const content = mail.html
-                    ? htmlToText(mail.html, {
-                          wordwrap: 130,
-                          selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
-                      })
-                    : mail.text || '';
+            // Convert HTML to text with proper formatting
+            const content = mail.html
+                ? htmlToText(mail.html, {
+                      wordwrap: 130,
+                      selectors: [{ selector: 'a', options: { hideLinkHrefIfSameAsText: true } }],
+                  })
+                : mail.text || '';
 
-                // Clean up extra newlines
-                const textContent = content.replace(/\n\s*\n/g, '\n').trim();
+            // Clean up extra newlines
+            const textContent = content.replace(/\n\s*\n/g, '\n').trim();
 
-                const bookingDetails = this.processBookingEmail(mail, textContent);
+            const bookingDetails = this.determineEmailType(mail, textContent);
 
-                // Log email content and parsed JSON model
-                const logContent = JSON.stringify(
-                    {
-                        email: {
-                            from: mail.from?.text,
-                            to: mail.to?.text,
-                            subject: mail.subject,
-                            text: textContent,
-                        },
-                        jsonModel: bookingDetails,
+            // Log email content and parsed JSON model
+            const logContent = JSON.stringify(
+                {
+                    email: {
+                        from: mail.from?.text,
+                        to: mail.to?.text,
+                        subject: mail.subject,
+                        text: textContent,
                     },
-                    null,
-                    2
-                );
+                    jsonModel: bookingDetails,
+                },
+                null,
+                2
+            );
 
-                // Write to email-content-process.log
-                await fs.promises.appendFile('logs/email-content-process-01.log', logContent, 'utf8');
+            // Write to email-content-process.log
+            await fs.promises.appendFile('logs/email-content-process-01.log', logContent, 'utf8');
 
-                if (!bookingDetails.reservationId) {
-                    return;
-                }
+            if (!bookingDetails.reservationId) {
+                return;
+            }
 
-                // Find or create account based on transfer company email
-                let accountId: string | undefined;
+            // Find or create account based on transfer company email
+            let accountId: string | undefined;
 
-                if (bookingDetails.transferCompany?.email) {
-                    // Search for existing account with this email
-                    const filters: GetAccountsDTO = {
-                        text: bookingDetails.transferCompany.email,
-                        pageSize: 1,
-                    };
-
-                    const accountsResult = await this.accountService.getAccountsByFilters(filters);
-
-                    if (accountsResult.items.length > 0) {
-                        // Use existing account
-                        accountId = accountsResult.items[0].id;
-                    } else {
-                        // Create new account
-                        const newAccountData: CreateUpdateAccountDTO = {
-                            name: bookingDetails.transferCompany.name || bookingDetails.transferCompany.email,
-                            email: bookingDetails.transferCompany.email,
-                            personType: PERSON_TYPE.CORPORATE,
-                        };
-
-                        const newAccount = await this.accountService.create(newAccountData);
-                        accountId = newAccount.id;
-                    }
-                }
-
-                // Check for existing transaction
-                const existingTransactions = await this.transactionService.getTransactionsByExternalId(
-                    bookingDetails.reservationId
-                );
-                const existingTransaction = existingTransactions[0];
-
-                // Prepare transaction data
-                const transactionData: CreateUpdateTransactionDTO = {
-                    no: bookingDetails.reservationId,
-                    typeId: this.bookingTransactionTypeId,
-                    statusId: existingTransaction ? existingTransaction.status?.id : this.bookingNewStatusId,
-                    channelId: this.bookingChannelId,
-                    externalId: bookingDetails.reservationId,
-                    amount: bookingDetails.transferDetails.price.amount || 0,
-                    note: logContent,
-                    accountId: accountId,
+            if (bookingDetails.transferCompany?.email) {
+                // Search for existing account with this email
+                const filters: GetAccountsDTO = {
+                    text: bookingDetails.transferCompany.email,
+                    pageSize: 1,
                 };
 
-                if (existingTransaction) {
-                    if (bookingDetails.emailType === BookingEmailType.CANCEL) {
-                        transactionData.statusId = this.bookingCancelStatusId;
-                    }
-                    // Update existing transaction
-                    await this.transactionService.update({
-                        id: existingTransaction.id,
-                        ...transactionData,
-                    });
+                const accountsResult = await this.accountService.getAccountsByFilters(filters);
+
+                if (accountsResult.items.length > 0) {
+                    // Use existing account
+                    accountId = accountsResult.items[0].id;
                 } else {
-                    // Check if product exists by code
-                    const productResult = await this.productService.getProductsByFilters({
-                        code: bookingDetails.transferDetails.vehicleType,
-                    });
+                    // Create new account
+                    const newAccountData: CreateUpdateAccountDTO = {
+                        name: bookingDetails.transferCompany.name || bookingDetails.transferCompany.email,
+                        email: bookingDetails.transferCompany.email,
+                        personType: PERSON_TYPE.CORPORATE,
+                    };
 
-                    let productId: string;
-                    if (productResult.items.length === 0) {
-                        // Create new product if it doesn't exist
-                        const newProduct = await this.productService.create({
-                            name: bookingDetails.transferDetails.vehicleType,
-                            code: bookingDetails.transferDetails.vehicleType,
-                            sequence: 1,
-                            isActive: true,
-                        });
-                        productId = newProduct.id;
-                    } else {
-                        productId = productResult.items[0].id;
-                    }
-
-                    transactionData.products = [
-                        {
-                            productId,
-                            quantity: bookingDetails.traveler.passengerCount,
-                            unitPrice: 0,
-                            totalPrice: transactionData.amount,
-                        },
-                    ];
-
-                    transactionData.locations = [
-                        {
-                            code: 'FROM',
-                            address: bookingDetails.transferDetails.pickupLocation,
-                        },
-                        {
-                            code: 'TO',
-                            address: bookingDetails.transferDetails.dropoffLocation,
-                        },
-                    ];
-
-                    // Create new transaction
-                    await this.transactionService.create(transactionData);
+                    const newAccount = await this.accountService.create(newAccountData);
+                    accountId = newAccount.id;
                 }
+            }
+
+            // Check for existing transaction
+            const existingTransactions = await this.transactionService.getTransactionsByExternalId(
+                bookingDetails.reservationId
+            );
+            const existingTransaction = existingTransactions[0];
+
+            // Prepare transaction data
+            const transactionData: CreateUpdateTransactionDTO = {
+                no: bookingDetails.reservationId,
+                typeId: this.bookingTransactionTypeId,
+                statusId: existingTransaction ? existingTransaction.status?.id : this.bookingNewStatusId,
+                channelId: this.bookingChannelId,
+                externalId: bookingDetails.reservationId,
+                amount: bookingDetails.transferDetails.price.amount || 0,
+                note: logContent,
+                accountId: accountId,
+            };
+
+            if (existingTransaction) {
+                if (bookingDetails.emailType === BookingEmailType.CANCEL) {
+                    transactionData.statusId = this.bookingCancelStatusId;
+                }
+                // Update existing transaction
+                await this.transactionService.update({
+                    id: existingTransaction.id,
+                    ...transactionData,
+                });
             } else {
-                this.log(LOG_LEVEL.INFO, INBOX_ACTION.CONNECT, 'Booking maili olmadığı için atlanıyor: ', mail.subject);
+                // Check if product exists by code
+                const productResult = await this.productService.getProductsByFilters({
+                    code: bookingDetails.transferDetails.vehicleType,
+                });
+
+                let productId: string;
+                if (productResult.items.length === 0) {
+                    // Create new product if it doesn't exist
+                    const newProduct = await this.productService.create({
+                        name: bookingDetails.transferDetails.vehicleType,
+                        code: bookingDetails.transferDetails.vehicleType,
+                        sequence: 1,
+                        isActive: true,
+                    });
+                    productId = newProduct.id;
+                } else {
+                    productId = productResult.items[0].id;
+                }
+
+                transactionData.products = [
+                    {
+                        productId,
+                        quantity: bookingDetails.traveler.passengerCount,
+                        unitPrice: 0,
+                        totalPrice: transactionData.amount,
+                    },
+                ];
+
+                transactionData.locations = [
+                    {
+                        code: 'FROM',
+                        address: bookingDetails.transferDetails.pickupLocation,
+                    },
+                    {
+                        code: 'TO',
+                        address: bookingDetails.transferDetails.dropoffLocation,
+                    },
+                ];
+
+                // Create new transaction
+                await this.transactionService.create(transactionData);
             }
         } catch (error) {
             console.error('Error in determineEmail:', error);
