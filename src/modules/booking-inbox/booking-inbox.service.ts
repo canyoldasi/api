@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
 import * as IMAP from 'node-imap';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
@@ -69,15 +69,15 @@ export enum INBOX_ACTION {
 }
 
 @Injectable()
-export class BookingInboxService implements OnApplicationBootstrap {
+export class BookingInboxService implements OnApplicationBootstrap, OnApplicationShutdown {
     private imap: IMAP;
-    private emailCheckInterval: number;
-    private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
-    private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
+    private inboxCheckInterval: number;
+    private inboxCheckPeriod: number;
     private bookingChannelId: string;
     private bookingTransactionTypeId: string;
     private bookingNewStatusId: string;
     private bookingCancelStatusId: string;
+    private scheduledInterval: NodeJS.Timeout;
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -97,6 +97,7 @@ export class BookingInboxService implements OnApplicationBootstrap {
         try {
             const settings = await this.settingService.getSettings([
                 'bl_inbox_check_interval',
+                'bl_inbox_check_period',
                 'bl_inbox_user',
                 'bl_inbox_password',
                 'bl_inbox_host',
@@ -104,8 +105,13 @@ export class BookingInboxService implements OnApplicationBootstrap {
                 'bl_inbox_tls',
             ]);
 
-            this.emailCheckInterval = parseInt(
-                settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '15', // Varsayılan 15 dakika
+            this.inboxCheckInterval = parseInt(
+                settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '120', // Varsayılan 120 saniye
+                10
+            );
+
+            this.inboxCheckPeriod = parseInt(
+                settings.find((x) => x.key === 'bl_inbox_check_period')?.value || '120', // Varsayılan 120 saniye
                 10
             );
 
@@ -161,6 +167,14 @@ export class BookingInboxService implements OnApplicationBootstrap {
             this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
 
             await this.startServerUp();
+
+            // Schedule the startScheduled method to run at regular intervals
+            this.scheduledInterval = setInterval(
+                () => this.startScheduled(),
+                this.inboxCheckInterval * 1000 // Convert seconds to milliseconds
+            );
+
+            console.log(`E-posta kontrolü ${this.inboxCheckInterval} saniyede bir çalışacak şekilde planlandı`);
         } catch (error) {
             console.error('IMAP initialization error:', error);
             await this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP initialization error', error, error.stack);
@@ -197,23 +211,20 @@ export class BookingInboxService implements OnApplicationBootstrap {
         console.log(level, action, message, details, stackTrace);
         await this.logService.log({
             level,
-            module: this.BOOKING_INBOX_MODULE_NAME,
+            module: 'BookingInboxService',
             action,
             message,
             details,
             stackTrace,
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
+            entityType: 'BOOKING_INBOX',
         });
     }
 
-    /**
-     * .env dosyasında belirtilen aralıklarla e-postaları kontrol et
-     */
     async startScheduled() {
         await this.log(
             LOG_LEVEL.INFO,
             INBOX_ACTION.CHECK,
-            `E-postalar kontrol ediliyor (${this.emailCheckInterval} dakikada bir)...`
+            `E-postalar kontrol ediliyor (${this.inboxCheckInterval} saniyede bir)...`
         );
 
         try {
@@ -267,7 +278,8 @@ export class BookingInboxService implements OnApplicationBootstrap {
 
                     // Belli süre içindeki tüm e-postaları al (okunmuş ve okunmamış)
                     const startDate = new Date();
-                    startDate.setDate(startDate.getDate() - 1);
+                    // Saniye cinsinden period'u milisaniyeye çevirip çıkarıyoruz
+                    startDate.setTime(startDate.getTime() - this.inboxCheckPeriod * 1000);
 
                     this.imap.search([['SINCE', startDate]], (err, results) => {
                         if (err) {
@@ -626,6 +638,14 @@ export class BookingInboxService implements OnApplicationBootstrap {
         } catch (error) {
             console.error('Error in determineEmail:', error);
             throw error;
+        }
+    }
+
+    async onApplicationShutdown() {
+        // Clear the interval when the application shuts down
+        if (this.scheduledInterval) {
+            clearInterval(this.scheduledInterval);
+            console.log('E-posta kontrol aralığı temizlendi');
         }
     }
 }
