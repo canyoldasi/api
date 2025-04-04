@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Log } from '../../entities/log.entity';
-import { LogLevel } from 'src/constants';
+import { LogLevel } from 'src/types/constants';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Inject } from '@nestjs/common';
 import { Logger } from 'winston';

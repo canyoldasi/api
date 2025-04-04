@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { LogLevel } from 'src/constants';
+import { LogLevel } from 'src/types/constants';
 
 @Entity()
 @ObjectType()

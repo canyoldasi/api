@@ -2,7 +2,7 @@ import { Entity, Column, OneToMany } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { BaseEntity } from './base.entity';
 import { AccountAccountType } from './account-account-type.entity';
-import { AccountTypeCode } from '../constants';
+import { AccountTypeCode } from '../types/constants';
 
 @Entity()
 @ObjectType()

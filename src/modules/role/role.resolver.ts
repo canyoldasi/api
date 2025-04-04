@@ -6,7 +6,7 @@ import { AuthGuard } from '../../providers/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetRolesDTO } from './dto/get-roles.dto';
-import { Permission } from 'src/constants';
+import { Permission } from 'src/types/constants';
 
 @Resolver(() => Role)
 @UseGuards(AuthGuard)

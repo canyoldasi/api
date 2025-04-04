@@ -2,7 +2,7 @@ import { ApolloServerPlugin } from '@apollo/server';
 import { GraphQLRequestContext } from '@apollo/server';
 import { Injectable } from '@nestjs/common';
 import { LogService } from '../modules/log/log.service';
-import { LOG_LEVEL } from '../constants';
+import { LOG_LEVEL } from '../types/constants';
 
 interface GraphQLResponse {
     errors?: any[];

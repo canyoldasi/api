@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Permission } from 'src/constants';
+import { Permission } from 'src/types/constants';
 
 @InputType()
 export class AddUpdateRoleDto {

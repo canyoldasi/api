@@ -6,7 +6,7 @@ import { GetAccountsDTO } from './dto/get-accounts.dto';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../providers/auth.guard';
 import { Permissions } from '../../providers/permissions.decorator';
-import { PERMISSIONS } from '../../constants';
+import { PERMISSIONS } from '../../types/constants';
 import { Segment } from '../../entities/segment.entity';
 import { AccountType } from '../../entities/account-type.entity';
 import { Paginated, PaginatedResult } from '../../types/paginated';

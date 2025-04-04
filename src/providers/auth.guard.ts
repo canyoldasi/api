@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { PERMISSIONS_METADATA_NAME, Permission } from 'src/constants';
+import { PERMISSIONS_METADATA_NAME, Permission } from 'src/types/constants';
 import { UserService } from 'src/modules/user/user.service';
 import FastifyRequestCustom from './fastify-request-custom';
 import { User } from 'src/entities/user.entity';

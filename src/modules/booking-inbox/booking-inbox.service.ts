@@ -3,7 +3,7 @@ import * as IMAP from 'node-imap';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
 import { LogService } from '../log/log.service';
-import { LOG_LEVEL, LogLevel, PERSON_TYPE } from '../../constants';
+import { LOG_LEVEL, LogLevel, PERSON_TYPE } from '../../types/constants';
 import { TransactionService } from '../transaction/transaction.service';
 import { CreateUpdateTransactionDTO } from '../transaction/dto/create-update-transaction.dto';
 import { ParsedMail } from 'mailparser';

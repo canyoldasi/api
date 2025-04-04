@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { PaginationBaseDTO } from '../../../providers/pagination-base.dto';
-import { Permission } from 'src/constants';
+import { Permission } from 'src/types/constants';
 
 @InputType()
 export class GetRolesDTO extends PaginationBaseDTO {

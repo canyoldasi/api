@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Role } from '../../entities/role.entity';
 import { EntityManager } from 'typeorm';
-import { Permission, PERMISSIONS } from 'src/constants';
+import { Permission, PERMISSIONS } from 'src/types/constants';
 import { RolePermission } from 'src/entities/role-permission.entity';
 import { AddUpdateRoleDto } from './dto/add-update-role.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';

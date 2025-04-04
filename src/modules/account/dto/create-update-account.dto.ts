@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Gender, PersonType } from '../../../constants';
+import { Gender, PersonType } from '../../../types/constants';
 import { CreateUpdateAccountLocationDTO } from 'src/modules/account/dto/create-update-account-location.dto';
 
 @InputType()

@@ -4,7 +4,7 @@ import { Setting } from '../../entities/setting.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../providers/auth.guard';
 import { Permissions } from '../../providers/permissions.decorator';
-import { PERMISSIONS } from '../../constants';
+import { PERMISSIONS } from '../../types/constants';
 
 @Resolver(() => Setting)
 @UseGuards(AuthGuard)

@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Gender, PersonType } from '../constants';
+import { Gender, PersonType } from '../types/constants';
 import { Contact } from './contact.entity';
 import { BaseEntity } from './base.entity';
 import { City } from './city.entity';

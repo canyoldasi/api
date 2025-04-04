@@ -3,7 +3,7 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LogService } from '../modules/log/log.service';
-import { LOG_LEVEL } from 'src/constants';
+import { LOG_LEVEL } from 'src/types/constants';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {

@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from './role.entity';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Permission } from '../constants';
+import { Permission } from '../types/constants';
 
 @Entity()
 @ObjectType()
