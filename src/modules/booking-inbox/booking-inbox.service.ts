@@ -52,30 +52,6 @@ type BookingDetails = {
         name: string;
         email: string;
     };
-    specialRequests: {
-        wheelchair: boolean;
-        childSeat: {
-            required: boolean;
-            age?: number;
-        };
-        nameSign: {
-            required: boolean;
-            text?: string;
-            language?: 'ENGLISH' | 'TURKISH' | 'RUSSIAN' | 'ARABIC';
-        };
-        meetingPoint?: 'RECEPTION' | 'TERMINAL';
-        notes?: string;
-    };
-    complaintDetails: {
-        hasComplaint: boolean;
-        complaintId?: string;
-        status?: 'PENDING' | 'INVESTIGATING' | 'RESOLVED' | 'REJECTED';
-        resolution?: string;
-    };
-    cancellationDetails: {
-        isCancelled: boolean;
-        cancelledAt?: Date;
-    };
     metadata: {
         emailSubject: string;
         emailFrom: string;
@@ -395,21 +371,6 @@ export class BookingInboxService implements OnModuleInit {
             transferCompany: {
                 name: '',
                 email: mail.to?.text || '',
-            },
-            specialRequests: {
-                wheelchair: false,
-                childSeat: {
-                    required: false,
-                },
-                nameSign: {
-                    required: false,
-                },
-            },
-            complaintDetails: {
-                hasComplaint: false,
-            },
-            cancellationDetails: {
-                isCancelled: false,
             },
             metadata: {
                 emailSubject: mail.subject || '',
