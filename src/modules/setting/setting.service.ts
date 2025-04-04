@@ -49,9 +49,12 @@ export class SettingService {
         });
     }
 
-    async getSettings(keys: string[]): Promise<Setting[]> {
-        return this.entityManager.find(Setting, {
+    async getSettings(keys: string[]): Promise<(string | null)[]> {
+        const settings = await this.entityManager.find(Setting, {
             where: { key: In(keys) },
         });
+        const settingsMap = new Map(settings.map((setting) => [setting.key, setting.value]));
+
+        return keys.map((key) => settingsMap.get(key) || null);
     }
 }

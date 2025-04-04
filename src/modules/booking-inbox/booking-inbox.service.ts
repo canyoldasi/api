@@ -95,32 +95,26 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
 
     private async initializeInBackground() {
         try {
-            const settings = await this.settingService.getSettings([
-                'bl_inbox_check_interval',
-                'bl_inbox_check_period',
-                'bl_inbox_user',
-                'bl_inbox_password',
-                'bl_inbox_host',
-                'bl_inbox_port',
-                'bl_inbox_tls',
-            ]);
+            const [inboxCheckInterval, inboxCheckPeriod, inboxUser, inboxPassword, inboxHost, inboxPort, inboxTls] =
+                await this.settingService.getSettings([
+                    'bl_inbox_check_interval',
+                    'bl_inbox_check_period',
+                    'bl_inbox_user',
+                    'bl_inbox_password',
+                    'bl_inbox_host',
+                    'bl_inbox_port',
+                    'bl_inbox_tls',
+                ]);
 
-            this.inboxCheckInterval = parseInt(
-                settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '60',
-                10
-            );
-
-            this.inboxCheckPeriod = parseInt(
-                settings.find((x) => x.key === 'bl_inbox_check_period')?.value || '600',
-                10
-            );
+            this.inboxCheckInterval = parseInt(inboxCheckInterval || '60', 10);
+            this.inboxCheckPeriod = parseInt(inboxCheckPeriod || '600', 10);
 
             this.imap = new IMAP({
-                user: settings.find((x) => x.key === 'bl_inbox_user')?.value,
-                password: settings.find((x) => x.key === 'bl_inbox_password')?.value,
-                host: settings.find((x) => x.key === 'bl_inbox_host')?.value,
-                port: parseInt(settings.find((x) => x.key === 'bl_inbox_port')?.value || '993'),
-                tls: settings.find((x) => x.key === 'bl_inbox_tls')?.value === 'true' ? true : false,
+                user: inboxUser,
+                password: inboxPassword,
+                host: inboxHost,
+                port: parseInt(inboxPort || '993', 10),
+                tls: inboxTls === 'true',
                 tlsOptions: { rejectUnauthorized: false },
                 authTimeout: 10000,
             });
