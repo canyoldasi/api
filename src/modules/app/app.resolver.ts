@@ -1,15 +1,14 @@
-import { Resolver, Query } from '@nestjs/graphql';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Query, Resolver, ObjectType, Field } from '@nestjs/graphql';
 import { SettingService } from '../setting/setting.service';
 import { LanguageService } from './language.service';
 import { Language } from '../../entities/language.entity';
 
 @ObjectType()
 class AppInfo {
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     name: string;
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     logo: string;
 }
 
@@ -21,13 +20,10 @@ export class AppResolver {
     ) {}
 
     @Query(() => AppInfo)
-    async appInfo(): Promise<AppInfo> {
-        const appNameSetting = await this.settingService.getSetting('APP_NAME');
-        const appLogoSetting = await this.settingService.getSetting('APP_LOGO');
-
+    async getAppInfo(): Promise<AppInfo> {
         return {
-            name: appNameSetting?.value || 'Kurum Adı',
-            logo: appLogoSetting?.value || '',
+            name: (await this.settingService.getSetting('app_name'))?.value || 'Kurum Adı',
+            logo: (await this.settingService.getSetting('app_logo'))?.value || '',
         };
     }
 

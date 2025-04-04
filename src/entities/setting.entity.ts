@@ -16,7 +16,7 @@ export class Setting {
     @Column({ type: 'text', nullable: true })
     previousValue?: string;
 
-    @Field(() => Date)
+    @Field(() => Date, { nullable: true })
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    updatedAt: Date;
+    updatedAt?: Date;
 }
