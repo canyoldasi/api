@@ -77,7 +77,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
     private bookingTransactionTypeId: string;
     private bookingNewStatusId: string;
     private bookingCancelStatusId: string;
-    private scheduledInterval: NodeJS.Timeout;
+    private scheduledTimeout: NodeJS.Timeout;
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -106,12 +106,12 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             ]);
 
             this.inboxCheckInterval = parseInt(
-                settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '120', // Varsayılan 120 saniye
+                settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '60',
                 10
             );
 
             this.inboxCheckPeriod = parseInt(
-                settings.find((x) => x.key === 'bl_inbox_check_period')?.value || '120', // Varsayılan 120 saniye
+                settings.find((x) => x.key === 'bl_inbox_check_period')?.value || '600',
                 10
             );
 
@@ -168,11 +168,8 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
 
             await this.startServerUp();
 
-            // Schedule the startScheduled method to run at regular intervals
-            this.scheduledInterval = setInterval(
-                () => this.startScheduled(),
-                this.inboxCheckInterval * 1000 // Convert seconds to milliseconds
-            );
+            // İlk kontrolü planla
+            this.scheduleNextCheck();
 
             console.log(`E-posta kontrolü ${this.inboxCheckInterval} saniyede bir çalışacak şekilde planlandı`);
         } catch (error) {
@@ -641,11 +638,39 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
         }
     }
 
+    // Yeni metot: Bir sonraki kontrolü planla
+    private scheduleNextCheck() {
+        // Önceki zamanlayıcıyı temizle
+        if (this.scheduledTimeout) {
+            clearTimeout(this.scheduledTimeout);
+        }
+
+        // Yeni bir zamanlayıcı ayarla
+        this.scheduledTimeout = setTimeout(async () => {
+            try {
+                // İşlemi gerçekleştir
+                await this.startScheduled();
+            } catch (error) {
+                console.error('E-posta kontrolü sırasında hata oluştu:', error);
+                await this.log(
+                    LOG_LEVEL.ERROR,
+                    INBOX_ACTION.CHECK,
+                    'E-posta kontrolü sırasında hata oluştu',
+                    error,
+                    error.stack
+                );
+            } finally {
+                // İşlem tamamlandıktan sonra bir sonraki kontrolü planla
+                this.scheduleNextCheck();
+            }
+        }, this.inboxCheckInterval * 1000);
+    }
+
     async onApplicationShutdown() {
-        // Clear the interval when the application shuts down
-        if (this.scheduledInterval) {
-            clearInterval(this.scheduledInterval);
-            console.log('E-posta kontrol aralığı temizlendi');
+        // Clear the timeout when the application shuts down
+        if (this.scheduledTimeout) {
+            clearTimeout(this.scheduledTimeout);
+            console.log('E-posta kontrol zamanlayıcısı temizlendi');
         }
     }
 }
