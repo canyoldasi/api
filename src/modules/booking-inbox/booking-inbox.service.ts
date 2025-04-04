@@ -13,6 +13,7 @@ import { AccountService } from '../account/account.service';
 import { GetAccountsDTO } from '../account/dto/get-accounts.dto';
 import { CreateUpdateAccountDTO } from '../account/dto/create-update-account.dto';
 import { ProductService } from '../product/product.service';
+import { SettingService } from '../setting/setting.service';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -100,7 +101,7 @@ export enum INBOX_ACTION {
 @Injectable()
 export class BookingInboxService implements OnModuleInit {
     private imap: IMAP;
-    private readonly emailCheckInterval: number;
+    private emailCheckInterval: number;
     private readonly BOOKING_INBOX_MODULE_NAME = 'BookingInboxService';
     private readonly BOOKING_INBOX_ENTITY_TYPE = 'BOOKING_INBOX';
     private bookingChannelId: string;
@@ -113,20 +114,31 @@ export class BookingInboxService implements OnModuleInit {
         private readonly logService: LogService,
         private readonly transactionService: TransactionService,
         private readonly accountService: AccountService,
-        private readonly productService: ProductService
-    ) {
-        // E-posta kontrol aralığını process.env'den al (dakika cinsinden)
+        private readonly productService: ProductService,
+        private readonly settingService: SettingService
+    ) {}
+
+    async onModuleInit() {
+        const settings = await this.settingService.getSettings([
+            'bl_inbox_check_interval',
+            'bl_inbox_user',
+            'bl_inbox_password',
+            'bl_inbox_host',
+            'bl_inbox_port',
+            'bl_inbox_tls',
+        ]);
+
         this.emailCheckInterval = parseInt(
-            process.env.BL_EMAIL_CHECK_INTERVAL || '15', // Varsayılan 15 dakika
+            settings.find((x) => x.key === 'bl_inbox_check_interval')?.value || '15', // Varsayılan 15 dakika
             10
         );
 
         this.imap = new IMAP({
-            user: process.env.BL_EMAIL_USER,
-            password: process.env.BL_EMAIL_PASSWORD,
-            host: process.env.BL_EMAIL_HOST,
-            port: parseInt(process.env.BL_EMAIL_PORT || '993'),
-            tls: process.env.BL_EMAIL_TLS === 'true' ? true : false,
+            user: settings.find((x) => x.key === 'bl_inbox_user')?.value,
+            password: settings.find((x) => x.key === 'bl_inbox_password')?.value,
+            host: settings.find((x) => x.key === 'bl_inbox_host')?.value,
+            port: parseInt(settings.find((x) => x.key === 'bl_inbox_port')?.value || '993'),
+            tls: settings.find((x) => x.key === 'bl_inbox_tls')?.value === 'true' ? true : false,
             tlsOptions: { rejectUnauthorized: false },
             authTimeout: 10000,
         });
@@ -135,37 +147,6 @@ export class BookingInboxService implements OnModuleInit {
         this.imap.once('error', (err) => {
             this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
         });
-    }
-
-    /**
-     * Log kaydı oluştur
-     */
-    private async log(
-        level: LogLevel,
-        action: INBOX_ACTION,
-        message: string,
-        details?: any,
-        stackTrace?: string
-    ): Promise<void> {
-        return;
-        await this.logService.log({
-            level,
-            module: this.BOOKING_INBOX_MODULE_NAME,
-            action,
-            message,
-            details,
-            stackTrace,
-            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
-        });
-    }
-
-    /**
-     * Uygulama başladığında çalışır
-     */
-    async onModuleInit() {
-        return;
-        await this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
-        console.log('Uygulama başladı, ilk e-posta kontrolü yapılıyor...');
 
         // Get booking channel
         const channels = await this.transactionService.getChannelsLookup();
@@ -217,6 +198,28 @@ export class BookingInboxService implements OnModuleInit {
                 error.stack
             );
         }
+    }
+
+    /**
+     * Log kaydı oluştur
+     */
+    private async log(
+        level: LogLevel,
+        action: INBOX_ACTION,
+        message: string,
+        details?: any,
+        stackTrace?: string
+    ): Promise<void> {
+        console.log(level, action, message, details, stackTrace);
+        await this.logService.log({
+            level,
+            module: this.BOOKING_INBOX_MODULE_NAME,
+            action,
+            message,
+            details,
+            stackTrace,
+            entityType: this.BOOKING_INBOX_ENTITY_TYPE,
+        });
     }
 
     /**

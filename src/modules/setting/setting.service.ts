@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { Setting } from '../../entities/setting.entity';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
+import { In } from 'typeorm';
 
 @Injectable()
 export class SettingService {
@@ -48,27 +49,9 @@ export class SettingService {
         });
     }
 
-    async getValue(key: string): Promise<string | null> {
-        const setting = await this.getSetting(key);
-        return setting ? setting.value : null;
-    }
-
-    async getValues(keys: string[]): Promise<Record<string, string | null>> {
-        const result: Record<string, string | null> = {};
-
-        // Initialize all requested keys with null
-        keys.forEach((key) => {
-            result[key] = null;
+    async getSettings(keys: string[]): Promise<Setting[]> {
+        return this.entityManager.find(Setting, {
+            where: { key: In(keys) },
         });
-
-        // Fill in the values from found settings
-        for (const key of keys) {
-            const setting = await this.getSetting(key);
-            if (setting) {
-                result[key] = setting.value;
-            }
-        }
-
-        return result;
     }
 }
