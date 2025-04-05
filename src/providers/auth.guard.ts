@@ -52,9 +52,17 @@ export class AuthGuard implements CanActivate {
 
         const user: User = userId ? await this.userService.getOne(userId) : null;
 
-        //izin kısıtlaması varsa detay kontrollere başla
+        //@Permissions() dekoratörü boş olarak kullanıldığında oturum açmış olması yeterli.
+        //Rolü veya yetkisi ödenmli değildir. Ancak oturum açmadıysa erişemesin.
+        if (typeof requiredPermissions == 'undefined' && !user) {
+            return false;
+        }
+
+        //@Permissions() dekoratörü ile izin kısıtlaması yapıldığında
+        //gerekli izinlerin kontrolü
         if (requiredPermissions && requiredPermissions.length > 0) {
             if (!user) {
+                //izin kısıtlaması varsa ama oturum açılmamışsa erişemesin
                 return false;
             }
 
@@ -66,7 +74,7 @@ export class AuthGuard implements CanActivate {
                 return assignedPermissions.some((rp) => rp.permission === permission);
             });
 
-            //izni yoksa erişemesin
+            //gerekli izinlerin hepsine sahip değilse erişemesin
             if (!hasPermission) {
                 return false;
             }
