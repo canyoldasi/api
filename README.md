@@ -1,2 +1,1 @@
-## Merhaba
-Can Yoldaşı Derneği'nin  API reposudur
+Agiletech API repo
