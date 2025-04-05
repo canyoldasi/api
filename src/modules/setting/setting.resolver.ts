@@ -18,12 +18,6 @@ export class SettingResolver {
     }
 
     @Mutation(() => Setting)
-    @Permissions(PERMISSIONS.SettingCreate)
-    async createSetting(@Args('key') key: string, @Args('value') value: string): Promise<Setting> {
-        return this.settingService.createSetting(key, value);
-    }
-
-    @Mutation(() => Setting)
     @Permissions(PERMISSIONS.SettingUpdate)
     async updateSetting(@Args('key') key: string, @Args('value') value: string): Promise<Setting> {
         return this.settingService.updateSetting(key, value);

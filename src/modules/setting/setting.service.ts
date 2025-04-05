@@ -12,17 +12,6 @@ export class SettingService {
         private readonly logger: WinstonLogger
     ) {}
 
-    async createSetting(key: string, value: string): Promise<Setting> {
-        const setting = this.entityManager.create(Setting, {
-            key,
-            value,
-            updatedAt: new Date(),
-        });
-
-        await this.entityManager.save(Setting, setting);
-        return setting;
-    }
-
     async updateSetting(key: string, value: string): Promise<Setting> {
         const existingSetting = await this.entityManager.findOne(Setting, {
             where: { key },
