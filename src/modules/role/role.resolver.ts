@@ -7,6 +7,7 @@ import { UseGuards } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetRolesDTO } from './dto/get-roles.dto';
 import { Permission } from 'src/types/constants';
+import { RoleType } from 'src/entities/role-type.entity';
 
 @Resolver(() => Role)
 @UseGuards(AuthGuard)
@@ -26,6 +27,11 @@ export class RoleResolver {
         filters: GetRolesDTO
     ): Promise<Partial<Role>[]> {
         return this.roleService.getRolesByFilters(filters);
+    }
+
+    @Query(() => [RoleType], { nullable: true })
+    async getRoleTypesLookup(): Promise<RoleType[]> {
+        return this.roleService.getRoleTypesLookup();
     }
 
     @Mutation(() => String)

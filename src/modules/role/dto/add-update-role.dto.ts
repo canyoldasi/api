@@ -9,6 +9,9 @@ export class AddUpdateRoleDto {
     @Field()
     name: string;
 
+    @Field()
+    roleTypeId: string;
+
     @Field(() => [String])
     permissions: Permission[];
 }

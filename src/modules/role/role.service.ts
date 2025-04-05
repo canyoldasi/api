@@ -6,6 +6,7 @@ import { RolePermission } from 'src/entities/role-permission.entity';
 import { AddUpdateRoleDto } from './dto/add-update-role.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { GetRolesDTO } from './dto/get-roles.dto';
+import { RoleType } from 'src/entities/role-type.entity';
 
 @Injectable()
 export class RoleService {
@@ -22,6 +23,7 @@ export class RoleService {
             },
             relations: {
                 rolePermissions: true,
+                roleType: true,
             },
         });
         return r;
@@ -32,6 +34,9 @@ export class RoleService {
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(Role, {
                 name: dto.name,
+                roleType: {
+                    id: dto.roleTypeId,
+                },
             });
 
             for (const permission of dto.permissions) {
@@ -54,6 +59,9 @@ export class RoleService {
             ret = await manager.save(Role, {
                 id: dto.id,
                 name: dto.name,
+                roleType: {
+                    id: dto.roleTypeId,
+                },
             });
             this.logger.log(`Role updated: ${ret}`);
 
@@ -86,7 +94,8 @@ export class RoleService {
     async getRolesByFilters(filters: GetRolesDTO): Promise<Role[] | undefined> {
         const queryBuilder = this.entityManager
             .createQueryBuilder(Role, 'role')
-            .leftJoinAndSelect('role.rolePermissions', 'rp');
+            .leftJoinAndSelect('role.rolePermissions', 'rp')
+            .leftJoinAndSelect('role.roleType', 'rt');
 
         queryBuilder.where('role.deletedAt IS NULL');
 
@@ -116,5 +125,16 @@ export class RoleService {
 
     getPermissions(): Permission[] {
         return Object.values(PERMISSIONS);
+    }
+
+    async getRoleTypesLookup(): Promise<RoleType[]> {
+        return await this.entityManager.find(RoleType, {
+            where: {
+                isActive: true,
+            },
+            order: {
+                name: 'ASC',
+            },
+        });
     }
 }

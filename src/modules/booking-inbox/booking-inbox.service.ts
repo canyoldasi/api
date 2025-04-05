@@ -160,7 +160,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             }
             this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
 
-            await this.startServerUp();
+            //await this.startServerUp();
 
             // İlk kontrolü planla
             this.scheduleNextCheck();

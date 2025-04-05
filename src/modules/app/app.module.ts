@@ -14,6 +14,7 @@ import { RequestMiddleware } from 'src/providers/request.middleware';
 import { User } from 'src/entities/user.entity';
 import { Role } from 'src/entities/role.entity';
 import { RolePermission } from 'src/entities/role-permission.entity';
+import { RoleType } from 'src/entities/role-type.entity';
 import { RoleModule } from '../role/role.module';
 import { AuthGuard } from '../../providers/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
@@ -75,6 +76,7 @@ import { LanguageService } from './language.service';
                 User,
                 Role,
                 RolePermission,
+                RoleType,
                 Log,
                 Account,
                 Contact,
