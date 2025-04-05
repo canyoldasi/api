@@ -20,7 +20,7 @@ export class AppResolver {
     ) {}
 
     @Query(() => AppInfo)
-    async getAppInfo(): Promise<AppInfo> {
+    async getApp(): Promise<AppInfo> {
         return {
             name: (await this.settingService.getSetting('app_name'))?.value || 'Kurum Adı',
             logo: (await this.settingService.getSetting('app_logo'))?.value || '',

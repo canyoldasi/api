@@ -54,8 +54,10 @@ export class AuthGuard implements CanActivate {
 
         //@Permissions() dekoratörü boş olarak kullanıldığında oturum açmış olması yeterli.
         //Rolü veya yetkisi ödenmli değildir. Ancak oturum açmadıysa erişemesin.
-        if (typeof requiredPermissions == 'undefined' && !user) {
-            return false;
+        if (requiredPermissions && requiredPermissions.length == 0) {
+            if (!user) {
+                return false;
+            }
         }
 
         //@Permissions() dekoratörü ile izin kısıtlaması yapıldığında

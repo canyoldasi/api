@@ -30,6 +30,7 @@ export class RoleResolver {
     }
 
     @Query(() => [RoleType], { nullable: true })
+    @Permissions()
     async getRoleTypesLookup(): Promise<RoleType[]> {
         return this.roleService.getRoleTypesLookup();
     }
