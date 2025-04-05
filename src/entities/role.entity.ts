@@ -14,7 +14,7 @@ export class Role extends BaseEntity {
 
     @ManyToOne(() => RoleType, { nullable: true })
     @Field(() => RoleType, { nullable: true })
-    roleType: RoleType;
+    roleType?: RoleType;
 
     @OneToMany(() => User, (user) => user.role)
     @Field(() => [User], { nullable: true })
