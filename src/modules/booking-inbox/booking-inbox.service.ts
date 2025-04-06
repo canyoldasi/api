@@ -23,6 +23,7 @@ enum BookingEmailType {
 }
 
 type BookingDetails = {
+    messageId: string;
     reservationId: string;
     emailType: BookingEmailType;
     traveler: {
@@ -57,15 +58,10 @@ type BookingDetails = {
 export enum INBOX_ACTION {
     CONNECT = 'CONNECT',
     CHECK = 'CHECK',
-    CHECK_MANUAL = 'CHECK_MANUAL',
     FETCH = 'FETCH',
     PARSE = 'PARSE',
     PROCESS = 'PROCESS',
-    PROCESS_START = 'PROCESS_START',
     SKIP = 'SKIP',
-    PROCESSED = 'PROCESSED',
-    ERROR = 'ERROR',
-    INFO = 'INFO',
 }
 
 @Injectable()
@@ -121,7 +117,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
 
             // Hata olaylarını dinle
             this.imap.once('error', (err) => {
-                this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err);
+                this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err, null, null);
             });
 
             // Get booking channel
@@ -135,10 +131,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             // Get booking rezervation type
             const transactionTypes = await this.transactionService.getTransactionTypesLookup();
             const bookingTransactionType = transactionTypes.find((transactionType) => transactionType.code === 'R');
-            if (!bookingTransactionType) {
-                throw new Error('Booking transaction type not found');
-            }
-            this.bookingTransactionTypeId = bookingTransactionType.id.toString();
+            this.bookingTransactionTypeId = bookingTransactionType?.id?.toString() || null;
 
             // Get booking status
             const transactionStatuses = await this.transactionService.getTransactionStatuses();
@@ -160,15 +153,28 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             }
             this.bookingCancelStatusId = bookingTransactionCancelStatus.id.toString();
 
-            //await this.startServerUp();
+            await this.startServerUp();
 
             // İlk kontrolü planla
             this.scheduleNextCheck();
 
-            console.log(`E-posta kontrolü ${this.inboxCheckInterval} saniyede bir çalışacak şekilde planlandı`);
+            this.log(
+                LOG_LEVEL.INFO,
+                INBOX_ACTION.CONNECT,
+                `E-posta kontrolü ${this.inboxCheckInterval} saniyede bir çalışacak şekilde planlandı`,
+                null,
+                null,
+                null
+            );
         } catch (error) {
-            console.error('IMAP initialization error:', error);
-            await this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP initialization error', error, error.stack);
+            await this.log(
+                LOG_LEVEL.ERROR,
+                INBOX_ACTION.CONNECT,
+                'IMAP initialization error',
+                error,
+                null,
+                error.stack
+            );
         }
     }
 
@@ -176,14 +182,14 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
         // Uygulama başladığında gelen kutusunu kontrol et
         try {
             await this.fetchEmails();
-            console.log('Server up e-posta kontrolü başarıyla tamamlandı');
+            this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'startServerUp başarıyla tamamlandı', null, null, null);
         } catch (error) {
-            console.error('Server up e-posta kontrolü sırasında hata oluştu', error);
             await this.log(
                 LOG_LEVEL.ERROR,
                 INBOX_ACTION.CHECK,
-                'Server up e-posta kontrolü sırasında hata oluştu',
+                'startServerUp sırasında hata oluştu',
                 error,
+                null,
                 error.stack
             );
         }
@@ -196,10 +202,10 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
         level: LogLevel,
         action: INBOX_ACTION,
         message: string,
-        details?: any,
-        stackTrace?: string
+        details: any,
+        entityId: string,
+        stackTrace: string
     ): Promise<void> {
-        console.log(level, action, message, details, stackTrace);
         await this.logService.log({
             level,
             module: 'BookingInboxService',
@@ -208,6 +214,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             details,
             stackTrace,
             entityType: 'BOOKING_INBOX',
+            entity: entityId,
         });
     }
 
@@ -215,17 +222,22 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
         await this.log(
             LOG_LEVEL.INFO,
             INBOX_ACTION.CHECK,
-            `E-postalar kontrol ediliyor (${this.inboxCheckInterval} saniyede bir)...`
+            `startScheduled başladı (${this.inboxCheckInterval} saniyede bir...`,
+            null,
+            null,
+            null
         );
 
         try {
             await this.fetchEmails();
+            this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'startScheduled başarıyla tamamlandı', null, null, null);
         } catch (error) {
             await this.log(
                 LOG_LEVEL.ERROR,
                 INBOX_ACTION.CHECK,
-                'E-posta kontrol edilirken hata oluştu',
+                'startScheduled sırasında hata oluştu',
                 error,
+                null,
                 error.stack
             );
         }
@@ -235,17 +247,17 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
      * Manuel olarak e-postaları kontrol et
      */
     async startManuel() {
-        await this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK_MANUAL, 'E-postalar manuel olarak kontrol ediliyor...');
-
+        this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'startManuel başarıyla tamamlandı', null, null, null);
         try {
             await this.fetchEmails();
             return { success: true, message: 'E-postalar başarıyla kontrol edildi.' };
         } catch (error) {
             await this.log(
                 LOG_LEVEL.ERROR,
-                INBOX_ACTION.CHECK_MANUAL,
-                'E-posta kontrol edilirken hata oluştu',
+                INBOX_ACTION.CHECK,
+                'startManuel sırasında hata oluştu',
                 error,
+                null,
                 error.stack
             );
             return { success: false, message: error.message };
@@ -280,15 +292,22 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                         }
 
                         if (!results || results.length === 0) {
-                            this.log(LOG_LEVEL.INFO, INBOX_ACTION.FETCH, 'İşlenecek yeni e-posta yok.');
+                            this.log(LOG_LEVEL.INFO, INBOX_ACTION.FETCH, 'Yeni e-posta yok.', null, null, null);
                             this.imap.end();
                             resolve();
                             return;
                         }
 
-                        this.log(LOG_LEVEL.INFO, INBOX_ACTION.FETCH, `${results.length} adet yeni e-posta bulundu.`, {
-                            count: results.length,
-                        });
+                        this.log(
+                            LOG_LEVEL.INFO,
+                            INBOX_ACTION.FETCH,
+                            `${results.length} adet e-posta bulundu.`,
+                            {
+                                count: results.length,
+                            },
+                            null,
+                            null
+                        );
 
                         const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
                         let fetchedEmailCount = 0;
@@ -303,35 +322,62 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                                             INBOX_ACTION.PARSE,
                                             'E-posta ayrıştırma hatası',
                                             err,
+                                            null,
                                             err.stack
                                         );
-                                        fetchedEmailCount++;
-                                        if (fetchedEmailCount === results.length) {
-                                            this.imap.end();
-                                            resolve();
-                                        }
-                                        return;
-                                    }
-                                    if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
-                                        try {
-                                            // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
-                                            await this.processBookingEmail(mail);
-                                        } catch (e) {
+                                    } else {
+                                        const cleanMessageId = mail.messageId?.replace(/[<>]/g, '');
+
+                                        const existingLogs = await this.logService.getLogs({
+                                            level: LOG_LEVEL.INFO,
+                                            action: INBOX_ACTION.FETCH,
+                                            entity: cleanMessageId,
+                                        });
+
+                                        if (existingLogs?.length == 0) {
                                             this.log(
-                                                LOG_LEVEL.ERROR,
-                                                INBOX_ACTION.PROCESS,
-                                                'E-posta işlenirken hata',
-                                                e,
-                                                e.stack
+                                                LOG_LEVEL.INFO,
+                                                INBOX_ACTION.FETCH,
+                                                'E-posta işleniyor',
+                                                null,
+                                                cleanMessageId,
+                                                null
+                                            );
+
+                                            if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
+                                                try {
+                                                    // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
+                                                    await this.processBookingEmail(mail, cleanMessageId);
+                                                } catch (e) {
+                                                    this.log(
+                                                        LOG_LEVEL.ERROR,
+                                                        INBOX_ACTION.PROCESS,
+                                                        'E-posta işlenirken hata',
+                                                        e,
+                                                        cleanMessageId,
+                                                        e.stack
+                                                    );
+                                                }
+                                            } else {
+                                                this.log(
+                                                    LOG_LEVEL.INFO,
+                                                    INBOX_ACTION.SKIP,
+                                                    'Booking maili olmadığı için atlanıyor',
+                                                    mail.subject,
+                                                    cleanMessageId,
+                                                    null
+                                                );
+                                            }
+                                        } else {
+                                            this.log(
+                                                LOG_LEVEL.INFO,
+                                                INBOX_ACTION.SKIP,
+                                                'E-posta zaten işlendiği için atlanıyor',
+                                                null,
+                                                cleanMessageId,
+                                                null
                                             );
                                         }
-                                    } else {
-                                        this.log(
-                                            LOG_LEVEL.INFO,
-                                            INBOX_ACTION.CONNECT,
-                                            'Booking maili olmadığı için atlanıyor: ',
-                                            mail.subject
-                                        );
                                     }
 
                                     fetchedEmailCount++;
@@ -344,7 +390,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                         });
 
                         fetch.once('error', (err) => {
-                            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.FETCH, 'E-posta getirme hatası', err, err.stack);
+                            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.FETCH, 'Getirme hatası', err, null, err.stack);
                             this.imap.end();
                             reject(err);
                         });
@@ -361,6 +407,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
      */
     private determineEmailType(mail: ParsedMail, textContent: string): BookingDetails {
         const details: BookingDetails = {
+            messageId: '',
             reservationId: '',
             emailType: BookingEmailType.NEW,
             traveler: {
@@ -491,7 +538,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
     /**
      * E-posta içeriğini işle ve gerekirse transaction oluştur
      */
-    private async processBookingEmail(mail: ParsedMail): Promise<void> {
+    private async processBookingEmail(mail: ParsedMail, messageId: string): Promise<void> {
         try {
             // Convert HTML to text with proper formatting
             const content = mail.html
@@ -505,6 +552,8 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             const textContent = content.replace(/\n\s*\n/g, '\n').trim();
 
             const bookingDetails = this.determineEmailType(mail, textContent);
+
+            bookingDetails.messageId = messageId;
 
             // Log email content and parsed JSON model
             const logContent = JSON.stringify(
@@ -651,6 +700,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                     INBOX_ACTION.CHECK,
                     'E-posta kontrolü sırasında hata oluştu',
                     error,
+                    null,
                     error.stack
                 );
             } finally {
@@ -664,7 +714,6 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
         // Clear the timeout when the application shuts down
         if (this.scheduledTimeout) {
             clearTimeout(this.scheduledTimeout);
-            console.log('E-posta kontrol zamanlayıcısı temizlendi');
         }
     }
 }

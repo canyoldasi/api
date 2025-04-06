@@ -63,6 +63,7 @@ export class LogService {
             entity: data.entity,
             entityType: data.entityType,
         });
+
         return log.id;
     }
 

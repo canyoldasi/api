@@ -16,7 +16,7 @@ const uncoloredFormat = winston.format.combine(
     }),
     winston.format.printf(
         ({ timestamp, level, message, stack, context }) =>
-            `[${timestamp}] ${level}: Message: ${message} Context: ${context} Stack: ${stack || ''}`
+            `[${timestamp}] ${level}: Message: ${message} Context: ${context || ''} Stack: ${stack || ''}`
     )
 );
 
