@@ -11,8 +11,8 @@ async function bootstrap() {
         bodyLimit: 50048576,
         ...(process.env.HTTPS === 'true' && {
             https: {
-                key: fs.readFileSync('./ssl.key', 'utf-8'),
-                cert: fs.readFileSync('./ssl.cer', 'utf-8'),
+                cert: fs.readFileSync(process.env.HTTPS_CERT_FILE, 'utf-8'),
+                key: fs.readFileSync(process.env.HTTPS_KEY_FILE, 'utf-8'),
             },
         }),
     });

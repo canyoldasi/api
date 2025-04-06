@@ -10,7 +10,7 @@ echo "🚀 Deployment başlıyor..."
 
 # Local build
 echo "📦 Local build yapılıyor..."
-cd /Users/esrefatak/Documents/code/canyoldasi/api
+cd /Users/esrefatak/Documents/code/agiletech/crm/api
 npm run build
 
 # Local'de dosyaları sıkıştırma
@@ -23,14 +23,14 @@ cd ..
 
 # Dosyaları remote'a kopyalama
 echo "📤 Dosyalar remote'a kopyalanıyor..."
-scp deploy_${TIMESTAMP}.tar.gz root@recommed.co:/root/canyoldasi/
+scp deploy_${TIMESTAMP}.tar.gz root@recommed.co:/root/agiletech/crm/
 
 # Remote'da yedekleme ve dosyaları çıkartma
 echo "💾 Remote klasör yedekleniyor ve dosyalar çıkartılıyor..."
 ssh root@recommed.co "set -e && \
-    rm -rf /root/canyoldasi/api/node_modules && \
-    rm -rf /root/canyoldasi/api/entities && \
-    tar czf /root/canyoldasi/api_remote_backup_${TIMESTAMP}.tar.gz /root/canyoldasi/api && \
-    tar xzf /root/canyoldasi/deploy_${TIMESTAMP}.tar.gz -C /root/canyoldasi/api"
+    rm -rf /root/agiletech/crm/api/node_modules && \
+    rm -rf /root/agiletech/crm/api/entities && \
+    tar czf /root/agiletech/crm/api_remote_backup_${TIMESTAMP}.tar.gz /root/agiletech/crm/api && \
+    tar xzf /root/agiletech/crm/deploy_${TIMESTAMP}.tar.gz -C /root/agiletech/crm/api"
 
-echo "✅ npm install yapın ve sonra pm2 reload can_yoldasi yapın!"
+echo "✅ npm install yapın ve sonra pm2 reload crm yapın!"
