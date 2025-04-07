@@ -13,8 +13,8 @@ export class CreateUpdateUserDto {
     @Field()
     fullName: string;
 
-    @Field()
-    password: string;
+    @Field({ nullable: true })
+    password?: string;
 
     @Field()
     isActive?: boolean = true;

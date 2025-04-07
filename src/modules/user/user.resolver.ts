@@ -5,7 +5,7 @@ import { User } from '../../entities/user.entity';
 import { Role } from '../../entities/role.entity';
 import { CreateUpdateUserDto } from './dto/create-update-user.dto';
 import { AuthGuard } from '../../providers/auth.guard';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, BadRequestException } from '@nestjs/common';
 import { Permissions } from 'src/providers/permissions.decorator';
 import { GetUsersDTO } from './dto/get-users.dto';
 import { Paginated, PaginatedResult } from '../../types/paginated';
@@ -60,6 +60,11 @@ export class UserResolver {
     @Mutation(() => String)
     @Permissions('UserCreate')
     async createUser(@Args('input') dto: CreateUpdateUserDto): Promise<string> {
+        // Validate that password is provided for create operation
+        if (!dto.password) {
+            throw new BadRequestException('Password is required for user creation');
+        }
+        
         const r = await this.userService.create(dto);
         return r?.id;
     }
@@ -67,6 +72,8 @@ export class UserResolver {
     @Mutation(() => String)
     @Permissions('UserUpdate')
     async updateUser(@Args('input') dto: CreateUpdateUserDto): Promise<string> {
+        // For update, password is optional
+        // If not provided, the service will keep the existing password
         const r = await this.userService.update(dto);
         return r?.id;
     }

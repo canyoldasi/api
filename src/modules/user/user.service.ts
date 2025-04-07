@@ -38,15 +38,22 @@ export class UserService {
             id: dto.id,
         });
 
+        if (!existingUser) {
+            throw new Error(`User with ID ${dto.id} not found`);
+        }
+
         await this.entityManager.transaction(async (manager) => {
+            // Only update password if it's provided, otherwise keep the existing one
+            const password = dto.password
+                ? await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT))
+                : existingUser.password;
+
             ret = await manager.save(User, {
                 id: dto.id,
                 isActive: dto.isActive,
                 username: dto.username,
                 fullName: dto.fullName,
-                password: dto.password
-                    ? await bcrypt.hash(dto.password, parseInt(process.env.PASSWORD_SALT))
-                    : existingUser.password,
+                password: password,
                 role: {
                     id: dto.roleId,
                 },
