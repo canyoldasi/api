@@ -11,7 +11,6 @@ import { GetUsersDTO } from './dto/get-users.dto';
 import { Paginated, PaginatedResult } from '../../types/paginated';
 import { GetLookupDTO } from '../../types/lookup.dto';
 
-// Create a reusable type for paginated users
 const PaginatedUser = Paginated(User);
 
 @Resolver(() => User)
@@ -64,7 +63,7 @@ export class UserResolver {
         if (!dto.password) {
             throw new BadRequestException('Password is required for user creation');
         }
-        
+
         const r = await this.userService.create(dto);
         return r?.id;
     }

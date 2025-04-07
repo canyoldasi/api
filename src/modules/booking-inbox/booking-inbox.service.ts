@@ -14,6 +14,7 @@ import { GetAccountsDTO } from '../account/dto/get-accounts.dto';
 import { CreateUpdateAccountDTO } from '../account/dto/create-update-account.dto';
 import { ProductService } from '../product/product.service';
 import { SettingService } from '../setting/setting.service';
+import { DateTime } from 'luxon';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -279,12 +280,11 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                         return;
                     }
 
-                    // Belli süre içindeki tüm e-postaları al (okunmuş ve okunmamış)
-                    const startDate = new Date();
-                    // Saniye cinsinden period'u milisaniyeye çevirip çıkarıyoruz
-                    startDate.setTime(startDate.getTime() - this.inboxCheckPeriod * 1000);
+                    console.log('Sunucunun zaman dilimi', Intl.DateTimeFormat().resolvedOptions().timeZone);
 
-                    this.imap.search([['SINCE', startDate]], (err, results) => {
+                    const startDate = DateTime.now().minus({ seconds: 600 });
+
+                    this.imap.search([['SINCE', startDate.toFormat('d-LLL-yyyy')]], (err, results) => {
                         if (err) {
                             this.imap.end();
                             reject(err);
@@ -326,57 +326,68 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                                             err.stack
                                         );
                                     } else {
-                                        const cleanMessageId = mail.messageId?.replace(/[<>]/g, '');
+                                        const isInRange = DateTime.fromJSDate(mail.date).diff(startDate).toMillis() > 0;
 
-                                        const existingLogs = await this.logService.getLogs({
-                                            level: LOG_LEVEL.INFO,
-                                            action: INBOX_ACTION.FETCH,
-                                            entity: cleanMessageId,
-                                        });
-
-                                        if (existingLogs?.length == 0) {
-                                            this.log(
-                                                LOG_LEVEL.INFO,
-                                                INBOX_ACTION.FETCH,
-                                                'E-posta işleniyor',
-                                                null,
-                                                cleanMessageId,
-                                                null
+                                        if (isInRange) {
+                                            console.log(
+                                                'Formatted Mail Date',
+                                                DateTime.fromJSDate(mail.date).setLocale('tr').toISO(),
+                                                'isInRange',
+                                                isInRange
                                             );
 
-                                            if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
-                                                try {
-                                                    // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
-                                                    await this.processBookingEmail(mail, cleanMessageId);
-                                                } catch (e) {
+                                            const cleanMessageId = mail.messageId?.replace(/[<>]/g, '');
+
+                                            const existingLogs = await this.logService.getLogs({
+                                                level: LOG_LEVEL.INFO,
+                                                action: INBOX_ACTION.FETCH,
+                                                entity: cleanMessageId,
+                                            });
+
+                                            if (existingLogs?.length == 0) {
+                                                this.log(
+                                                    LOG_LEVEL.INFO,
+                                                    INBOX_ACTION.FETCH,
+                                                    `E-posta işleniyor, mail date: ${DateTime.fromJSDate(mail.date).setLocale('tr').toISO()}`,
+                                                    null,
+                                                    cleanMessageId,
+                                                    null
+                                                );
+
+                                                if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
+                                                    try {
+                                                        // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
+                                                        //await this.processBookingEmail(mail, cleanMessageId);
+                                                    } catch (e) {
+                                                        this.log(
+                                                            LOG_LEVEL.ERROR,
+                                                            INBOX_ACTION.PROCESS,
+                                                            'E-posta işlenirken hata',
+                                                            e,
+                                                            cleanMessageId,
+                                                            e.stack
+                                                        );
+                                                    }
+                                                } else {
                                                     this.log(
-                                                        LOG_LEVEL.ERROR,
-                                                        INBOX_ACTION.PROCESS,
-                                                        'E-posta işlenirken hata',
-                                                        e,
+                                                        LOG_LEVEL.INFO,
+                                                        INBOX_ACTION.SKIP,
+                                                        'Booking maili olmadığı için atlanıyor',
+                                                        mail.subject,
                                                         cleanMessageId,
-                                                        e.stack
+                                                        null
                                                     );
                                                 }
                                             } else {
                                                 this.log(
                                                     LOG_LEVEL.INFO,
                                                     INBOX_ACTION.SKIP,
-                                                    'Booking maili olmadığı için atlanıyor',
-                                                    mail.subject,
+                                                    'E-posta zaten işlendiği için atlanıyor',
+                                                    null,
                                                     cleanMessageId,
                                                     null
                                                 );
                                             }
-                                        } else {
-                                            this.log(
-                                                LOG_LEVEL.INFO,
-                                                INBOX_ACTION.SKIP,
-                                                'E-posta zaten işlendiği için atlanıyor',
-                                                null,
-                                                cleanMessageId,
-                                                null
-                                            );
                                         }
                                     }
 
