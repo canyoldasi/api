@@ -357,7 +357,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                                                 if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
                                                     try {
                                                         // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
-                                                        //await this.processBookingEmail(mail, cleanMessageId);
+                                                        await this.processBookingEmail(mail, cleanMessageId);
                                                     } catch (e) {
                                                         this.log(
                                                             LOG_LEVEL.ERROR,
@@ -598,7 +598,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                     pageSize: 1,
                 };
 
-                const accountsResult = await this.accountService.getAccountsByFilters(filters);
+                const accountsResult = await this.accountService.getAccounts(filters);
 
                 if (accountsResult.items.length > 0) {
                     // Use existing account
