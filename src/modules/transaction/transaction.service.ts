@@ -63,6 +63,7 @@ export class TransactionService {
             if (dto.locations && dto.locations.length > 0) {
                 const transactionLocations = dto.locations.map((location) => ({
                     transaction: { id: savedEntity.id },
+                    location: location.locationId ? { id: location.locationId } : null,
                     country: location.countryId ? { id: location.countryId } : null,
                     city: location.cityId ? { id: location.cityId } : null,
                     county: location.countyId ? { id: location.countyId } : null,
@@ -87,6 +88,8 @@ export class TransactionService {
     }
 
     async update(dto: CreateUpdateTransactionDTO): Promise<Transaction> {
+        let transactionId: string;
+
         await this.entityManager.transaction(async (manager) => {
             // Sadece gönderilen alanları içeren bir obje oluştur
             const updateData: DeepPartial<Transaction> = {};
@@ -176,18 +179,22 @@ export class TransactionService {
                 updateData.currency = dto.currencyId ? { id: dto.currencyId } : null;
             }
 
-            // Transaction'ı güncelle
-            await manager.update(Transaction, dto.id, updateData);
+            // Temel transaction nesnesini güncelle
+            const updatedTransaction = await manager.save(Transaction, {
+                id: dto.id,
+                ...updateData,
+            });
+            transactionId = updatedTransaction.id;
 
             // Transaction ürünlerini güncelle
             if (dto.products !== undefined) {
                 // Önce mevcut ürünleri sil
-                await manager.delete(TransactionProduct, { transaction: { id: dto.id } });
+                await manager.delete(TransactionProduct, { transaction: { id: transactionId } });
 
                 // Yeni ürünleri ekle
                 if (dto.products.length > 0) {
                     const transactionProducts = dto.products.map((product) => ({
-                        transaction: { id: dto.id },
+                        transaction: { id: transactionId },
                         product: { id: product.productId },
                         quantity: product.quantity,
                         unitPrice: product.unitPrice,
@@ -203,12 +210,13 @@ export class TransactionService {
             // Transaction lokasyonlarını güncelle
             if (dto.locations !== undefined) {
                 // Önce mevcut lokasyonları sil
-                await manager.delete(TransactionLocation, { transaction: { id: dto.id } });
+                await manager.delete(TransactionLocation, { transaction: { id: transactionId } });
 
                 // Yeni lokasyonları ekle
                 if (dto.locations.length > 0) {
                     const transactionLocations = dto.locations.map((location) => ({
-                        transaction: { id: dto.id },
+                        transaction: { id: transactionId },
+                        location: location.locationId ? { id: location.locationId } : null,
                         country: location.countryId ? { id: location.countryId } : null,
                         city: location.cityId ? { id: location.cityId } : null,
                         county: location.countyId ? { id: location.countyId } : null,
@@ -226,11 +234,11 @@ export class TransactionService {
                     await manager.save(TransactionLocation, transactionLocations);
                 }
             }
+
+            this.logger.log(`Transaction updated: ${updatedTransaction.id}`);
         });
 
-        this.logger.log(`Transaction updated: ${dto.id}`);
-
-        return this.getOne(dto.id);
+        return this.getOne(transactionId);
     }
 
     async delete(id: string): Promise<boolean> {

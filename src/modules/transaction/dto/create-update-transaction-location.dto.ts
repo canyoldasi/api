@@ -11,6 +11,11 @@ export class CreateUpdateTransactionLocationDTO {
 
     @Field(() => String, { nullable: true })
     @IsOptional()
+    @IsUUID()
+    locationId?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
     @IsString()
     code?: string;
 

@@ -57,6 +57,7 @@ export class AccountService {
             if (dto.locations?.length) {
                 const accountLocations = dto.locations.map((location) => ({
                     account: { id: savedEntity.id },
+                    location: location.locationId ? { id: location.locationId } : null,
                     country: location.countryId ? { id: location.countryId } : null,
                     city: location.cityId ? { id: location.cityId } : null,
                     county: location.countyId ? { id: location.countyId } : null,
@@ -211,7 +212,8 @@ export class AccountService {
                 if (dto.locations.length > 0) {
                     const accountLocations = dto.locations.map((location) => ({
                         account: { id: accountId },
-                        country: { id: location.countryId },
+                        location: location.locationId ? { id: location.locationId } : null,
+                        country: location.countryId ? { id: location.countryId } : null,
                         city: location.cityId ? { id: location.cityId } : null,
                         county: location.countyId ? { id: location.countyId } : null,
                         district: location.districtId ? { id: location.districtId } : null,
@@ -220,6 +222,7 @@ export class AccountService {
                         latitude: location.latitude,
                         longitude: location.longitude,
                         note: location.note,
+                        code: location.code,
                     }));
 
                     await manager.save(AccountLocation, accountLocations);

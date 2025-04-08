@@ -53,6 +53,7 @@ import { Setting } from 'src/entities/setting.entity';
 import { SettingModule } from '../setting/setting.module';
 import { Language } from 'src/entities/language.entity';
 import { LanguageService } from './language.service';
+import { Location } from 'src/entities/location.entity';
 
 @Module({
     imports: [
@@ -99,6 +100,7 @@ import { LanguageService } from './language.service';
                 Currency,
                 Setting,
                 Language,
+                Location,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         }),

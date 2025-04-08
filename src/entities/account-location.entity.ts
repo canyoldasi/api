@@ -5,6 +5,7 @@ import { City } from './city.entity';
 import { County } from './county.entity';
 import { Country } from './country.entity';
 import { District } from './district.entity';
+import { Location } from './location.entity';
 
 @Entity()
 @ObjectType()
@@ -20,6 +21,10 @@ export class AccountLocation {
     @ManyToOne(() => Account, (account) => account.locations)
     @Field(() => Account)
     account: Account;
+
+    @ManyToOne(() => Location, { nullable: true })
+    @Field(() => Location, { nullable: true })
+    location?: Location;
 
     @ManyToOne(() => Country, (country) => country.accountLocations)
     @Field(() => Country)

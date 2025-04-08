@@ -5,6 +5,9 @@ export class CreateUpdateAccountLocationDTO {
     @Field({ nullable: true })
     id?: string;
 
+    @Field({ nullable: true })
+    locationId?: string;
+
     @Field()
     countryId: string;
 
