@@ -123,6 +123,26 @@ export class TransactionService {
                 updateData.no = dto.no;
             }
 
+            if (dto.name !== undefined) {
+                updateData.name = dto.name;
+            }
+
+            if (dto.firstName !== undefined) {
+                updateData.firstName = dto.firstName;
+            }
+
+            if (dto.lastName !== undefined) {
+                updateData.lastName = dto.lastName;
+            }
+
+            if (dto.email !== undefined) {
+                updateData.email = dto.email;
+            }
+
+            if (dto.phone !== undefined) {
+                updateData.phone = dto.phone;
+            }
+
             if (dto.successDate !== undefined) {
                 updateData.successDate = dto.successDate;
             }
@@ -300,7 +320,7 @@ export class TransactionService {
         // Filtreleri uygula
         if (filters.text) {
             queryBuilder.andWhere(
-                '(transaction.no LIKE :text OR transaction.note LIKE :text OR transaction.address LIKE :text)',
+                '(transaction.no LIKE :text OR transaction.note LIKE :text OR transaction.address LIKE :text OR transaction.name LIKE :text OR transaction.firstName LIKE :text OR transaction.lastName LIKE :text OR transaction.email LIKE :text OR transaction.phone LIKE :text)',
                 { text: `%${filters.text}%` }
             );
         }

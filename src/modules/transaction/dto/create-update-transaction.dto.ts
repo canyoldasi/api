@@ -53,6 +53,21 @@ export class CreateUpdateTransactionDTO {
     no?: string;
 
     @Field({ nullable: true })
+    name?: string;
+
+    @Field({ nullable: true })
+    firstName?: string;
+
+    @Field({ nullable: true })
+    lastName?: string;
+
+    @Field({ nullable: true })
+    email?: string;
+
+    @Field({ nullable: true })
+    phone?: string;
+
+    @Field({ nullable: true })
     successDate?: Date;
 
     @Field({ nullable: true })

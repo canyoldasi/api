@@ -108,4 +108,24 @@ export class Transaction extends BaseEntity {
     @ManyToOne(() => Currency, (currency) => currency.transactions, { nullable: true })
     @Field(() => Currency, { nullable: true })
     currency?: Currency;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    name?: string;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    firstName?: string;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    lastName?: string;
+
+    @Column({ unique: true, nullable: true })
+    @Field({ nullable: true })
+    email?: string;
+
+    @Column({ unique: true, nullable: true })
+    @Field({ nullable: true })
+    phone?: string;
 }
