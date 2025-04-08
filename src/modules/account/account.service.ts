@@ -286,7 +286,7 @@ export class AccountService {
         });
     }
 
-    async getAccountsByFilters(filters: GetAccountsDTO): Promise<PaginatedResult<Account>> {
+    async getAccounts(filters: GetAccountsDTO): Promise<PaginatedResult<Account>> {
         const queryBuilder = this.entityManager
             .createQueryBuilder(Account, 'account')
             .leftJoinAndSelect('account.accountAccountTypes', 'accountAccountTypes')

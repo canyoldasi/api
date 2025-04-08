@@ -5,6 +5,8 @@ import { City } from '../../entities/city.entity';
 import { County } from '../../entities/county.entity';
 import { District } from '../../entities/district.entity';
 import { Country } from '../../entities/country.entity';
+import { Location } from '../../entities/location.entity';
+import { GetLocationsDTO } from './dto/get-locations.dto';
 
 @Injectable()
 export class LocationService {
@@ -16,7 +18,9 @@ export class LocationService {
         @InjectRepository(District)
         private readonly districtRepository: Repository<District>,
         @InjectRepository(Country)
-        private readonly countryRepository: Repository<Country>
+        private readonly countryRepository: Repository<Country>,
+        @InjectRepository(Location)
+        private readonly locationRepository: Repository<Location>
     ) {}
 
     async getCountries(text?: string): Promise<Country[]> {
@@ -82,5 +86,20 @@ export class LocationService {
         }
 
         return query.orderBy('district.name', 'ASC').getMany();
+    }
+
+    async getLocations(input: GetLocationsDTO): Promise<Location[]> {
+        const query = this.locationRepository.createQueryBuilder('location');
+
+        if (input.text) {
+            query.where('(LOWER(location.name) LIKE LOWER(:text) OR LOWER(location.address) LIKE LOWER(:text))', {
+                text: `%${input.text}%`,
+            });
+        }
+
+        return query
+            .andWhere('location.isActive = :isActive', { isActive: true })
+            .orderBy('location.name', 'ASC')
+            .getMany();
     }
 }

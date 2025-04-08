@@ -29,7 +29,7 @@ export class AccountResolver {
     @Query(() => PaginatedAccount)
     @Permissions(PERMISSIONS.AccountRead)
     async getAccounts(@Args('input') input: GetAccountsDTO): Promise<PaginatedResult<Account>> {
-        return this.accountService.getAccountsByFilters(input);
+        return this.accountService.getAccounts(input);
     }
 
     @Query(() => [AccountType])

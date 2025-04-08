@@ -32,7 +32,7 @@ export class TransactionResolver {
     @Query(() => PaginatedTransaction)
     @Permissions(PERMISSIONS.TransactionRead)
     async getTransactions(@Args('input') input: GetTransactionsDTO): Promise<PaginatedResult<Transaction>> {
-        return this.transactionService.getTransactionsByFilters(input);
+        return this.transactionService.getTransactions(input);
     }
 
     @Query(() => [TransactionStatus])

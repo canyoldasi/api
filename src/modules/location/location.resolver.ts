@@ -4,6 +4,8 @@ import { City } from '../../entities/city.entity';
 import { County } from '../../entities/county.entity';
 import { District } from '../../entities/district.entity';
 import { Country } from '../../entities/country.entity';
+import { Location } from '../../entities/location.entity';
+import { GetLocationsDTO } from './dto/get-locations.dto';
 
 @Resolver()
 export class LocationResolver {
@@ -36,5 +38,15 @@ export class LocationResolver {
         @Args('text', { nullable: true }) text?: string
     ): Promise<District[]> {
         return this.locationService.getDistricts(countyId, text);
+    }
+
+    @Query(() => [Location])
+    async getLocations(@Args('input', { nullable: true }) input?: GetLocationsDTO): Promise<Location[]> {
+        return this.locationService.getLocations(input || {});
+    }
+
+    @Query(() => [Location])
+    async getLocationsLookup(@Args('text', { nullable: true }) text?: string): Promise<Location[]> {
+        return this.locationService.getLocations({ text });
     }
 }

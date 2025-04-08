@@ -275,7 +275,7 @@ export class TransactionService {
         return result;
     }
 
-    async getTransactionsByFilters(filters: GetTransactionsDTO): Promise<PaginatedResult<Transaction>> {
+    async getTransactions(filters: GetTransactionsDTO): Promise<PaginatedResult<Transaction>> {
         const queryBuilder = this.entityManager
             .createQueryBuilder(Transaction, 'transaction')
             .leftJoinAndSelect('transaction.account', 'account')
@@ -290,6 +290,11 @@ export class TransactionService {
             .leftJoinAndSelect('transaction.district', 'district')
             .leftJoinAndSelect('transaction.channel', 'channel')
             .leftJoinAndSelect('transaction.currency', 'currency')
+            .leftJoinAndSelect('transaction.locations', 'locations')
+            .leftJoinAndSelect('locations.country', 'locationCountry')
+            .leftJoinAndSelect('locations.city', 'locationCity')
+            .leftJoinAndSelect('locations.county', 'locationCounty')
+            .leftJoinAndSelect('locations.district', 'locationDistrict')
             .where('transaction.deletedAt IS NULL');
 
         // Filtreleri uygula
