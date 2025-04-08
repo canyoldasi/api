@@ -9,6 +9,9 @@ export class AddUpdateRoleDto {
     @Field()
     name: string;
 
+    @Field({ nullable: true })
+    homepage?: string;
+
     @Field()
     roleTypeId: string;
 

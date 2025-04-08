@@ -29,4 +29,8 @@ export class Role extends BaseEntity {
 
     @Field()
     updatedAt: Date;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    homepage?: string;
 }

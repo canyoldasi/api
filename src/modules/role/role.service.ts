@@ -34,6 +34,7 @@ export class RoleService {
         await this.entityManager.transaction(async (manager) => {
             ret = await manager.save(Role, {
                 name: dto.name,
+                homepage: dto.homepage,
                 roleType: {
                     id: dto.roleTypeId,
                 },
@@ -59,6 +60,7 @@ export class RoleService {
             ret = await manager.save(Role, {
                 id: dto.id,
                 name: dto.name,
+                homepage: dto.homepage,
                 roleType: {
                     id: dto.roleTypeId,
                 },
