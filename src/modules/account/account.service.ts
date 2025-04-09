@@ -33,6 +33,7 @@ export class AccountService {
             // Önce temel account nesnesini kaydet (ilişkiler olmadan)
             toSave = {
                 ...dto,
+                name: dto.name || `${dto.firstName || ''} ${dto.lastName || ''}`,
                 assignedUser: dto.assignedUserId ? { id: dto.assignedUserId } : null,
                 channel: dto.channelId ? { id: dto.channelId } : null,
                 country: dto.countryId ? { id: dto.countryId } : null,
@@ -103,8 +104,10 @@ export class AccountService {
                 updateData.channel = dto.channelId ? ({ id: dto.channelId } as DeepPartial<Channel>) : null;
             }
 
-            if (dto.name !== undefined) {
-                updateData.name = dto.name;
+            if (dto.name === undefined) {
+                updateData.name = `${dto.firstName || ''} ${dto.lastName || ''}`;
+            } else {
+                updateData.name = dto.name || `${dto.firstName || ''} ${dto.lastName || ''}`;
             }
 
             if (dto.firstName !== undefined) {
