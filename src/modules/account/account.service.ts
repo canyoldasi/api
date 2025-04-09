@@ -309,7 +309,7 @@ export class AccountService {
 
         if (filters.text) {
             queryBuilder.andWhere(
-                '(account.name ILIKE :text OR account.firstName ILIKE :text OR account.lastName ILIKE :text OR account.email ILIKE :text OR account.phone ILIKE :text)',
+                '(account.name ILIKE :text OR account.firstName ILIKE :text OR account.lastName ILIKE :text OR account.email ILIKE :text OR account.phone ILIKE :text OR account.address ILIKE :text OR account.note ILIKE :text OR account.no ILIKE :text)',
                 { text: `%${filters.text}%` }
             );
         }
