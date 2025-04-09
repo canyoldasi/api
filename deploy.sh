@@ -29,7 +29,6 @@ scp deploy_${TIMESTAMP}.tar.gz root@recommed.co:/root/agiletech/crm/
 echo "💾 Remote klasör yedekleniyor ve dosyalar çıkartılıyor..."
 ssh root@recommed.co "set -e && \
     rm -rf /root/agiletech/crm/api/node_modules && \
-    rm -rf /root/agiletech/crm/api/entities && \
     tar czf /root/agiletech/crm/api_remote_backup_${TIMESTAMP}.tar.gz /root/agiletech/crm/api && \
     tar xzf /root/agiletech/crm/deploy_${TIMESTAMP}.tar.gz -C /root/agiletech/crm/api"
 
