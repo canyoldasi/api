@@ -92,16 +92,29 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
 
     private async initializeInBackground() {
         try {
-            const [inboxCheckInterval, inboxCheckPeriod, inboxUser, inboxPassword, inboxHost, inboxPort, inboxTls] =
-                await this.settingService.getSettings([
-                    'bl_inbox_check_interval',
-                    'bl_inbox_check_period',
-                    'bl_inbox_user',
-                    'bl_inbox_password',
-                    'bl_inbox_host',
-                    'bl_inbox_port',
-                    'bl_inbox_tls',
-                ]);
+            const [
+                inboxCheckActive,
+                inboxCheckInterval,
+                inboxCheckPeriod,
+                inboxUser,
+                inboxPassword,
+                inboxHost,
+                inboxPort,
+                inboxTls,
+            ] = await this.settingService.getSettings([
+                'bl_inbox_check_active',
+                'bl_inbox_check_interval',
+                'bl_inbox_check_period',
+                'bl_inbox_user',
+                'bl_inbox_password',
+                'bl_inbox_host',
+                'bl_inbox_port',
+                'bl_inbox_tls',
+            ]);
+
+            if (inboxCheckActive != 'true') {
+                return;
+            }
 
             this.inboxCheckInterval = parseInt(inboxCheckInterval || '60', 10);
             this.inboxCheckPeriod = parseInt(inboxCheckPeriod || '600', 10);
