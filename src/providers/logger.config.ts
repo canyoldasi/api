@@ -14,10 +14,17 @@ const uncoloredFormat = winston.format.combine(
     winston.format.timestamp({
         format: () => moment().tz('Europe/Istanbul').format('YYYY-MM-DD HH:mm:ss.SSS'),
     }),
-    winston.format.printf(
-        ({ timestamp, level, message, stack, context }) =>
-            `[${timestamp}] ${level}: Message: ${message} Context: ${context || ''} Stack: ${stack || ''}`
-    )
+    winston.format.errors({ stack: true }),
+    winston.format.printf(({ timestamp, level, message, stack, context }) => {
+        let logMessage = `[${timestamp}] ${level}: Message: ${message}`;
+        if (context) {
+            logMessage += ` Context: ${context}`;
+        }
+        if (stack) {
+            logMessage += `\nStack Trace:\n${stack}`;
+        }
+        return logMessage;
+    })
 );
 
 export const loggerConfig: LoggerOptions = {

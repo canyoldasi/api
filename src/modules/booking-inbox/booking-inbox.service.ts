@@ -1,5 +1,5 @@
 import { Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
-import * as IMAP from 'node-imap';
+import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import { EntityManager } from 'typeorm';
 import { LogService } from '../log/log.service';
@@ -14,7 +14,7 @@ import { GetAccountsDTO } from '../account/dto/get-accounts.dto';
 import { CreateUpdateAccountDTO } from '../account/dto/create-update-account.dto';
 import { ProductService } from '../product/product.service';
 import { SettingService } from '../setting/setting.service';
-import { DateTime } from 'luxon';
+import * as moment from 'moment';
 
 enum BookingEmailType {
     NEW = 'NEW',
@@ -67,7 +67,7 @@ export enum INBOX_ACTION {
 
 @Injectable()
 export class BookingInboxService implements OnApplicationBootstrap, OnApplicationShutdown {
-    private imap: IMAP;
+    private client: ImapFlow;
     private inboxCheckInterval: number;
     private inboxCheckPeriod: number;
     private bookingChannelId: string;
@@ -119,18 +119,19 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             this.inboxCheckInterval = parseInt(inboxCheckInterval || '60', 10);
             this.inboxCheckPeriod = parseInt(inboxCheckPeriod || '600', 10);
 
-            this.imap = new IMAP({
-                user: inboxUser,
-                password: inboxPassword,
+            this.client = new ImapFlow({
                 host: inboxHost,
                 port: parseInt(inboxPort || '993', 10),
-                tls: inboxTls === 'true',
-                tlsOptions: { rejectUnauthorized: false },
-                authTimeout: 10000,
+                secure: inboxTls === 'true',
+                auth: {
+                    user: inboxUser,
+                    pass: inboxPassword,
+                },
+                logger: false,
             });
 
             // Hata olaylarını dinle
-            this.imap.once('error', (err) => {
+            this.client.on('error', (err) => {
                 this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CONNECT, 'IMAP bağlantı hatası', err, null, null);
             });
 
@@ -282,160 +283,144 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
      * E-postaları getir ve işle
      */
     private async fetchEmails(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            // IMAP sunucusuna bağlan
-            this.imap.once('ready', () => {
-                // INBOX klasörünü aç
-                this.imap.openBox('INBOX', false, (err) => {
-                    if (err) {
-                        this.imap.end();
-                        reject(err);
-                        return;
-                    }
+        try {
+            await this.client.connect();
+            await this.client.mailboxOpen('INBOX');
 
-                    console.log('Sunucunun zaman dilimi', Intl.DateTimeFormat().resolvedOptions().timeZone);
+            // Get current time minus check period
+            const startDate = moment().subtract(this.inboxCheckPeriod, 'seconds');
 
-                    const startDate = DateTime.now().minus({ seconds: 600 });
+            // Get all messages
+            const messages = await this.client.search(
+                {
+                    since: startDate.toISOString(),
+                },
+                { uid: true }
+            );
 
-                    this.imap.search([['SINCE', startDate.toFormat('d-LLL-yyyy')]], (err, results) => {
-                        if (err) {
-                            this.imap.end();
-                            reject(err);
-                            return;
-                        }
+            if (messages.length === 0) {
+                this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, 'İşlenecek e-posta bulunamadı', null, null, null);
+                return;
+            }
 
-                        if (!results || results.length === 0) {
-                            this.log(LOG_LEVEL.INFO, INBOX_ACTION.FETCH, 'Yeni e-posta yok.', null, null, null);
-                            this.imap.end();
-                            resolve();
-                            return;
-                        }
+            this.log(LOG_LEVEL.INFO, INBOX_ACTION.CHECK, `${messages.length} adet e-posta bulundu`, null, null, null);
 
+            // Process emails sequentially
+            for (const uid of messages) {
+                try {
+                    // Download full content
+                    const { content } = await this.client.download(uid.toString());
+                    if (!content) {
                         this.log(
-                            LOG_LEVEL.INFO,
+                            LOG_LEVEL.ERROR,
                             INBOX_ACTION.FETCH,
-                            `${results.length} adet e-posta bulundu.`,
-                            {
-                                count: results.length,
-                            },
+                            'E-posta içeriği bulunamadı',
                             null,
+                            uid.toString(),
                             null
                         );
+                        continue;
+                    }
+                    try {
+                        const mail = await simpleParser(content);
+                        try {
+                            const mailDate = moment(mail.date);
+                            const isInRange = mailDate.isAfter(startDate);
 
-                        const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
-                        let fetchedEmailCount = 0;
+                            console.log(
+                                'Mail date:',
+                                mailDate.format('YYYY-MM-DD HH:mm:ss'),
+                                'Start date:',
+                                startDate.format('YYYY-MM-DD HH:mm:ss'),
+                                'Is in range:',
+                                isInRange
+                            );
 
-                        fetch.on('message', (msg) => {
-                            msg.on('body', (stream) => {
-                                // E-posta içeriğini ayrıştır
-                                simpleParser(stream, async (err, mail) => {
-                                    if (err) {
-                                        this.log(
-                                            LOG_LEVEL.ERROR,
-                                            INBOX_ACTION.PARSE,
-                                            'E-posta ayrıştırma hatası',
-                                            err,
-                                            null,
-                                            err.stack
-                                        );
-                                    } else {
-                                        const isInRange = DateTime.fromJSDate(mail.date).diff(startDate).toMillis() > 0;
+                            if (isInRange) {
+                                const cleanMessageId = mail.messageId?.replace(/[<>]/g, '');
 
-                                        if (isInRange) {
-                                            console.log(
-                                                'Formatted Mail Date',
-                                                DateTime.fromJSDate(mail.date).setLocale('tr').toISO(),
-                                                'isInRange',
-                                                isInRange
-                                            );
+                                const existingLogs = await this.logService.getLogs({
+                                    level: LOG_LEVEL.INFO,
+                                    action: INBOX_ACTION.FETCH,
+                                    entity: cleanMessageId,
+                                });
 
-                                            const cleanMessageId = mail.messageId?.replace(/[<>]/g, '');
+                                if (existingLogs?.length == 0) {
+                                    this.log(
+                                        LOG_LEVEL.INFO,
+                                        INBOX_ACTION.FETCH,
+                                        `E-posta işleniyor, mail date: ${mailDate.format('YYYY-MM-DD HH:mm:ss')}`,
+                                        null,
+                                        cleanMessageId,
+                                        null
+                                    );
 
-                                            const existingLogs = await this.logService.getLogs({
-                                                level: LOG_LEVEL.INFO,
-                                                action: INBOX_ACTION.FETCH,
-                                                entity: cleanMessageId,
-                                            });
-
-                                            if (existingLogs?.length == 0) {
-                                                this.log(
-                                                    LOG_LEVEL.INFO,
-                                                    INBOX_ACTION.FETCH,
-                                                    `E-posta işleniyor, mail date: ${DateTime.fromJSDate(mail.date).setLocale('tr').toISO()}`,
-                                                    null,
-                                                    cleanMessageId,
-                                                    null
-                                                );
-
-                                                if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
-                                                    try {
-                                                        // E-posta içeriğini kontrol et ve gerekirse transaction oluştur
-                                                        await this.processBookingEmail(mail, cleanMessageId);
-                                                    } catch (e) {
-                                                        this.log(
-                                                            LOG_LEVEL.ERROR,
-                                                            INBOX_ACTION.PROCESS,
-                                                            'E-posta işlenirken hata',
-                                                            e,
-                                                            cleanMessageId,
-                                                            e.stack
-                                                        );
-                                                    }
-                                                } else {
-                                                    this.log(
-                                                        LOG_LEVEL.INFO,
-                                                        INBOX_ACTION.SKIP,
-                                                        'Booking maili olmadığı için atlanıyor',
-                                                        mail.subject,
-                                                        cleanMessageId,
-                                                        null
-                                                    );
-                                                }
-                                            } else {
-                                                this.log(
-                                                    LOG_LEVEL.INFO,
-                                                    INBOX_ACTION.SKIP,
-                                                    'E-posta zaten işlendiği için atlanıyor',
-                                                    null,
-                                                    cleanMessageId,
-                                                    null
-                                                );
-                                            }
-                                        } else {
-                                            console.log(
-                                                'Formatted Mail Date',
-                                                DateTime.fromJSDate(mail.date).setLocale('tr').toISO(),
-                                                'isInRange',
-                                                isInRange
+                                    if (mail.from?.text.includes('info@bodrumluxurytravel.com')) {
+                                        try {
+                                            await this.processBookingEmail(mail, cleanMessageId);
+                                        } catch (e) {
+                                            this.log(
+                                                LOG_LEVEL.ERROR,
+                                                INBOX_ACTION.PROCESS,
+                                                'E-posta işlenirken hata',
+                                                e,
+                                                cleanMessageId,
+                                                e.stack
                                             );
                                         }
+                                    } else {
+                                        this.log(
+                                            LOG_LEVEL.INFO,
+                                            INBOX_ACTION.SKIP,
+                                            'Booking maili olmadığı için atlanıyor',
+                                            mail.subject,
+                                            cleanMessageId,
+                                            null
+                                        );
                                     }
-
-                                    fetchedEmailCount++;
-                                    if (fetchedEmailCount === results.length) {
-                                        this.imap.end();
-                                        resolve();
-                                    }
-                                });
-                            });
-                        });
-
-                        fetch.once('error', (err) => {
-                            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.FETCH, 'Getirme hatası', err, null, err.stack);
-                            this.imap.end();
-                            reject(err);
-                        });
-                    });
-                });
-            });
-
-            this.imap.connect();
-        });
+                                } else {
+                                    this.log(
+                                        LOG_LEVEL.INFO,
+                                        INBOX_ACTION.SKIP,
+                                        'E-posta zaten işlendiği için atlanıyor',
+                                        null,
+                                        cleanMessageId,
+                                        null
+                                    );
+                                }
+                            }
+                        } catch (error) {
+                            this.log(
+                                LOG_LEVEL.ERROR,
+                                INBOX_ACTION.PROCESS,
+                                'simpleParser error',
+                                error,
+                                null,
+                                error.stack
+                            );
+                        }
+                    } catch (error) {
+                        this.log(
+                            LOG_LEVEL.ERROR,
+                            INBOX_ACTION.FETCH,
+                            'client.download error',
+                            error,
+                            null,
+                            error.stack
+                        );
+                    }
+                } catch (error) {
+                    this.log(LOG_LEVEL.ERROR, INBOX_ACTION.FETCH, 'E-posta çekme hatası', error, null, error.stack);
+                }
+            }
+        } catch (error) {
+            this.log(LOG_LEVEL.ERROR, INBOX_ACTION.CHECK, 'E-posta kontrolü sırasında hata', error, null, error.stack);
+            throw error;
+        } finally {
+            await this.client.logout();
+        }
     }
 
-    /**
-     * Booking.com mail içeriğini parse et
-     */
     private determineEmailType(mail: ParsedMail, textContent: string): BookingDetails {
         const details: BookingDetails = {
             messageId: '',
