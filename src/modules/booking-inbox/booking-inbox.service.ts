@@ -656,7 +656,6 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                 amount: bookingDetails.transferDetails.price.amount || 0,
                 note: logContent,
                 accountId: accountId,
-                flightNumber: bookingDetails.flightNumber,
                 name: bookingDetails.traveler.fullName,
                 phone: bookingDetails.traveler.phoneNumber,
             };
