@@ -82,7 +82,7 @@ export class TransactionService {
             }
         });
 
-        this.logger.log(`Transaction created: ${dto.id}`);
+        //this.logger.log(`Transaction created: ${dto.id}`);
 
         return toSave ? this.getOne(toSave.id) : null;
     }
@@ -255,7 +255,7 @@ export class TransactionService {
                 }
             }
 
-            this.logger.log(`Transaction updated: ${updatedTransaction.id}`);
+            //this.logger.log(`Transaction updated: ${updatedTransaction.id}`);
         });
 
         return this.getOne(transactionId);
@@ -339,6 +339,14 @@ export class TransactionService {
 
         if (filters.accountId) {
             queryBuilder.andWhere('account.id = :accountId', { accountId: filters.accountId });
+        }
+
+        if (filters.externalId) {
+            queryBuilder.andWhere('transaction.externalId = :externalId', { externalId: filters.externalId });
+        }
+
+        if (filters.no) {
+            queryBuilder.andWhere('transaction.no = :no', { no: filters.no });
         }
 
         if (filters.amountStart !== undefined) {

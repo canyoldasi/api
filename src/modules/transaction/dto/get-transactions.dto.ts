@@ -53,4 +53,10 @@ export class GetTransactionsDTO extends PaginationBaseDTO {
 
     @Field(() => [String], { nullable: true })
     productIds?: string[];
+
+    @Field(() => String, { nullable: true })
+    externalId?: string;
+
+    @Field(() => String, { nullable: true })
+    no?: string;
 }

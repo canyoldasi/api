@@ -41,7 +41,10 @@ export class Transaction extends BaseEntity {
     @Field(() => User, { nullable: true })
     assignedUser?: User;
 
-    @OneToMany(() => TransactionProduct, (transactionProduct) => transactionProduct.transaction)
+    @OneToMany(() => TransactionProduct, (transactionProduct) => transactionProduct.transaction, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
     @Field(() => [TransactionProduct], { nullable: true })
     transactionProducts?: TransactionProduct[];
 
@@ -101,7 +104,10 @@ export class Transaction extends BaseEntity {
     @Field({ nullable: true })
     note?: string;
 
-    @OneToMany(() => TransactionLocation, (location) => location.transaction)
+    @OneToMany(() => TransactionLocation, (location) => location.transaction, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
     @Field(() => [TransactionLocation], { nullable: true })
     locations?: TransactionLocation[];
 
@@ -121,11 +127,15 @@ export class Transaction extends BaseEntity {
     @Field({ nullable: true })
     lastName?: string;
 
-    @Column({ unique: true, nullable: true })
+    @Column({ unique: false, nullable: true })
     @Field({ nullable: true })
     email?: string;
 
-    @Column({ unique: true, nullable: true })
+    @Column({ unique: false, nullable: true })
     @Field({ nullable: true })
     phone?: string;
+
+    @Column({ nullable: true, unique: false })
+    @Field({ nullable: true })
+    flightNumber?: string;
 }

@@ -401,6 +401,13 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                                                     null
                                                 );
                                             }
+                                        } else {
+                                            console.log(
+                                                'Formatted Mail Date',
+                                                DateTime.fromJSDate(mail.date).setLocale('tr').toISO(),
+                                                'isInRange',
+                                                isInRange
+                                            );
                                         }
                                     }
 
@@ -635,6 +642,10 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
             );
             const existingTransaction = existingTransactions[0];
 
+            console.log('-------------------------------');
+            console.log('ReservationId', bookingDetails.reservationId);
+            console.log('Var mı', existingTransactions.length > 0 ? 'Var' : 'Yok');
+
             // Prepare transaction data
             const transactionData: CreateUpdateTransactionDTO = {
                 no: bookingDetails.reservationId,
@@ -645,9 +656,12 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                 amount: bookingDetails.transferDetails.price.amount || 0,
                 note: logContent,
                 accountId: accountId,
+                flightNumber: bookingDetails.flightNumber,
+                name: bookingDetails.traveler.fullName,
+                phone: bookingDetails.traveler.phoneNumber,
             };
 
-            if (existingTransaction) {
+            if (existingTransactions.length > 0) {
                 if (bookingDetails.emailType === BookingEmailType.CANCEL) {
                     transactionData.statusId = this.bookingCancelStatusId;
                 }
@@ -656,6 +670,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
                     id: existingTransaction.id,
                     ...transactionData,
                 });
+                console.log('Güncellendi: ', bookingDetails.reservationId);
             } else {
                 // Check if product exists by code
                 const productResult = await this.productService.getProductsByFilters({
@@ -698,6 +713,7 @@ export class BookingInboxService implements OnApplicationBootstrap, OnApplicatio
 
                 // Create new transaction
                 await this.transactionService.create(transactionData);
+                console.log('Eklendi: ', bookingDetails.reservationId);
             }
         } catch (error) {
             console.error('Error in determineEmail:', error);
